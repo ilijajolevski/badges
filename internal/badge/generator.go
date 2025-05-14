@@ -80,7 +80,16 @@ func (g *Generator) GenerateSVG(badge *database.Badge) ([]byte, error) {
 	}
 
 	// Generate SVG using template
-	tmpl, err := template.New("badge").Parse(badgeSVGTemplate)
+	tmpl := template.New("badge").Funcs(template.FuncMap{
+		"div": func(a, b int) int {
+			return a / b
+		},
+		"add": func(a, b int) int {
+			return a + b
+		},
+	})
+
+	tmpl, err = tmpl.Parse(badgeSVGTemplate)
 	if err != nil {
 		return nil, fmt.Errorf("failed to parse template: %w", err)
 	}
