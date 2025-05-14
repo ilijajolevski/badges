@@ -80,6 +80,21 @@ func main() {
 		IdleTimeout:  time.Second * 60,
 	}
 
+	// List available badges
+	badges, err := db.ListBadges()
+	if err != nil {
+		logger.Warn("Failed to list badges", zap.Error(err))
+	} else {
+		logger.Info("Available badges for serving", zap.Int("count", len(badges)))
+		for _, badge := range badges {
+			logger.Info("Badge", 
+				zap.String("commit_id", badge.CommitID), 
+				zap.String("type", badge.Type), 
+				zap.String("status", badge.Status),
+				zap.String("software", badge.SoftwareName + " " + badge.SoftwareVersion))
+		}
+	}
+
 	// Start HTTP server in a goroutine
 	go func() {
 		logger.Info("Starting server", zap.Int("port", cfg.Port))

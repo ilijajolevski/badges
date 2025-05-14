@@ -177,6 +177,9 @@ This design ensures the badges are visually consistent, readable, and highly cus
 - Use a template engine (e.g., `html/template` package) for `/details` HTML.
 - Cache SVGs, JPGs, and HTML pages (e.g., using an in-memory cache like `sync.Map` or a library like `gocache`).
 - Sanitize inputs, use HTTPS.
+- **Logging**: 
+  - Log all available badges at server startup for monitoring and debugging purposes.
+  - Each badge's commit ID, type, status, and software information is logged.
 - **Dockerfile**: Implement a multi-stage build to optimize the image size:
   - Stage 1: Build the Go binary.
   - Stage 2: Copy the binary and SQLite DB into a lightweight image (e.g., `alpine`).

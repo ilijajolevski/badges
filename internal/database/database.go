@@ -220,3 +220,38 @@ func (db *DB) UpdateBadgeImage(commitID, format string, content []byte) error {
 
 	return nil
 }
+
+// ListBadges retrieves all badges from the database
+func (db *DB) ListBadges() ([]*Badge, error) {
+	rows, err := db.Query(`
+		SELECT 
+			commit_id, type, status, issuer, issue_date, 
+			software_name, software_version, notes, svg_content, 
+			expiry_date, issuer_url, custom_config, jpg_content, png_content
+		FROM badges
+	`)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list badges: %w", err)
+	}
+	defer rows.Close()
+
+	var badges []*Badge
+	for rows.Next() {
+		var badge Badge
+		err := rows.Scan(
+			&badge.CommitID, &badge.Type, &badge.Status, &badge.Issuer, &badge.IssueDate,
+			&badge.SoftwareName, &badge.SoftwareVersion, &badge.Notes, &badge.SVGContent,
+			&badge.ExpiryDate, &badge.IssuerURL, &badge.CustomConfig, &badge.JPGContent, &badge.PNGContent,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan badge: %w", err)
+		}
+		badges = append(badges, &badge)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating badges: %w", err)
+	}
+
+	return badges, nil
+}
