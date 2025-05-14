@@ -1,0 +1,202 @@
+/* Base styles */
+:root {
+    --primary-color: #4B6CB7;
+    --secondary-color: #182848;
+    --accent-color: #4CAF50;
+    --text-color: #333;
+    --light-text: #666;
+    --background-color: #f5f5f5;
+    --card-background: #fff;
+    --border-color: #ddd;
+    --status-valid: #4CAF50;
+    --status-expired: #FF9800;
+    --status-revoked: #F44336;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    line-height: 1.6;
+    color: var(--text-color);
+    background-color: var(--background-color);
+    padding: 20px;
+}
+
+.container {
+    max-width: 1000px;
+    margin: 0 auto;
+    background-color: var(--card-background);
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    overflow: hidden;
+}
+
+/* Header styles */
+header {
+    background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
+    color: white;
+    padding: 30px;
+    text-align: center;
+}
+
+header h1 {
+    margin-bottom: 10px;
+}
+
+.commit-id {
+    font-family: monospace;
+    font-size: 0.9rem;
+    opacity: 0.8;
+}
+
+/* Main content styles */
+main {
+    padding: 30px;
+}
+
+.details-card {
+    display: flex;
+    flex-wrap: wrap;
+    margin-bottom: 40px;
+    gap: 30px;
+}
+
+.badge-preview {
+    flex: 1;
+    min-width: 300px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.details-info {
+    flex: 2;
+    min-width: 300px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+table th, table td {
+    padding: 12px 15px;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+table th {
+    width: 30%;
+    color: var(--light-text);
+}
+
+/* Status badges */
+.status-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    color: white;
+    text-transform: uppercase;
+}
+
+.status-valid {
+    background-color: var(--status-valid);
+}
+
+.status-expired {
+    background-color: var(--status-expired);
+}
+
+.status-revoked {
+    background-color: var(--status-revoked);
+}
+
+/* Integration section */
+.integration-info {
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    padding: 20px;
+    border: 1px solid var(--border-color);
+}
+
+.integration-info h2 {
+    margin-bottom: 15px;
+    color: var(--primary-color);
+}
+
+pre {
+    background-color: #f1f1f1;
+    padding: 15px;
+    border-radius: 4px;
+    overflow-x: auto;
+    font-family: monospace;
+    border: 1px solid #e0e0e0;
+}
+
+code {
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+/* Footer styles */
+footer {
+    background-color: #f1f1f1;
+    padding: 20px;
+    text-align: center;
+    color: var(--light-text);
+    font-size: 0.9rem;
+    border-top: 1px solid var(--border-color);
+}
+
+footer a {
+    color: var(--primary-color);
+    text-decoration: none;
+}
+
+footer a:hover {
+    text-decoration: underline;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .details-card {
+        flex-direction: column;
+    }
+    
+    .badge-preview, .details-info {
+        width: 100%;
+    }
+    
+    table th {
+        width: 40%;
+    }
+}
+
+@media (max-width: 480px) {
+    body {
+        padding: 10px;
+    }
+    
+    header, main, footer {
+        padding: 15px;
+    }
+    
+    table th, table td {
+        padding: 8px 10px;
+    }
+    
+    table th {
+        width: 50%;
+    }
+}

@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Badge/Certificate Details: {{ .CommitID }}</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <meta name="description" content="Details for badge/certificate {{ .CommitID }}">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Badge/Certificate Details</h1>
+            <p class="commit-id">ID: {{ .CommitID }}</p>
+        </header>
+
+        <main>
+            <div class="details-card">
+                <div class="badge-preview">
+                    {{ if eq .Type "badge" }}
+                    <img src="/badge/{{ .CommitID }}" alt="{{ .SoftwareName }} {{ .SoftwareVersion }} Badge">
+                    {{ else }}
+                    <object data="/certificate/{{ .CommitID }}" type="image/svg+xml" width="400" height="300">
+                        {{ .SoftwareName }} {{ .SoftwareVersion }} Certificate
+                    </object>
+                    {{ end }}
+                </div>
+
+                <div class="details-info">
+                    <table>
+                        <tr>
+                            <th>Type:</th>
+                            <td>{{ .Type }}</td>
+                        </tr>
+                        <tr>
+                            <th>Status:</th>
+                            <td>
+                                <span class="status-badge status-{{ .Status }}">{{ .Status }}</span>
+                                {{ if .IsExpired }}
+                                <span class="status-badge status-expired">Expired</span>
+                                {{ end }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Software:</th>
+                            <td>{{ .SoftwareName }} {{ .SoftwareVersion }}</td>
+                        </tr>
+                        <tr>
+                            <th>Issuer:</th>
+                            <td>
+                                {{ .Issuer }}
+                                {{ if .IssuerURL }}
+                                <a href="{{ .IssuerURL }}" target="_blank" rel="noopener noreferrer">(Website)</a>
+                                {{ end }}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Issue Date:</th>
+                            <td>{{ .IssueDate }}</td>
+                        </tr>
+                        {{ if .ExpiryDate }}
+                        <tr>
+                            <th>Expiry Date:</th>
+                            <td>{{ .ExpiryDate }}</td>
+                        </tr>
+                        {{ end }}
+                        {{ if .Notes }}
+                        <tr>
+                            <th>Notes:</th>
+                            <td>{{ .Notes }}</td>
+                        </tr>
+                        {{ end }}
+                    </table>
+                </div>
+            </div>
+
+            <div class="integration-info">
+                <h2>Integration</h2>
+                <p>Use the following HTML to embed this {{ .Type }} in your website:</p>
+                <pre><code>{{ if eq .Type "badge" }}
+&lt;a href="https://badges.finki.edu.mk/details/{{ .CommitID }}"&gt;
+    &lt;img src="https://badges.finki.edu.mk/badge/{{ .CommitID }}" alt="{{ .SoftwareName }} {{ .SoftwareVersion }} Badge"&gt;
+&lt;/a&gt;
+{{ else }}
+&lt;a href="https://badges.finki.edu.mk/details/{{ .CommitID }}"&gt;
+    &lt;object data="https://badges.finki.edu.mk/certificate/{{ .CommitID }}" type="image/svg+xml" width="400" height="300"&gt;
+        {{ .SoftwareName }} {{ .SoftwareVersion }} Certificate
+    &lt;/object&gt;
+&lt;/a&gt;
+{{ end }}</code></pre>
+            </div>
+        </main>
+
+        <footer>
+            <p>&copy; {{ .CurrentYear }} <a href="https://badges.finki.edu.mk">badges.finki.edu.mk</a></p>
+        </footer>
+    </div>
+</body>
+</html>
