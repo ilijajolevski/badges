@@ -19,7 +19,7 @@ type Config struct {
 func Load() (*Config, error) {
 	cfg := &Config{
 		// Default values
-		Port:         8080,
+		Port:         80,
 		LogLevel:     "development",
 		DatabasePath: "./db/badges.db",
 	}
