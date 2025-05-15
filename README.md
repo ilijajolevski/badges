@@ -124,4 +124,4 @@ To embed a certificate in your HTML:
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the Apache-2.0 Licence - see the LICENSE file for details.

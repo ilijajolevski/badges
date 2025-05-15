@@ -1,7 +1,7 @@
 # Variables
 APP_NAME := badge-service
 BINARY_NAME := $(APP_NAME)
-DOCKER_IMAGE := finki/$(APP_NAME)
+DOCKER_IMAGE := ilijajolevski/$(APP_NAME)
 DOCKER_TAG := latest
 
 # Go related variables
@@ -12,7 +12,7 @@ GOFILES := $(wildcard *.go)
 # Build flags
 LDFLAGS := -ldflags "-s -w"
 
-.PHONY: all build clean run test docker-build docker-push
+.PHONY: all build clean run test build-image push-image docker-run docker-stop docker-restart docker-logs
 
 # Default target
 all: build
@@ -48,6 +48,25 @@ push-image:
 	@echo "Pushing Docker image $(DOCKER_IMAGE):$(DOCKER_TAG)..."
 	@docker push $(DOCKER_IMAGE):$(DOCKER_TAG)
 
+# Run Docker image
+docker-run:
+	@echo "Running Docker image $(DOCKER_IMAGE):$(DOCKER_TAG)..."
+	@docker run -p 8080:8080 --name $(APP_NAME) -d $(DOCKER_IMAGE):$(DOCKER_TAG)
+
+# Stop and remove Docker container
+docker-stop:
+	@echo "Stopping Docker container $(APP_NAME)..."
+	@docker stop $(APP_NAME) || true
+	@docker rm $(APP_NAME) || true
+
+# Restart Docker container (stop and run)
+docker-restart: docker-stop docker-run
+
+# View Docker container logs
+docker-logs:
+	@echo "Viewing logs for Docker container $(APP_NAME)..."
+	@docker logs -f $(APP_NAME)
+
 # Install dependencies
 deps:
 	@echo "Installing dependencies..."
@@ -72,6 +91,10 @@ help:
 	@echo "  test         - Run tests"
 	@echo "  build-image  - Build Docker image"
 	@echo "  push-image   - Push Docker image to registry"
+	@echo "  docker-run   - Run the built Docker image"
+	@echo "  docker-stop  - Stop and remove the Docker container"
+	@echo "  docker-restart - Restart the Docker container"
+	@echo "  docker-logs  - View logs for the Docker container"
 	@echo "  deps         - Install dependencies"
 	@echo "  docs         - Generate documentation"
 	@echo "  db-init      - Initialize database directory"
