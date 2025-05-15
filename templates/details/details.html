@@ -58,6 +58,12 @@
                             <th>Issue Date:</th>
                             <td>{{ .IssueDate }}</td>
                         </tr>
+                        {{ if .LastReview }}
+                        <tr>
+                            <th>Last Review:</th>
+                            <td>{{ .LastReview }}</td>
+                        </tr>
+                        {{ end }}
                         {{ if .ExpiryDate }}
                         <tr>
                             <th>Expiry Date:</th>

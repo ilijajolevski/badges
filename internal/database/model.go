@@ -20,6 +20,7 @@ type Badge struct {
 	ExpiryDate      sql.NullString
 	IssuerURL       sql.NullString
 	CustomConfig    sql.NullString
+	LastReview      sql.NullString
 	JPGContent      []byte
 	PNGContent      []byte
 }

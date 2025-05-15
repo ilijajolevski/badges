@@ -136,11 +136,13 @@ This design ensures the badges are visually consistent, readable, and highly cus
 | `expiry_date`     | Date   | Expiry date (optional)         | `2026-05-01`               |
 | `issuer_url`      | String | Issuer's website (optional)    | `https://finki.edu.mk`     |
 | `custom_config`   | JSON   | Customization settings (e.g., colors, logo URL) | `{"color_left": "#333", "color_right": "#4CAF50"}` |
+| `last_review`     | Date   | Last review date (optional)    | `2025-06-15`               |
 | `jpg_content`     | Blob   | Pre-generated JPG (optional)   | Binary JPG data            |
 | `png_content`     | Blob   | Pre-generated PNG (optional)   | Binary PNG data            |
 
 - **Notes on New Fields**:
   - `custom_config`: Stores JSON with default customization options (e.g., colors, logo URL) for each badge.
+  - `last_review`: Stores the date when the badge was last reviewed or verified, useful for tracking badge maintenance and validity checks.
   - `jpg_content` and `png_content`: Store pre-generated images to reduce conversion overhead, populated on demand or during issuance.
 
 ## 6. API Specification

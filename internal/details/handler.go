@@ -23,6 +23,7 @@ type TemplateData struct {
 	Notes           string
 	ExpiryDate      string
 	IssuerURL       string
+	LastReview      string
 	IsExpired       bool
 	CurrentYear     int
 }
@@ -107,6 +108,10 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if badge.IssuerURL.Valid {
 		data.IssuerURL = badge.IssuerURL.String
+	}
+
+	if badge.LastReview.Valid {
+		data.LastReview = badge.LastReview.String
 	}
 
 	// Render the template
