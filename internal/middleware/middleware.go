@@ -43,10 +43,10 @@ func (h *ErrorHandler) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Create a custom response writer to capture the status code
 		crw := &customResponseWriter{ResponseWriter: w, statusCode: http.StatusOK}
-		
+
 		// Call the next handler
 		next.ServeHTTP(crw, r)
-		
+
 		// If the status code is an error, render the error page
 		if crw.statusCode >= 400 {
 			h.renderErrorPage(crw.ResponseWriter, crw.statusCode, r)
@@ -58,7 +58,7 @@ func (h *ErrorHandler) Middleware(next http.Handler) http.Handler {
 func (h *ErrorHandler) renderErrorPage(w http.ResponseWriter, statusCode int, r *http.Request) {
 	// Get the error title and message based on the status code
 	title, message := getErrorDetails(statusCode)
-	
+
 	// Prepare template data
 	data := ErrorTemplateData{
 		StatusCode:  statusCode,
@@ -66,7 +66,7 @@ func (h *ErrorHandler) renderErrorPage(w http.ResponseWriter, statusCode int, r 
 		Message:     message,
 		CurrentYear: time.Now().Year(),
 	}
-	
+
 	// Render the template
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	w.WriteHeader(statusCode)
@@ -132,12 +132,12 @@ func (s *Sanitizer) Middleware(next http.Handler) http.Handler {
 			} else if r.URL.Path[:9] == "/details/" {
 				commitID = r.URL.Path[9:]
 			}
-			
+
 			// Remove any trailing path segments
 			if idx := regexp.MustCompile(`[/]`).FindStringIndex(commitID); idx != nil {
 				commitID = commitID[:idx[0]]
 			}
-			
+
 			// Validate commit ID format (alphanumeric, 6-40 chars)
 			if commitID != "" && !regexp.MustCompile(`^[a-zA-Z0-9]{6,40}$`).MatchString(commitID) {
 				s.logger.Warn("Invalid commit ID format", zap.String("commit_id", commitID))
@@ -145,7 +145,7 @@ func (s *Sanitizer) Middleware(next http.Handler) http.Handler {
 				return
 			}
 		}
-		
+
 		// Call the next handler
 		next.ServeHTTP(w, r)
 	})
@@ -170,10 +170,10 @@ func NewRateLimiter(logger *zap.Logger, limit int, window time.Duration) *RateLi
 		window:    window,
 		cleanupInterval: time.Minute,
 	}
-	
+
 	// Start the cleanup goroutine
 	go limiter.cleanup()
-	
+
 	return limiter
 }
 
@@ -182,14 +182,14 @@ func (rl *RateLimiter) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Get the client IP
 		clientIP := r.RemoteAddr
-		
+
 		// Check if the client has exceeded the rate limit
 		if rl.isLimited(clientIP) {
 			rl.logger.Warn("Rate limit exceeded", zap.String("client_ip", clientIP))
 			http.Error(w, "Rate limit exceeded", http.StatusTooManyRequests)
 			return
 		}
-		
+
 		// Call the next handler
 		next.ServeHTTP(w, r)
 	})
@@ -199,17 +199,17 @@ func (rl *RateLimiter) Middleware(next http.Handler) http.Handler {
 func (rl *RateLimiter) isLimited(clientIP string) bool {
 	rl.mu.Lock()
 	defer rl.mu.Unlock()
-	
+
 	now := time.Now()
 	windowStart := now.Add(-rl.window)
-	
+
 	// Get the client's requests
 	clientRequests, exists := rl.requests[clientIP]
 	if !exists {
 		rl.requests[clientIP] = []time.Time{now}
 		return false
 	}
-	
+
 	// Filter out requests outside the window
 	var recentRequests []time.Time
 	for _, t := range clientRequests {
@@ -217,12 +217,12 @@ func (rl *RateLimiter) isLimited(clientIP string) bool {
 			recentRequests = append(recentRequests, t)
 		}
 	}
-	
+
 	// Check if the client has exceeded the limit
 	if len(recentRequests) >= rl.limit {
 		return true
 	}
-	
+
 	// Add the current request
 	rl.requests[clientIP] = append(recentRequests, now)
 	return false
@@ -232,12 +232,12 @@ func (rl *RateLimiter) isLimited(clientIP string) bool {
 func (rl *RateLimiter) cleanup() {
 	ticker := time.NewTicker(rl.cleanupInterval)
 	defer ticker.Stop()
-	
+
 	for range ticker.C {
 		rl.mu.Lock()
 		now := time.Now()
 		windowStart := now.Add(-rl.window)
-		
+
 		for clientIP, requests := range rl.requests {
 			var recentRequests []time.Time
 			for _, t := range requests {
@@ -245,14 +245,54 @@ func (rl *RateLimiter) cleanup() {
 					recentRequests = append(recentRequests, t)
 				}
 			}
-			
+
 			if len(recentRequests) == 0 {
 				delete(rl.requests, clientIP)
 			} else {
 				rl.requests[clientIP] = recentRequests
 			}
 		}
-		
+
 		rl.mu.Unlock()
 	}
+}
+
+// RequestLogger is a middleware that logs HTTP requests
+type RequestLogger struct {
+	logger *zap.Logger
+}
+
+// NewRequestLogger creates a new request logger
+func NewRequestLogger(logger *zap.Logger) *RequestLogger {
+	return &RequestLogger{
+		logger: logger,
+	}
+}
+
+// Middleware returns a middleware function that logs HTTP requests
+func (rl *RequestLogger) Middleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Create a custom response writer to capture the status code
+		crw := &customResponseWriter{ResponseWriter: w, statusCode: http.StatusOK}
+
+		// Get the start time
+		startTime := time.Now()
+
+		// Call the next handler
+		next.ServeHTTP(crw, r)
+
+		// Calculate the request duration
+		duration := time.Since(startTime)
+
+		// Log the request at trace level (using Debug)
+		rl.logger.Debug("HTTP request",
+			zap.String("method", r.Method),
+			zap.String("path", r.URL.Path),
+			zap.String("query", r.URL.RawQuery),
+			zap.String("client_ip", r.RemoteAddr),
+			zap.Int("status", crw.statusCode),
+			zap.Duration("duration", duration),
+			zap.String("user_agent", r.UserAgent()),
+		)
+	})
 }

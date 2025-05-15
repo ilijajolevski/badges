@@ -55,6 +55,7 @@ func main() {
 
 	sanitizer := middleware.NewSanitizer(logger)
 	rateLimiter := middleware.NewRateLimiter(logger, 100, time.Minute) // 100 requests per minute
+	requestLogger := middleware.NewRequestLogger(logger)
 
 	// Initialize handlers
 	badgeHandler := badge.NewHandler(db, logger, imageCache)
@@ -69,7 +70,7 @@ func main() {
 	mux := http.NewServeMux()
 
 	// Register routes
-	registerRoutes(mux, badgeHandler, certificateHandler, detailsHandler, errorHandler, sanitizer, rateLimiter)
+	registerRoutes(mux, badgeHandler, certificateHandler, detailsHandler, errorHandler, sanitizer, rateLimiter, requestLogger)
 
 	// Create HTTP server
 	server := &http.Server{
@@ -143,23 +144,30 @@ func registerRoutes(
 	errorHandler *middleware.ErrorHandler,
 	sanitizer *middleware.Sanitizer,
 	rateLimiter *middleware.RateLimiter,
+	requestLogger *middleware.RequestLogger,
 ) {
 	// Apply middleware to handlers
-	badgeHandlerWithMiddleware := errorHandler.Middleware(
-		rateLimiter.Middleware(
-			sanitizer.Middleware(badgeHandler),
+	badgeHandlerWithMiddleware := requestLogger.Middleware(
+		errorHandler.Middleware(
+			rateLimiter.Middleware(
+				sanitizer.Middleware(badgeHandler),
+			),
 		),
 	)
 
-	certificateHandlerWithMiddleware := errorHandler.Middleware(
-		rateLimiter.Middleware(
-			sanitizer.Middleware(certificateHandler),
+	certificateHandlerWithMiddleware := requestLogger.Middleware(
+		errorHandler.Middleware(
+			rateLimiter.Middleware(
+				sanitizer.Middleware(certificateHandler),
+			),
 		),
 	)
 
-	detailsHandlerWithMiddleware := errorHandler.Middleware(
-		rateLimiter.Middleware(
-			sanitizer.Middleware(detailsHandler),
+	detailsHandlerWithMiddleware := requestLogger.Middleware(
+		errorHandler.Middleware(
+			rateLimiter.Middleware(
+				sanitizer.Middleware(detailsHandler),
+			),
 		),
 	)
 
