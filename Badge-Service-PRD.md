@@ -263,3 +263,225 @@ This design ensures the badges are visually consistent, readable, and highly cus
 - [x] Write user guide for badge/certificate integration
 - [x] Document database schema and operations
 - [x] Create developer onboarding documentation
+
+## 12. Domain Authority and Authentication Implementation
+
+### Overview
+This section outlines the implementation of domain authority groups, user authentication, and authorization for the badge service. These features will enable different groups of users to manage specific sets of badges based on their domain expertise.
+
+### Database Schema Extensions
+
+#### User Table
+| Field             | Type   | Description                     | Example                     |
+|-------------------|--------|---------------------------------|-----------------------------|
+| `user_id`         | String | Unique user identifier          | `user123`                   |
+| `email`           | String | User's email address            | `john.doe@example.com`      |
+| `name`            | String | User's full name                | `John Doe`                  |
+| `is_superadmin`   | Boolean| Whether user is a superadmin    | `true`                      |
+| `last_login`      | Date   | Last login timestamp            | `2023-05-01T14:30:00Z`      |
+| `created_at`      | Date   | Account creation timestamp      | `2023-01-15T09:00:00Z`      |
+
+#### Domain Authority Group Table
+| Field             | Type   | Description                     | Example                     |
+|-------------------|--------|---------------------------------|-----------------------------|
+| `group_id`        | String | Unique group identifier         | `sla_group`                 |
+| `name`            | String | Group display name              | `Software Licensing`        |
+| `description`     | String | Group description               | `Manages software licensing badges` |
+| `created_at`      | Date   | Group creation timestamp        | `2023-01-15T09:00:00Z`      |
+
+#### User-Group Membership Table
+| Field             | Type   | Description                     | Example                     |
+|-------------------|--------|---------------------------------|-----------------------------|
+| `user_id`         | String | Reference to user               | `user123`                   |
+| `group_id`        | String | Reference to domain group       | `sla_group`                 |
+| `joined_at`       | Date   | Membership timestamp            | `2023-01-20T10:15:00Z`      |
+
+#### Badge-Group Association Table
+| Field             | Type   | Description                     | Example                     |
+|-------------------|--------|---------------------------------|-----------------------------|
+| `badge_type`      | String | Badge type identifier           | `software_licensing`        |
+| `group_id`        | String | Reference to domain group       | `sla_group`                 |
+| `assigned_at`     | Date   | Assignment timestamp            | `2023-01-25T11:30:00Z`      |
+
+### Authentication Implementation
+
+#### Google Workspace OIDC Configuration
+- **Identity Provider (IdP) Settings**:
+  - Google is the primary Identity Provider using OpenID Connect (OIDC)
+  - Google OAuth 2.0 API endpoints for authentication
+  - Google Workspace domain restriction settings
+  - Google API Console project configuration
+- **Service Provider (SP) Settings**:
+  - Client ID and Client Secret from Google API Console
+  - Authorized redirect URIs
+  - Requested OAuth scopes (email, profile)
+  - Attribute Mapping Configuration
+
+#### Authentication Flow
+1. User accesses the badge service management interface
+2. User is redirected to the Google login page via OAuth 2.0 authorization flow
+3. After successful authentication with Google, the user is redirected back to the badge service with an OIDC token
+4. The badge service validates the token with Google's tokeninfo endpoint and creates a session
+5. If it's the user's first login, a new user record is created in the database and automatically assigned to the "demo" badge group
+6. The user is directed to the appropriate dashboard based on their group memberships
+
+### Authorization Implementation
+
+#### Role-Based Access Control
+- **Superadmin**: Can manage all badges, users, and domain authority groups
+- **Domain Authority Member**: Can only manage badges assigned to their domain groups
+
+#### Initial Setup
+- **Initial Superadmin**: The user with email "badge-admin@gmail.com" will be automatically designated as the initial superadmin
+- **Demo Badge Group**: A "demo" badge group will be created during initialization
+  - All test badges will be assigned to this group
+  - Newly registered users are automatically assigned to this group
+  - Provides limited badge management capabilities for new users to experiment with the system
+
+#### Access Control Rules
+- Badge creation/modification/deletion requires membership in the corresponding domain authority group
+- User management requires superadmin privileges
+- Domain authority group management requires superadmin privileges
+- Badge-group association management requires superadmin privileges
+- Viewing badges is permitted for all authenticated users, but modification is restricted based on group membership
+
+### API Extensions
+
+#### User Management Endpoints
+| Endpoint                  | Method | Description               | Access Level    |
+|---------------------------|--------|---------------------------|-----------------|
+| `/api/users`              | GET    | List all users            | Superadmin      |
+| `/api/users/<user_id>`    | GET    | Get user details          | Superadmin, Self|
+| `/api/users/<user_id>/groups` | GET | Get user's groups        | Superadmin, Self|
+| `/api/users/<user_id>/groups` | POST| Add user to group        | Superadmin      |
+| `/api/users/<user_id>/groups/<group_id>` | DELETE | Remove user from group | Superadmin |
+
+#### Domain Authority Group Endpoints
+| Endpoint                  | Method | Description               | Access Level    |
+|---------------------------|--------|---------------------------|-----------------|
+| `/api/groups`             | GET    | List all groups           | Authenticated   |
+| `/api/groups`             | POST   | Create new group          | Superadmin      |
+| `/api/groups/<group_id>`  | GET    | Get group details         | Authenticated   |
+| `/api/groups/<group_id>`  | PUT    | Update group              | Superadmin      |
+| `/api/groups/<group_id>`  | DELETE | Delete group              | Superadmin      |
+| `/api/groups/<group_id>/badges` | GET | List group's badges    | Authenticated   |
+| `/api/groups/<group_id>/badges` | POST | Assign badge to group | Superadmin      |
+| `/api/groups/<group_id>/badges/<badge_type>` | DELETE | Remove badge from group | Superadmin |
+
+### User Interface Extensions
+
+#### Authentication Pages
+- Login page with IdP redirect
+- Session timeout page
+- Access denied page
+
+#### User Management Interface
+- User listing page (superadmin only)
+- User details page
+- Group assignment interface
+
+#### Domain Authority Management Interface
+- Group listing page
+- Group creation/editing page
+- Badge-group assignment interface
+
+#### Badge Management Interface
+- Badge listing page filtered by user's domain authority groups
+- Badge creation/editing page with domain authority validation
+
+### Implementation Notes
+- Use a SAML/OIDC library compatible with Go, such as:
+  - `github.com/crewjam/saml` for SAML 2.0
+  - `github.com/coreos/go-oidc` for OIDC
+- Extend the configuration system to include SAML/OIDC settings
+- Implement session management using secure cookies or a session store
+- Add authentication middleware to protect API endpoints
+- Implement authorization checks in badge management handlers
+- Create database migration scripts for the new tables
+- Update the existing badge handlers to check domain authority permissions
+
+### Configuration Extensions
+
+Example configuration structure in Go:
+
+```
+// AuthConfig holds authentication configuration
+type AuthConfig struct {
+    // Authentication type: "oidc" for Google
+    AuthType string
+
+    // OIDC Configuration for Google
+    OIDCIssuerURL string // https://accounts.google.com
+    OIDCClientID string
+    OIDCClientSecret string
+    OIDCRedirectURL string
+
+    // Session Configuration
+    SessionSecret string
+    SessionDuration time.Duration
+
+    // Initial setup configuration
+    InitialSuperAdminEmail string // badge-admin@gmail.com
+}
+```
+
+### Database Initialization
+
+The database initialization process should include the following steps:
+
+1. **Create Default Tables**:
+   - Create the standard badge tables
+   - Create the user and group tables as defined in the schema
+
+2. **Create Demo Badge Group**:
+   - Create a "demo" group with ID "demo_group"
+   - Set name to "Demo Badge Group"
+   - Set description to "Group for test badges and new users"
+
+3. **Assign Test Badges to Demo Group**:
+   - Identify all test badges in the system
+   - Create badge-group associations linking test badges to the demo group
+
+4. **Create Initial Superadmin**:
+   - Create a user record for "badge-admin@gmail.com"
+   - Set the is_superadmin flag to true
+   - This user will be created during first system initialization if not present
+
+5. **Database Migration Scripts**:
+   - Include migration scripts to update existing databases
+   - Ensure backward compatibility with existing badge data
+
+### Implementation Task List
+
+#### Authentication and Authorization
+- [ ] Extend database schema with user and group tables
+- [ ] Implement Google OIDC authentication integration
+  - [ ] Configure Google API Console project
+  - [ ] Set up OAuth 2.0 credentials
+  - [ ] Configure authorized redirect URIs
+- [ ] Create authentication middleware
+- [ ] Implement session management
+- [ ] Create user management API endpoints
+- [ ] Create domain authority group API endpoints
+- [ ] Implement authorization checks in badge handlers
+
+#### Initial Setup and Database Initialization
+- [ ] Create database migration scripts for new tables
+- [ ] Implement "demo" badge group creation
+- [ ] Set up test badge assignment to demo group
+- [ ] Configure initial superadmin (badge-admin@gmail.com)
+- [ ] Implement automatic user assignment to demo group
+
+#### User Interface
+- [ ] Design and implement Google login flow
+- [ ] Create user management interface
+- [ ] Create domain authority group management interface
+- [ ] Update badge management interface for domain-specific access
+- [ ] Create demo group dashboard for new users
+
+#### Testing
+- [ ] Write unit tests for authentication and authorization
+- [ ] Create integration tests for user and group management
+- [ ] Test Google OIDC integration
+- [ ] Perform security testing on authentication flow
+- [ ] Test automatic user assignment to demo group
