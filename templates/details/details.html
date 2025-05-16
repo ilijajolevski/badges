@@ -43,7 +43,12 @@
                         </tr>
                         <tr>
                             <th>Software:</th>
-                            <td>{{ .SoftwareName }} {{ .SoftwareVersion }}</td>
+                            <td>
+                                {{ .SoftwareName }} {{ .SoftwareVersion }}
+                                {{ if .SoftwareURL }}
+                                <a href="{{ .SoftwareURL }}" target="_blank" rel="noopener noreferrer">(Website)</a>
+                                {{ end }}
+                            </td>
                         </tr>
                         <tr>
                             <th>Issuer:</th>

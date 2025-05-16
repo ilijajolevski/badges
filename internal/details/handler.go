@@ -20,6 +20,7 @@ type TemplateData struct {
 	IssueDate       string
 	SoftwareName    string
 	SoftwareVersion string
+	SoftwareURL     string
 	Notes           string
 	ExpiryDate      string
 	IssuerURL       string
@@ -108,6 +109,10 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if badge.IssuerURL.Valid {
 		data.IssuerURL = badge.IssuerURL.String
+	}
+
+	if badge.SoftwareURL.Valid {
+		data.SoftwareURL = badge.SoftwareURL.String
 	}
 
 	if badge.LastReview.Valid {

@@ -131,6 +131,7 @@ This design ensures the badges are visually consistent, readable, and highly cus
 | `issue_date`      | Date   | Issuance date                  | `2025-05-01`               |
 | `software_name`   | String | Software name                  | `MyApp`                    |
 | `software_version`| String | Software version               | `v1.3.1`                   |
+| `software_url`    | String | Software website URL (optional)| `https://myapp.com`        |
 | `notes`           | String | Additional notes               | `Certified for security`   |
 | `svg_content`     | String | Pre-generated SVG (optional)   | `<svg>...</svg>`           |
 | `expiry_date`     | Date   | Expiry date (optional)         | `2026-05-01`               |

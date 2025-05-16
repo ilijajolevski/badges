@@ -15,6 +15,7 @@ type Badge struct {
 	IssueDate       string
 	SoftwareName    string
 	SoftwareVersion string
+	SoftwareURL     sql.NullString
 	Notes           sql.NullString
 	SVGContent      sql.NullString
 	ExpiryDate      sql.NullString

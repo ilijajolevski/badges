@@ -56,6 +56,7 @@ func initDB(db *sql.DB) error {
 			issue_date TEXT NOT NULL,
 			software_name TEXT NOT NULL,
 			software_version TEXT NOT NULL,
+			software_url TEXT,
 			notes TEXT,
 			svg_content TEXT,
 			expiry_date TEXT,
@@ -96,6 +97,7 @@ func addTestBadge(db *sql.DB) error {
 	notes := sql.NullString{String: "This is a test badge for demonstration", Valid: true}
 	expiryDate := sql.NullString{String: time.Now().AddDate(1, 0, 0).Format("2006-01-02"), Valid: true}
 	issuerURL := sql.NullString{String: "https://finki.edu.mk", Valid: true}
+	softwareURL := sql.NullString{String: "https://github.com/finki/badges", Valid: true}
 	customConfig := sql.NullString{String: `{"color_left":"#4B6CB7","color_right":"#182848","style":"3d"}`, Valid: true}
 	lastReview := sql.NullString{String: time.Now().Format("2006-01-02"), Valid: true}
 
@@ -103,9 +105,9 @@ func addTestBadge(db *sql.DB) error {
 	_, err = db.Exec(`
 		INSERT INTO badges (
 			commit_id, type, status, issuer, issue_date, 
-			software_name, software_version, notes, 
+			software_name, software_version, software_url, notes, 
 			expiry_date, issuer_url, custom_config, last_review
-		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 	`,
 		"test123",                       // commit_id
 		"badge",                         // type
@@ -114,6 +116,7 @@ func addTestBadge(db *sql.DB) error {
 		time.Now().Format("2006-01-02"), // issue_date
 		"Badge Service",                 // software_name
 		"v1.0.0",                        // software_version
+		softwareURL,                     // software_url
 		notes,                           // notes
 		expiryDate,                      // expiry_date
 		issuerURL,                       // issuer_url
@@ -132,13 +135,13 @@ func (db *DB) GetBadge(commitID string) (*Badge, error) {
 	err := db.QueryRow(`
 		SELECT 
 			commit_id, type, status, issuer, issue_date, 
-			software_name, software_version, notes, svg_content, 
+			software_name, software_version, software_url, notes, svg_content, 
 			expiry_date, issuer_url, custom_config, last_review, jpg_content, png_content
 		FROM badges
 		WHERE commit_id = ?
 	`, commitID).Scan(
 		&badge.CommitID, &badge.Type, &badge.Status, &badge.Issuer, &badge.IssueDate,
-		&badge.SoftwareName, &badge.SoftwareVersion, &badge.Notes, &badge.SVGContent,
+		&badge.SoftwareName, &badge.SoftwareVersion, &badge.SoftwareURL, &badge.Notes, &badge.SVGContent,
 		&badge.ExpiryDate, &badge.IssuerURL, &badge.CustomConfig, &badge.LastReview, &badge.JPGContent, &badge.PNGContent,
 	)
 	if err != nil {
@@ -156,12 +159,12 @@ func (db *DB) CreateBadge(badge *Badge) error {
 	_, err := db.Exec(`
 		INSERT INTO badges (
 			commit_id, type, status, issuer, issue_date, 
-			software_name, software_version, notes, svg_content, 
+			software_name, software_version, software_url, notes, svg_content, 
 			expiry_date, issuer_url, custom_config, last_review, jpg_content, png_content
-		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 	`,
 		badge.CommitID, badge.Type, badge.Status, badge.Issuer, badge.IssueDate,
-		badge.SoftwareName, badge.SoftwareVersion, badge.Notes, badge.SVGContent,
+		badge.SoftwareName, badge.SoftwareVersion, badge.SoftwareURL, badge.Notes, badge.SVGContent,
 		badge.ExpiryDate, badge.IssuerURL, badge.CustomConfig, badge.LastReview, badge.JPGContent, badge.PNGContent,
 	)
 	if err != nil {
@@ -176,12 +179,12 @@ func (db *DB) UpdateBadge(badge *Badge) error {
 	_, err := db.Exec(`
 		UPDATE badges SET
 			type = ?, status = ?, issuer = ?, issue_date = ?,
-			software_name = ?, software_version = ?, notes = ?, svg_content = ?,
+			software_name = ?, software_version = ?, software_url = ?, notes = ?, svg_content = ?,
 			expiry_date = ?, issuer_url = ?, custom_config = ?, last_review = ?, jpg_content = ?, png_content = ?
 		WHERE commit_id = ?
 	`,
 		badge.Type, badge.Status, badge.Issuer, badge.IssueDate,
-		badge.SoftwareName, badge.SoftwareVersion, badge.Notes, badge.SVGContent,
+		badge.SoftwareName, badge.SoftwareVersion, badge.SoftwareURL, badge.Notes, badge.SVGContent,
 		badge.ExpiryDate, badge.IssuerURL, badge.CustomConfig, badge.LastReview, badge.JPGContent, badge.PNGContent,
 		badge.CommitID,
 	)
@@ -229,7 +232,7 @@ func (db *DB) ListBadges() ([]*Badge, error) {
 	rows, err := db.Query(`
 		SELECT 
 			commit_id, type, status, issuer, issue_date, 
-			software_name, software_version, notes, svg_content, 
+			software_name, software_version, software_url, notes, svg_content, 
 			expiry_date, issuer_url, custom_config, last_review, jpg_content, png_content
 		FROM badges
 	`)
@@ -243,7 +246,7 @@ func (db *DB) ListBadges() ([]*Badge, error) {
 		var badge Badge
 		err := rows.Scan(
 			&badge.CommitID, &badge.Type, &badge.Status, &badge.Issuer, &badge.IssueDate,
-			&badge.SoftwareName, &badge.SoftwareVersion, &badge.Notes, &badge.SVGContent,
+			&badge.SoftwareName, &badge.SoftwareVersion, &badge.SoftwareURL, &badge.Notes, &badge.SVGContent,
 			&badge.ExpiryDate, &badge.IssuerURL, &badge.CustomConfig, &badge.LastReview, &badge.JPGContent, &badge.PNGContent,
 		)
 		if err != nil {
