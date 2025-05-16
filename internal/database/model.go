@@ -26,6 +26,38 @@ type Badge struct {
 	PNGContent      []byte
 }
 
+// User represents a user in the database
+type User struct {
+	UserID       string
+	Email        string
+	Name         string
+	IsSuperadmin bool
+	LastLogin    sql.NullString
+	CreatedAt    string
+}
+
+// DomainAuthorityGroup represents a domain authority group in the database
+type DomainAuthorityGroup struct {
+	GroupID     string
+	Name        string
+	Description string
+	CreatedAt   string
+}
+
+// UserGroupMembership represents a user's membership in a domain authority group
+type UserGroupMembership struct {
+	UserID   string
+	GroupID  string
+	JoinedAt string
+}
+
+// BadgeGroupAssociation represents the association between a badge type and a domain authority group
+type BadgeGroupAssociation struct {
+	BadgeType  string
+	GroupID    string
+	AssignedAt string
+}
+
 // CustomConfig represents the custom configuration for a badge
 type CustomConfig struct {
 	ColorLeft   string `json:"color_left,omitempty"`
