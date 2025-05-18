@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login Successful - Badge Service</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <meta name="description" content="Login successful">
+    <meta http-equiv="refresh" content="3;url=/dashboard">
+    <style>
+        .success-container {
+            max-width: 500px;
+            margin: 0 auto;
+            padding: 30px;
+            text-align: center;
+        }
+        
+        .success-card {
+            background-color: var(--card-background);
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            padding: 30px;
+        }
+        
+        .success-icon {
+            font-size: 48px;
+            color: var(--accent-color);
+            margin-bottom: 20px;
+        }
+        
+        .success-title {
+            margin-bottom: 20px;
+            color: var(--primary-color);
+        }
+        
+        .success-message {
+            margin-bottom: 30px;
+            color: var(--light-text);
+        }
+        
+        .redirect-message {
+            font-size: 0.9rem;
+            color: var(--light-text);
+            font-style: italic;
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(0, 0, 0, 0.1);
+            border-radius: 50%;
+            border-top-color: var(--primary-color);
+            animation: spin 1s ease-in-out infinite;
+            margin-left: 10px;
+            vertical-align: middle;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Badge Service</h1>
+        </header>
+
+        <main>
+            <div class="success-container">
+                <div class="success-card">
+                    <div class="success-icon">✓</div>
+                    <h2 class="success-title">Login Successful</h2>
+                    <p class="success-message">You have successfully signed in with your Google account.</p>
+                    <p class="redirect-message">
+                        Redirecting to dashboard<span class="spinner"></span>
+                    </p>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>&copy; {{ .CurrentYear }} <a href="https://badges.finki.edu.mk">badges.finki.edu.mk</a></p>
+        </footer>
+    </div>
+</body>
+</html>

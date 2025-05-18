@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/finki/badges/internal/auth"
 	"github.com/finki/badges/internal/badge"
 	"github.com/finki/badges/internal/cache"
 	"github.com/finki/badges/internal/certificate"
@@ -66,11 +67,19 @@ func main() {
 		logger.Fatal("Failed to initialize details handler", zap.Error(err))
 	}
 
+	// Initialize auth handlers
+	authHandler, err := auth.NewHandler(context.Background(), cfg, db, logger)
+	if err != nil {
+		logger.Fatal("Failed to initialize auth handler", zap.Error(err))
+	}
+
+	authUIHandler := auth.NewUIHandler(logger, authHandler)
+
 	// Initialize HTTP server
 	mux := http.NewServeMux()
 
 	// Register routes
-	registerRoutes(mux, badgeHandler, certificateHandler, detailsHandler, errorHandler, sanitizer, rateLimiter, requestLogger)
+	registerRoutes(mux, badgeHandler, certificateHandler, detailsHandler, authHandler, authUIHandler, errorHandler, sanitizer, rateLimiter, requestLogger)
 
 	// Create HTTP server
 	server := &http.Server{
@@ -141,6 +150,8 @@ func registerRoutes(
 	badgeHandler *badge.Handler,
 	certificateHandler *certificate.Handler,
 	detailsHandler *details.Handler,
+	authHandler *auth.Handler,
+	authUIHandler *auth.UIHandler,
 	errorHandler *middleware.ErrorHandler,
 	sanitizer *middleware.Sanitizer,
 	rateLimiter *middleware.RateLimiter,
@@ -175,6 +186,16 @@ func registerRoutes(
 	mux.Handle("/badge/", badgeHandlerWithMiddleware)
 	mux.Handle("/certificate/", certificateHandlerWithMiddleware)
 	mux.Handle("/details/", detailsHandlerWithMiddleware)
+
+	// Register auth routes
+	mux.HandleFunc("/auth/login", authHandler.LoginHandler)
+	mux.HandleFunc("/auth/callback", authHandler.CallbackHandler)
+	mux.HandleFunc("/auth/logout", authHandler.LogoutHandler)
+
+	// Register auth UI routes
+	mux.HandleFunc("/login", authUIHandler.LoginPageHandler)
+	mux.HandleFunc("/dashboard", authUIHandler.DashboardHandler)
+	mux.HandleFunc("/auth/success", authUIHandler.CallbackSuccessHandler)
 
 	// Serve static files
 	fs := http.FileServer(http.Dir("./static"))

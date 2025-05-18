@@ -4,7 +4,6 @@ import (
 	"context"
 	"errors"
 	"fmt"
-	"net/http"
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	"github.com/finki/badges/internal/config"

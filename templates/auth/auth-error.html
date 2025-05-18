@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Authentication Error - Badge Service</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <meta name="description" content="Authentication error">
+    <style>
+        .error-container {
+            text-align: center;
+            padding: 50px 20px;
+        }
+        
+        .error-icon {
+            font-size: 48px;
+            color: var(--status-revoked);
+            margin-bottom: 20px;
+        }
+        
+        .error-title {
+            font-size: 24px;
+            margin-bottom: 20px;
+            color: var(--primary-color);
+        }
+        
+        .error-message {
+            color: var(--light-text);
+            margin-bottom: 30px;
+        }
+        
+        .error-details {
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 30px;
+            text-align: left;
+            font-family: monospace;
+            color: var(--light-text);
+            border: 1px solid var(--border-color);
+        }
+        
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+        
+        .button {
+            display: inline-block;
+            padding: 10px 20px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: bold;
+            transition: background-color 0.3s;
+        }
+        
+        .primary-button {
+            background-color: var(--primary-color);
+            color: white;
+        }
+        
+        .primary-button:hover {
+            background-color: var(--secondary-color);
+        }
+        
+        .secondary-button {
+            background-color: #f1f1f1;
+            color: var(--text-color);
+            border: 1px solid var(--border-color);
+        }
+        
+        .secondary-button:hover {
+            background-color: #e5e5e5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>Badge Service</h1>
+        </header>
+
+        <main>
+            <div class="error-container">
+                <div class="error-icon">✗</div>
+                <h2 class="error-title">Authentication Failed</h2>
+                <p class="error-message">{{ .Message }}</p>
+                
+                {{ if .ErrorDetails }}
+                <div class="error-details">
+                    {{ .ErrorDetails }}
+                </div>
+                {{ end }}
+                
+                <div class="action-buttons">
+                    <a href="/auth/login" class="button primary-button">Try Again</a>
+                    <a href="/" class="button secondary-button">Back to Home</a>
+                </div>
+            </div>
+        </main>
+
+        <footer>
+            <p>&copy; {{ .CurrentYear }} <a href="https://badges.finki.edu.mk">badges.finki.edu.mk</a></p>
+        </footer>
+    </div>
+</body>
+</html>
