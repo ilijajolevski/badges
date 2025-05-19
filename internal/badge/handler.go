@@ -53,11 +53,16 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Try to get from cache first
+	// Check for no_cache parameter
+	noCache := r.URL.Query().Get("no_cache") == "true"
+
+	// Try to get from cache first (unless no_cache is true)
 	cacheKey := fmt.Sprintf("badge:%s:%s:%s", commitID, format, r.URL.RawQuery)
-	if cachedData, found := h.cache.Get(cacheKey); found {
-		h.serveImage(w, cachedData, format)
-		return
+	if !noCache {
+		if cachedData, found := h.cache.Get(cacheKey); found {
+			h.serveImage(w, cachedData, format)
+			return
+		}
 	}
 
 	// Get badge from database

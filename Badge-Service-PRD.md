@@ -161,6 +161,7 @@ This design ensures the badges are visually consistent, readable, and highly cus
 - `logo=<url>`: URL of a logo image for the left section.
 - `font_size=<px>`: Custom font size.
 - `style=<flat|3d>`: Badge style.
+- `no_cache=true`: Bypasses the cache and generates a fresh badge. Useful for immediately seeing style changes during development.
 
 **Error Handling**:
 - Return 404 for invalid `<commit_id>`.
