@@ -44,7 +44,9 @@ The small badges served by the `/badge/<commit_id>` endpoint follow a specific d
     - Light purple (e.g., `#D7BDE2`) for neutral/unknown statuses.
     - Orange (e.g., `#FF9800`) for availability indicators (e.g., "available").
     - Light cyan (e.g., `#B2EBF2`) for style-related badges.
-  - **Text Color**: Contrasted on the background by default for readability (e.g., White `#FFFFFF`), or specified (e.g., custom color via parameter).
+  - **Text Color**: 
+    - Default: Contrasted on the background for readability (e.g., White `#FFFFFF` on dark backgrounds)
+    - Customizable: Can specify a single text color for both sections or different text colors for left and right sections separately
 - **Text**:
   - **Font**: Sans-serif (e.g., Arial or web-safe equivalent).
   - **Font Size**: 10-12 pixels.
@@ -57,11 +59,13 @@ The small badges served by the `/badge/<commit_id>` endpoint follow a specific d
   - **Query Parameters**: Allow effortless customization via URL query parameters:
     - `color_left=<hex>`: Sets the left section background color (e.g., `?color_left=#FF0000`).
     - `color_right=<hex>`: Sets the right section background color (e.g., `?color_right=#00FF00`).
-    - `text_color=<hex>`: Sets the text color (e.g., `?text_color=#000000`).
+    - `text_color=<hex>`: Sets the text color for both sections (e.g., `?text_color=#000000`).
+    - `text_color_left=<hex>`: Sets the text color for the left section only (e.g., `?text_color_left=#EEEEEE`).
+    - `text_color_right=<hex>`: Sets the text color for the right section only (e.g., `?text_color_right=#FFFFFF`).
     - `logo=<url>`: Replaces the left section text with an image from the specified URL (e.g., `?logo=https://example.com/logo.png`).
     - `font_size=<px>`: Adjusts text size (e.g., `?font_size=14`).
     - `style=<flat|3d>`: Switches between flat or 3D styling (default: 3D).
-  - **Configuration File**: Optionally, support a JSON configuration file per `<commit_id>` (e.g., stored in the database) to define default styles (e.g., `{ "color_left": "#333", "color_right": "#4CAF50" }`).
+  - **Configuration File**: Optionally, support a JSON configuration file per `<commit_id>` (e.g., stored in the database) to define default styles (e.g., `{ "color_left": "#333", "color_right": "#4CAF50", "text_color": "#FFFFFF", "text_color_left": "#EEEEEE", "text_color_right": "#FFFFFF" }`).
   - **Default Fallback**: If no parameters or config are provided, use the default design described above.
   - **Validation**: Ensure colors are valid hex codes and sizes are within reasonable limits (e.g., font size 8-16px).
 
@@ -136,13 +140,16 @@ This design ensures the badges are visually consistent, readable, and highly cus
 | `svg_content`     | String | Pre-generated SVG (optional)   | `<svg>...</svg>`           |
 | `expiry_date`     | Date   | Expiry date (optional)         | `2026-05-01`               |
 | `issuer_url`      | String | Issuer's website (optional)    | `https://finki.edu.mk`     |
-| `custom_config`   | JSON   | Customization settings (e.g., colors, logo URL) | `{"color_left": "#333", "color_right": "#4CAF50"}` |
+| `custom_config`   | JSON   | Customization settings (e.g., colors, logo URL) | `{"color_left": "#333", "color_right": "#4CAF50", "text_color": "#FFFFFF", "text_color_left": "#EEEEEE", "text_color_right": "#FFFFFF"}` |
 | `last_review`     | Date   | Last review date (optional)    | `2025-06-15`               |
 | `jpg_content`     | Blob   | Pre-generated JPG (optional)   | Binary JPG data            |
 | `png_content`     | Blob   | Pre-generated PNG (optional)   | Binary PNG data            |
 
 - **Notes on New Fields**:
-  - `custom_config`: Stores JSON with default customization options (e.g., colors, logo URL) for each badge.
+  - `custom_config`: Stores JSON with default customization options for each badge, including:
+    - Colors for left and right sections (`color_left`, `color_right`)
+    - Text colors, with options for both sections (`text_color`) or individual sections (`text_color_left`, `text_color_right`)
+    - Logo URL, font size, and style options
   - `last_review`: Stores the date when the badge was last reviewed or verified, useful for tracking badge maintenance and validity checks.
   - `jpg_content` and `png_content`: Store pre-generated images to reduce conversion overhead, populated on demand or during issuance.
 
@@ -157,7 +164,9 @@ This design ensures the badges are visually consistent, readable, and highly cus
 - `format=svg|jpg|png`: Specifies the image format (default: `svg`).
 - `color_left=<hex>`: Custom left section color.
 - `color_right=<hex>`: Custom right section color.
-- `text_color=<hex>`: Custom text color.
+- `text_color=<hex>`: Custom text color for both sections (overridden by section-specific colors if provided).
+- `text_color_left=<hex>`: Custom text color for the left section only.
+- `text_color_right=<hex>`: Custom text color for the right section only.
 - `logo=<url>`: URL of a logo image for the left section.
 - `font_size=<px>`: Custom font size.
 - `style=<flat|3d>`: Badge style.

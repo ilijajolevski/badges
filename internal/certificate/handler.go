@@ -189,6 +189,14 @@ func (h *Handler) applyQueryParams(badge *database.Badge, r *http.Request) error
 		config.TextColor = textColor
 	}
 
+	if textColorLeft := r.URL.Query().Get("text_color_left"); textColorLeft != "" {
+		config.TextColorLeft = textColorLeft
+	}
+
+	if textColorRight := r.URL.Query().Get("text_color_right"); textColorRight != "" {
+		config.TextColorRight = textColorRight
+	}
+
 	if logo := r.URL.Query().Get("logo"); logo != "" {
 		config.LogoURL = logo
 	}

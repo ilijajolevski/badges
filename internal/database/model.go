@@ -28,12 +28,14 @@ type Badge struct {
 
 // CustomConfig represents the custom configuration for a badge
 type CustomConfig struct {
-	ColorLeft   string `json:"color_left,omitempty"`
-	ColorRight  string `json:"color_right,omitempty"`
-	TextColor   string `json:"text_color,omitempty"`
-	LogoURL     string `json:"logo,omitempty"`
-	FontSize    int    `json:"font_size,omitempty"`
-	Style       string `json:"style,omitempty"`
+	ColorLeft     string `json:"color_left,omitempty"`
+	ColorRight    string `json:"color_right,omitempty"`
+	TextColor     string `json:"text_color,omitempty"`
+	TextColorLeft string `json:"text_color_left,omitempty"`
+	TextColorRight string `json:"text_color_right,omitempty"`
+	LogoURL       string `json:"logo,omitempty"`
+	FontSize      int    `json:"font_size,omitempty"`
+	Style         string `json:"style,omitempty"`
 }
 
 // GetCustomConfig parses the custom configuration JSON

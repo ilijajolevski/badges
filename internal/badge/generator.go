@@ -53,6 +53,16 @@ func (g *Generator) GenerateSVG(badge *database.Badge) ([]byte, error) {
 		textColor = config.TextColor
 	}
 
+	textColorLeft := textColor
+	if config.TextColorLeft != "" {
+		textColorLeft = config.TextColorLeft
+	}
+
+	textColorRight := textColor
+	if config.TextColorRight != "" {
+		textColorRight = config.TextColorRight
+	}
+
 	fontSize := g.defaultFontSize
 	if config.FontSize > 0 {
 		fontSize = config.FontSize
@@ -68,6 +78,8 @@ func (g *Generator) GenerateSVG(badge *database.Badge) ([]byte, error) {
 		"ColorLeft":       colorLeft,
 		"ColorRight":      colorRight,
 		"TextColor":       textColor,
+		"TextColorLeft":   textColorLeft,
+		"TextColorRight":  textColorRight,
 		"FontSize":        fontSize,
 		"Style":           style,
 		"LogoURL":         config.LogoURL,
@@ -139,14 +151,14 @@ const badgeSVGTemplate = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="h
     <rect x="{{.LeftWidth}}" width="{{.RightWidth}}" height="20" fill="{{.ColorRight}}"/>
     <rect width="{{.Width}}" height="20" fill="url(#b)"/>
   </g>
-  <g fill="{{.TextColor}}" text-anchor="middle" font-family="DejaVu Sans,Verdana,Geneva,sans-serif" font-size="{{.FontSize}}">
+  <g text-anchor="middle" font-family="DejaVu Sans,Verdana,Geneva,sans-serif" font-size="{{.FontSize}}">
     {{if .LogoURL}}
     <image x="5" y="3" width="14" height="14" xlink:href="{{.LogoURL}}"/>
-    <text x="{{div .LeftWidth 2}}" y="15" fill="{{.TextColor}}">{{.Label}}</text>
+    <text x="{{div .LeftWidth 2}}" y="15" fill="{{.TextColorLeft}}">{{.Label}}</text>
     {{else}}
-    <text x="{{div .LeftWidth 2}}" y="15" fill="{{.TextColor}}">{{.Label}}</text>
+    <text x="{{div .LeftWidth 2}}" y="15" fill="{{.TextColorLeft}}">{{.Label}}</text>
     {{end}}
-    <text x="{{add .LeftWidth (div .RightWidth 2)}}" y="15" fill="{{.TextColor}}">{{.Value}}</text>
+    <text x="{{add .LeftWidth (div .RightWidth 2)}}" y="15" fill="{{.TextColorRight}}">{{.Value}}</text>
   </g>
   {{if .HasShadow}}
   <filter id="shadow">
