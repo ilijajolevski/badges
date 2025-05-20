@@ -144,6 +144,11 @@ This design ensures the badges are visually consistent, readable, and highly cus
 | `last_review`     | Date   | Last review date (optional)    | `2025-06-15`               |
 | `jpg_content`     | Blob   | Pre-generated JPG (optional)   | Binary JPG data            |
 | `png_content`     | Blob   | Pre-generated PNG (optional)   | Binary PNG data            |
+| `covered_version` | String | Semantic versioning or git tag (optional) | `1.2.3` or `v2.0.1` or `release-tag` |
+| `repository_link` | String | Code repository URL (optional) | `https://github.com/org/repo` |
+| `public_note`     | String | Long text note for public display (optional) | `This certificate verifies compliance with security standards...` |
+| `internal_note`   | String | Long text note for internal use only (optional) | `Internal review comments and notes...` |
+| `contact_details` | String | Contact information for public display (optional) | `support@example.com, +1-123-456-7890` |
 
 - **Notes on New Fields**:
   - `custom_config`: Stores JSON with default customization options for each badge, including:
@@ -180,7 +185,7 @@ This design ensures the badges are visually consistent, readable, and highly cus
 ## 7. User Interface for Details Page
 - **Header**: Title (e.g., "Badge/Certificate Details: abc123"), issuer logo.
 - **Main Content**:
-  - Type, Status, Issuer, Issuance Date, Software Name and Version, Notes, Expiry Date, Embedded SVG (optional).
+  - Type, Status, Issuer, Issuance Date, Software Name and Version, Notes, Expiry Date, Covered Version, Repository Link, Public Note, Contact Details, Embedded SVG (optional).
 - **Footer**: Link to `badges.finki.edu.mk`, copyright notice.
 
 ## 8. Implementation Notes

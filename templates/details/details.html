@@ -44,7 +44,7 @@
                         <tr>
                             <th>Software:</th>
                             <td>
-                                {{ .SoftwareName }} {{ .SoftwareVersion }}
+                                {{ .SoftwareName }}
                                 {{ if .SoftwareURL }}
                                 <a href="{{ .SoftwareURL }}" target="_blank" rel="noopener noreferrer">(Website)</a>
                                 {{ end }}
@@ -79,6 +79,30 @@
                         <tr>
                             <th>Notes:</th>
                             <td>{{ .Notes }}</td>
+                        </tr>
+                        {{ end }}
+                        {{ if .CoveredVersion }}
+                        <tr>
+                            <th>Covered Version:</th>
+                            <td>{{ .CoveredVersion }}</td>
+                        </tr>
+                        {{ end }}
+                        {{ if .RepositoryLink }}
+                        <tr>
+                            <th>Repository:</th>
+                            <td><a href="{{ .RepositoryLink }}" target="_blank" rel="noopener noreferrer">{{ .RepositoryLink }}</a></td>
+                        </tr>
+                        {{ end }}
+                        {{ if .PublicNote }}
+                        <tr>
+                            <th>Public Note:</th>
+                            <td>{{ .PublicNote }}</td>
+                        </tr>
+                        {{ end }}
+                        {{ if .ContactDetails }}
+                        <tr>
+                            <th>Contact Details:</th>
+                            <td>{{ .ContactDetails }}</td>
                         </tr>
                         {{ end }}
                     </table>

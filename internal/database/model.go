@@ -24,6 +24,11 @@ type Badge struct {
 	LastReview      sql.NullString
 	JPGContent      []byte
 	PNGContent      []byte
+	CoveredVersion  sql.NullString // semantic versioning X.X.X or git tag
+	RepositoryLink  sql.NullString // code repository URL
+	PublicNote      sql.NullString // long text note for public display
+	InternalNote    sql.NullString // long text note for internal use only
+	ContactDetails  sql.NullString // contact information for public display
 }
 
 // CustomConfig represents the custom configuration for a badge

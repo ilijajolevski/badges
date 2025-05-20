@@ -27,6 +27,11 @@ type TemplateData struct {
 	LastReview      string
 	IsExpired       bool
 	CurrentYear     int
+	CoveredVersion  string
+	RepositoryLink  string
+	PublicNote      string
+	InternalNote    string
+	ContactDetails  string
 }
 
 // Handler handles details page requests
@@ -117,6 +122,26 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if badge.LastReview.Valid {
 		data.LastReview = badge.LastReview.String
+	}
+
+	if badge.CoveredVersion.Valid {
+		data.CoveredVersion = badge.CoveredVersion.String
+	}
+
+	if badge.RepositoryLink.Valid {
+		data.RepositoryLink = badge.RepositoryLink.String
+	}
+
+	if badge.PublicNote.Valid {
+		data.PublicNote = badge.PublicNote.String
+	}
+
+	if badge.InternalNote.Valid {
+		data.InternalNote = badge.InternalNote.String
+	}
+
+	if badge.ContactDetails.Valid {
+		data.ContactDetails = badge.ContactDetails.String
 	}
 
 	// Render the template
