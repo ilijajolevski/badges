@@ -11,7 +11,6 @@
     <div class="container">
         <header>
             <h1>Certificate Details</h1>
-            <p class="commit-id">Certificate ID: {{ .CommitID }}</p>
         </header>
 
         <main>
@@ -29,7 +28,7 @@
                 <div class="details-info">
                     <table>
                         <tr>
-                            <th>Type:</th>
+                            <th>Certificate:</th>
                             <td>{{ .Type }}</td>
                         </tr>
                         <tr>
@@ -105,6 +104,10 @@
                             <td>{{ .ContactDetails }}</td>
                         </tr>
                         {{ end }}
+                        <tr>
+                            <th>Certificate ID:</th>
+                            <td>{{ .CommitID }}</td>
+                        </tr>
                     </table>
                 </div>
             </div>
