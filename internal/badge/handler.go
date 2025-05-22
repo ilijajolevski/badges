@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/finki/badges/internal/cache"
+	"github.com/finki/badges/internal/certificate"
 	"github.com/finki/badges/internal/database"
 	"github.com/finki/badges/pkg/utils"
 	"go.uber.org/zap"
@@ -14,19 +15,21 @@ import (
 
 // Handler handles badge requests
 type Handler struct {
-	db      *database.DB
-	logger  *zap.Logger
-	cache   *cache.Cache
-	generator *Generator
+	db                 *database.DB
+	logger             *zap.Logger
+	cache              *cache.Cache
+	badgeGenerator     *Generator
+	certificateGenerator *certificate.Generator
 }
 
 // NewHandler creates a new badge handler
 func NewHandler(db *database.DB, logger *zap.Logger, cache *cache.Cache) *Handler {
 	return &Handler{
-		db:      db,
-		logger:  logger,
-		cache:   cache,
-		generator: NewGenerator(),
+		db:                 db,
+		logger:             logger,
+		cache:              cache,
+		badgeGenerator:     NewGenerator(),
+		certificateGenerator: certificate.NewGenerator(),
 	}
 }
 
@@ -50,6 +53,18 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Validate format
 	if format != "svg" && format != "png" && format != "jpg" {
 		http.Error(w, "Invalid format. Supported formats: svg, png, jpg", http.StatusBadRequest)
+		return
+	}
+
+	// Get outlook from query parameter (default: badge)
+	outlook := r.URL.Query().Get("outlook")
+	if outlook == "" {
+		outlook = "badge"
+	}
+
+	// Validate outlook
+	if outlook != "badge" && outlook != "certificate" {
+		http.Error(w, "Invalid outlook. Supported outlooks: badge, certificate", http.StatusBadRequest)
 		return
 	}
 
@@ -85,21 +100,32 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Generate or retrieve image based on format
+	// Generate or retrieve image based on format and outlook
 	var imageData []byte
 	var genErr error
+
+	// Choose the appropriate generator based on outlook
+	var generator interface {
+		GenerateSVG(badge *database.Badge) ([]byte, error)
+	}
+
+	if outlook == "badge" {
+		generator = h.badgeGenerator
+	} else {
+		generator = h.certificateGenerator
+	}
 
 	switch format {
 	case "svg":
 		// Generate SVG
-		imageData, genErr = h.generator.GenerateSVG(badge)
+		imageData, genErr = generator.GenerateSVG(badge)
 	case "png":
 		// Check if PNG is already in the database
 		if badge.PNGContent != nil {
 			imageData = badge.PNGContent
 		} else {
 			// Generate SVG first
-			svgData, err := h.generator.GenerateSVG(badge)
+			svgData, err := generator.GenerateSVG(badge)
 			if err != nil {
 				h.logger.Error("Failed to generate SVG", zap.Error(err))
 				http.Error(w, "Failed to generate image", http.StatusInternalServerError)
@@ -121,7 +147,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			imageData = badge.JPGContent
 		} else {
 			// Generate SVG first
-			svgData, err := h.generator.GenerateSVG(badge)
+			svgData, err := generator.GenerateSVG(badge)
 			if err != nil {
 				h.logger.Error("Failed to generate SVG", zap.Error(err))
 				http.Error(w, "Failed to generate image", http.StatusInternalServerError)

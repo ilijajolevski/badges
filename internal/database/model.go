@@ -6,10 +6,12 @@ import (
 	"time"
 )
 
-// Badge represents a badge or certificate in the database
+// Badge represents a badge entity in the database
+// The visual difference between "badge" (small) and "certificate" (large) is determined
+// by the endpoint or a rendering parameter, not by the entity itself
 type Badge struct {
 	CommitID        string
-	Type            string // "badge" or "certificate"
+	Type            string // Deprecated: Kept for backward compatibility only
 	Status          string // "valid", "expired", "revoked"
 	Issuer          string
 	IssueDate       string
@@ -29,6 +31,13 @@ type Badge struct {
 	PublicNote      sql.NullString // long text note for public display
 	InternalNote    sql.NullString // long text note for internal use only
 	ContactDetails  sql.NullString // contact information for public display
+	// The following fields are for storing pre-generated outlook-specific content
+	BadgeSVGContent      sql.NullString // Pre-generated SVG for badge outlook
+	CertificateSVGContent sql.NullString // Pre-generated SVG for certificate outlook
+	BadgePNGContent      []byte // Pre-generated PNG for badge outlook
+	CertificatePNGContent []byte // Pre-generated PNG for certificate outlook
+	BadgeJPGContent      []byte // Pre-generated JPG for badge outlook
+	CertificateJPGContent []byte // Pre-generated JPG for certificate outlook
 }
 
 // CustomConfig represents the custom configuration for a badge

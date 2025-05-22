@@ -164,6 +164,7 @@ This design ensures the badges are visually consistent, readable, and highly cus
 | `/badge/<commit_id>`      | GET    | Retrieve small badge SVG, JPG, or PNG | SVG (`image/svg+xml`), JPG (`image/jpeg`), or PNG (`image/png`) |
 | `/certificate/<commit_id>`| GET    | Retrieve certificate SVG | SVG (`image/svg+xml`) |
 | `/details/<commit_id>`    | GET    | Retrieve details page    | HTML (`text/html`) |
+| `/badges`                 | GET    | Retrieve badges list page | HTML (`text/html`) |
 
 **Query Parameters for `/badge/<commit_id>`**:
 - `format=svg|jpg|png`: Specifies the image format (default: `svg`).
@@ -182,10 +183,20 @@ This design ensures the badges are visually consistent, readable, and highly cus
 - For `/badge` and `/certificate`, return error image in the requested format.
 - For `/details`, return error HTML page.
 
-## 7. User Interface for Details Page
+## 7. User Interface
+
+### 7.1 Details Page
 - **Header**: Title (e.g., "Badge/Certificate Details: abc123"), issuer logo.
 - **Main Content**:
   - Type, Status, Issuer, Issuance Date, Software Name and Version, Notes, Expiry Date, Covered Version, Repository Link, Public Note, Contact Details, Embedded SVG (optional).
+- **Footer**: Link to `badges.finki.edu.mk`, copyright notice.
+
+### 7.2 Badges List Page
+- **Header**: Title ("Badge List"), issuer logo.
+- **Main Content**:
+  - Table with columns for Software Name, Status (valid/expired), and Issue Date.
+  - Each row links to the corresponding badge details page.
+  - Responsive design for mobile devices.
 - **Footer**: Link to `badges.finki.edu.mk`, copyright notice.
 
 ## 8. Implementation Notes
@@ -249,12 +260,14 @@ This design ensures the badges are visually consistent, readable, and highly cus
 - [x] Implement `/badge/<commit_id>` endpoint with format parameter support
 - [x] Implement `/certificate/<commit_id>` endpoint
 - [x] Implement `/details/<commit_id>` endpoint
+- [x] Implement `/badges` endpoint for listing all badges
 - [x] Create middleware for input sanitization and validation
 - [x] Implement rate limiting middleware
 - [x] Create error handling for all endpoints
 
 ### User Interface
 - [x] Design and implement HTML template for details page
+- [x] Design and implement HTML template for badges list page
 - [x] Create CSS styles for responsive design
 - [x] Implement error page templates
 - [x] Ensure accessibility compliance
@@ -278,3 +291,141 @@ This design ensures the badges are visually consistent, readable, and highly cus
 - [x] Write user guide for badge/certificate integration
 - [x] Document database schema and operations
 - [x] Create developer onboarding documentation
+
+
+## 12. Unified Badge Entity and Outlook Separation
+
+### Overview
+
+To simplify the data model and enhance flexibility, the distinction between "badge" and "certificate" will be removed at the database/entity level. Instead, the **badge entity** will be unified, and the graphical *outlook* (either "badge" or "certificate" style) will be treated as a rendering/view parameter, not a fundamental property or separate record.
+
+**Key changes:**
+- The `type` field in the database will no longer determine the existence or nature of a badge record.
+- Both the “small badge” and the “large certificate” are graphical presentations of the same badge entity, configurable at render time.
+- The *outlook* is decided by the requested endpoint or a query parameter, not by the badge data model.
+
+### Database Model Changes
+
+1. **Badge Table:**
+  - Remove or ignore the `type` column as a controlling factor for badge/certificate distinction.
+  - Each badge record (one per `commit_id`) represents a single logical badge, regardless of outlook.
+
+2. **Outlook Rendering:**
+  - The visual difference between “badge” (small, inline, e.g. SVG/png/jpg) and “certificate” (large, prominent, e.g. SVG/png/jpg) is determined by the endpoint or a rendering parameter, *not* by the entity.
+  - If needed, retain the `type` field only for backward compatibility, but it has no impact on rendering or business logic.
+
+### Certificate SVG Outlook Specification
+
+- The **certificate outlook** must follow the visual and structural guidelines inspired by the provided image (`certificate_look_of_the_badge.png`):
+  - **Shape and Layout:** Large horizontal rectangle, designed for prominence, with visually distinct borders (e.g., gold, silver, or institutional color).
+  - **Size:** At least 500px wide and 350px high in SVG (scalable for high-DPI displays).
+  - **Frame/Border:** Decorative border (rounded corners recommended), with a possible drop shadow or soft edge.
+  - **Header:** Top section includes the issuer’s logo (optionally left-aligned), and certificate heading text (e.g., "Certificate of Achievement", "Certification Badge").
+  - **Main Body:**
+    - Centered large title (the achievement or certification, e.g., "Certified Security Practitioner").
+    - Recipient section (if applicable; can be a field for the owner’s name or organization).
+    - Meta information (badge name, date, software name/version, status, unique ID).
+    - Optional: QR code or short verification URL at the bottom right.
+  - **Color Palette:** Neutral, academic, or institutional—background should be white or a very light color, with high-contrast text.
+  - **Fonts:** Use web-safe fonts or Google Fonts (e.g., "Lato", "Montserrat", "Roboto Slab") for headings and content; font size for main title: 28-40px, for metadata: 16-20px.
+  - **Graphics:** The SVG can include embedded PNG/JPG for logos, seals, or icons.
+  - **Example SVG Structure:**
+    ```xml
+    <svg width="700" height="500" viewBox="0 0 700 500" xmlns="http://www.w3.org/2000/svg">
+      <rect x="10" y="10" width="680" height="480" rx="24" fill="#fff" stroke="#d4af37" stroke-width="8"/>
+      <image x="30" y="30" width="80" height="80" href="https://finki.edu.mk/logo.png"/>
+      <text x="120" y="75" font-size="32" font-family="Montserrat, Arial, sans-serif" fill="#222">Certificate of Achievement</text>
+      <text x="350" y="170" text-anchor="middle" font-size="28" font-family="Montserrat, Arial, sans-serif" fill="#444">Certified Security Practitioner</text>
+      <text x="350" y="210" text-anchor="middle" font-size="20" font-family="Lato, Arial, sans-serif" fill="#666">Awarded to John Doe</text>
+      <text x="350" y="260" text-anchor="middle" font-size="16" font-family="Lato, Arial, sans-serif" fill="#888">Issued: 2025-05-01 &bull; Valid &bull; ID: abc123</text>
+      <image x="590" y="410" width="80" height="80" href="https://finki.edu.mk/qr.png"/>
+    </svg>
+    ```
+  - The above is an example; actual content and colors should be configurable per badge record or as template defaults.
+
+### API & Endpoint Changes
+
+- `/badge/<commit_id>`: Renders the *badge* outlook (small style, see existing design guidelines).
+- `/certificate/<commit_id>`: Renders the *certificate* outlook (as detailed above).
+- Both endpoints retrieve the same unified badge entity and select the outlook based solely on the endpoint.
+- Add a rendering parameter (optional) to let `/badge/<commit_id>?outlook=certificate` or `/certificate/<commit_id>?outlook=badge` force the alternate style for special use-cases.
+- All image formats (`svg`, `jpg`, `png`) are supported for both outlooks as previously described.
+
+### Rendering & Presentation Rules
+
+- The visual styles are defined as follows:
+  - **Badge Outlook:** Small, compact, rectangular or pill-shaped, suitable for inline display.
+  - **Certificate Outlook:** Larger, border-decorated, visually rich, suitable for formal display or printing.
+- Each badge entity must supply the SVG/png/jpg for both outlooks. Store as separate fields, or generate dynamically based on the unified data and templates.
+
+### Storage of Outlook Assets
+
+- Add (if not already present) fields to store or generate both graphical outlooks:
+  - `badge_svg_content`, `certificate_svg_content` (or use a JSON map or sub-table for outlooks).
+  - `badge_png_content`, `certificate_png_content` (optional, for pre-rendered bitmaps).
+- Alternatively, store only a single SVG/template and dynamically adjust size and style at render time based on outlook parameter.
+
+### Details Page Layout
+
+- The details page (`/details/<commit_id>`) must present both graphical outlooks and the badge metadata:
+  - **Layout:**
+    - **Left Column (vertical stack):**
+      1. Small badge outlook (SVG, PNG, or JPG)
+      2. Certificate outlook (SVG, PNG, or JPG; larger, as described above)
+      3. **Integration Snippets** for both outlooks (see below)
+    - **Right Column:**
+      - Badge metadata and details (issuer, date, software, status, ID, notes, etc.)
+      - Optional: Buttons to copy embed snippets
+  - **Integration Snippets:**
+    - For **small badge**:
+      ```html
+      <img src="https://badges.finki.edu.mk/badge/abc123" alt="Certification Badge">
+      ```
+    - For **certificate**:
+      ```html
+      <img src="https://badges.finki.edu.mk/certificate/abc123" alt="Certificate">
+      ```
+    - Optionally, provide `<object>` examples for SVG:
+      ```html
+      <object type="image/svg+xml" data="https://badges.finki.edu.mk/certificate/abc123"></object>
+      ```
+  - **Responsiveness:** The layout must remain usable and readable on both desktop and mobile. On narrow screens, stack columns vertically.
+
+### Backwards Compatibility
+
+- The system must continue to honor requests to `/badge/<commit_id>` and `/certificate/<commit_id>`.
+- Legacy code referencing the `type` field should be updated to only use it for legacy compatibility; all new logic and UIs must treat “badge” and “certificate” as alternative views of a single badge entity.
+
+### Implementation Steps
+
+1. **Database Migration:**
+  - Remove the requirement for multiple entries for different types.
+  - Migrate all existing badges/certificates into single badge records per unique `commit_id`.
+  - Mark `type` as deprecated, or repurpose it for legacy display only.
+
+2. **API Refactor:**
+  - Update badge retrieval logic to ignore type and always load by `commit_id`.
+  - Update endpoints to select outlook (badge/certificate) purely by URL or query parameter.
+
+3. **Rendering Layer:**
+  - Refactor SVG/image generation to support both outlooks from the same data, following the above specifications.
+  - Add support for toggling outlook in the details page.
+
+4. **Details Page Update:**
+  - Render both badge and certificate outlooks in the left column, one below the other.
+  - Display integration snippets directly below each outlook.
+  - Keep metadata/details on the right.
+
+5. **Documentation Update:**
+  - Update all API and developer documentation to reflect the new model.
+
+### Example
+
+For a badge with `commit_id=abc123`, the following are all possible and valid (all reference the same underlying badge entity):
+
+- `/badge/abc123` → small badge outlook (SVG/png/jpg)
+- `/certificate/abc123` → certificate outlook (SVG/png/jpg)
+- `/badge/abc123?format=png` → badge outlook in PNG
+- `/certificate/abc123?format=svg` → certificate outlook in SVG
+- `/badge/abc123?outlook=certificate` → certificate outlook from the badge endpoint
+- `/certificate/abc123?outlook=badge` → badge outlook from the certificate endpoint

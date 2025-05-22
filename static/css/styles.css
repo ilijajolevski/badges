@@ -42,6 +42,16 @@ header {
     color: white;
     padding: 30px;
     text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+
+.header-logo {
+    max-width: 200px;
+    height: auto;
+    margin-bottom: 20px;
 }
 
 header h1 {
@@ -73,6 +83,18 @@ main {
     justify-content: center;
     align-items: center;
     padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 8px;
+    border: 1px solid var(--border-color);
+}
+
+.certificate-preview {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    padding: 20px;
+    margin-top: 30px;
     background-color: #f9f9f9;
     border-radius: 8px;
     border: 1px solid var(--border-color);
@@ -168,18 +190,93 @@ footer a:hover {
     text-decoration: underline;
 }
 
+/* Badges list styles */
+.badges-list {
+    margin-bottom: 30px;
+}
+
+.badges-table {
+    width: 100%;
+    border-collapse: collapse;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.badges-table thead {
+    background-color: #f1f1f1;
+}
+
+.badges-table th {
+    font-weight: bold;
+    text-align: left;
+    padding: 12px 15px;
+    border-bottom: 2px solid var(--border-color);
+    width: auto;
+}
+
+.badges-table td {
+    padding: 12px 15px;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.badges-table tr:hover {
+    background-color: #f9f9f9;
+}
+
+.badges-table a {
+    color: var(--primary-color);
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.badges-table a:hover {
+    text-decoration: underline;
+}
+
 /* Responsive design */
 @media (max-width: 768px) {
     .details-card {
         flex-direction: column;
     }
-    
-    .badge-preview, .details-info {
+
+    .badge-preview, .details-info, .certificate-preview {
         width: 100%;
     }
-    
+
     table th {
         width: 40%;
+    }
+
+    .badges-table thead {
+        display: none;
+    }
+
+    .badges-table, .badges-table tbody, .badges-table tr, .badges-table td {
+        display: block;
+        width: 100%;
+    }
+
+    .badges-table tr {
+        margin-bottom: 15px;
+        border: 1px solid var(--border-color);
+        border-radius: 4px;
+    }
+
+    .badges-table td {
+        text-align: right;
+        padding-left: 50%;
+        position: relative;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    .badges-table td:before {
+        content: attr(data-label);
+        position: absolute;
+        left: 15px;
+        width: 45%;
+        padding-right: 10px;
+        white-space: nowrap;
+        text-align: left;
+        font-weight: bold;
     }
 }
 
@@ -187,15 +284,15 @@ footer a:hover {
     body {
         padding: 10px;
     }
-    
+
     header, main, footer {
         padding: 15px;
     }
-    
+
     table th, table td {
         padding: 8px 10px;
     }
-    
+
     table th {
         width: 50%;
     }

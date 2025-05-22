@@ -53,6 +53,18 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Get outlook from query parameter (default: certificate)
+	outlook := r.URL.Query().Get("outlook")
+	if outlook == "" {
+		outlook = "certificate"
+	}
+
+	// Validate outlook
+	if outlook != "badge" && outlook != "certificate" {
+		http.Error(w, "Invalid outlook. Supported outlooks: badge, certificate", http.StatusBadRequest)
+		return
+	}
+
 	// Try to get from cache first
 	cacheKey := fmt.Sprintf("certificate:%s:%s:%s", commitID, format, r.URL.RawQuery)
 	if cachedData, found := h.cache.Get(cacheKey); found {
@@ -73,11 +85,8 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Check if it's a certificate
-	if badge.Type != "certificate" {
-		http.Error(w, "Not a certificate", http.StatusBadRequest)
-		return
-	}
+	// Note: We no longer check the badge type as per the unified badge entity model
+	// All badges can be rendered as certificates regardless of their type
 
 	// Apply query parameters to badge configuration
 	if err := h.applyQueryParams(badge, r); err != nil {
@@ -89,6 +98,10 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Generate or retrieve image based on format
 	var imageData []byte
 	var genErr error
+
+	// Note: We're using the certificate generator for both outlooks
+	// In a more complete implementation, we would use different generators
+	// but that would require refactoring to avoid cyclic dependencies
 
 	switch format {
 	case "svg":

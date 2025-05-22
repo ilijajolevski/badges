@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Badge List</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <meta name="description" content="List of all badges">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <img src="/static/256px-Geant_logo_white.png" alt="GEANT Logo" class="header-logo">
+            <h1>Badge List</h1>
+        </header>
+
+        <main>
+            <div class="badges-list">
+                <table class="badges-table">
+                    <thead>
+                        <tr>
+                            <th>Software Name</th>
+                            <th>Status</th>
+                            <th>Issue Date</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{ range .Badges }}
+                        <tr>
+                            <td data-label="Software Name">
+                                <a href="/details/{{ .CommitID }}">{{ .SoftwareName }}</a>
+                            </td>
+                            <td data-label="Status">
+                                <span class="status-badge status-{{ .Status }}">{{ .Status }}</span>
+                                {{ if .IsExpired }}
+                                <span class="status-badge status-expired">Expired</span>
+                                {{ end }}
+                            </td>
+                            <td data-label="Issue Date">{{ .IssueDate }}</td>
+                        </tr>
+                        {{ end }}
+                    </tbody>
+                </table>
+            </div>
+        </main>
+
+        <footer>
+            <p>&copy; {{ .CurrentYear }} <a href="https://badges.finki.edu.mk">badges.finki.edu.mk</a></p>
+        </footer>
+    </div>
+</body>
+</html>

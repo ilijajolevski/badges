@@ -3,34 +3,25 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Certificate Details: {{ .CommitID }}</title>
+    <title>Badge Details: {{ .CommitID }}</title>
     <link rel="stylesheet" href="/static/css/styles.css">
-    <meta name="description" content="Details for the certificate {{ .CommitID }}">
+    <meta name="description" content="Details for the badge {{ .CommitID }}">
 </head>
 <body>
     <div class="container">
         <header>
+            <img src="/static/256px-Geant_logo_white.png" alt="GEANT Logo" class="header-logo">
             <h1>Certificate Details</h1>
         </header>
 
         <main>
             <div class="details-card">
                 <div class="badge-preview">
-                    {{ if eq .Type "badge" }}
                     <img src="/badge/{{ .CommitID }}" alt="{{ .SoftwareName }} {{ .SoftwareVersion }} Badge">
-                    {{ else }}
-                    <object data="/certificate/{{ .CommitID }}" type="image/svg+xml" width="400" height="300">
-                        {{ .SoftwareName }} {{ .SoftwareVersion }} Certificate
-                    </object>
-                    {{ end }}
                 </div>
 
                 <div class="details-info">
                     <table>
-                        <tr>
-                            <th>Certificate:</th>
-                            <td>{{ .Type }}</td>
-                        </tr>
                         <tr>
                             <th>Status:</th>
                             <td>
@@ -114,18 +105,26 @@
 
             <div class="integration-info">
                 <h2>Integration</h2>
-                <p>Use the following HTML to embed this {{ .Type }} in your website:</p>
-                <pre><code>{{ if eq .Type "badge" }}
-&lt;a href="https://badges.finki.edu.mk/details/{{ .CommitID }}"&gt;
+                <p>Use one of the following HTML snippets to embed this badge in your website:</p>
+
+                <h3>Badge Outlook</h3>
+                <pre><code>&lt;a href="https://badges.finki.edu.mk/details/{{ .CommitID }}"&gt;
     &lt;img src="https://badges.finki.edu.mk/badge/{{ .CommitID }}" alt="{{ .SoftwareName }} {{ .SoftwareVersion }} Badge"&gt;
-&lt;/a&gt;
-{{ else }}
-&lt;a href="https://badges.finki.edu.mk/details/{{ .CommitID }}"&gt;
+&lt;/a&gt;</code></pre>
+
+                <h3>Certificate Outlook</h3>
+                <pre><code>&lt;a href="https://badges.finki.edu.mk/details/{{ .CommitID }}"&gt;
     &lt;object data="https://badges.finki.edu.mk/certificate/{{ .CommitID }}" type="image/svg+xml" width="400" height="300"&gt;
         {{ .SoftwareName }} {{ .SoftwareVersion }} Certificate
     &lt;/object&gt;
-&lt;/a&gt;
-{{ end }}</code></pre>
+&lt;/a&gt;</code></pre>
+            </div>
+
+            <div class="certificate-preview">
+                <h2>Certificate Outlook</h2>
+                <object data="/certificate/{{ .CommitID }}" type="image/svg+xml" width="400" height="300">
+                    {{ .SoftwareName }} {{ .SoftwareVersion }} Certificate
+                </object>
             </div>
         </main>
 

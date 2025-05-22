@@ -16,6 +16,7 @@ import (
 	"github.com/finki/badges/internal/config"
 	"github.com/finki/badges/internal/database"
 	"github.com/finki/badges/internal/details"
+	"github.com/finki/badges/internal/list"
 	"github.com/finki/badges/internal/middleware"
 	"go.uber.org/zap"
 )
@@ -66,11 +67,16 @@ func main() {
 		logger.Fatal("Failed to initialize details handler", zap.Error(err))
 	}
 
+	listHandler, err := list.NewHandler(db, logger, imageCache)
+	if err != nil {
+		logger.Fatal("Failed to initialize list handler", zap.Error(err))
+	}
+
 	// Initialize HTTP server
 	mux := http.NewServeMux()
 
 	// Register routes
-	registerRoutes(mux, badgeHandler, certificateHandler, detailsHandler, errorHandler, sanitizer, rateLimiter, requestLogger)
+	registerRoutes(mux, badgeHandler, certificateHandler, detailsHandler, listHandler, errorHandler, sanitizer, rateLimiter, requestLogger)
 
 	// Create HTTP server
 	server := &http.Server{
@@ -141,6 +147,7 @@ func registerRoutes(
 	badgeHandler *badge.Handler,
 	certificateHandler *certificate.Handler,
 	detailsHandler *details.Handler,
+	listHandler *list.Handler,
 	errorHandler *middleware.ErrorHandler,
 	sanitizer *middleware.Sanitizer,
 	rateLimiter *middleware.RateLimiter,
@@ -171,10 +178,19 @@ func registerRoutes(
 		),
 	)
 
+	listHandlerWithMiddleware := requestLogger.Middleware(
+		errorHandler.Middleware(
+			rateLimiter.Middleware(
+				sanitizer.Middleware(listHandler),
+			),
+		),
+	)
+
 	// Register routes
 	mux.Handle("/badge/", badgeHandlerWithMiddleware)
 	mux.Handle("/certificate/", certificateHandlerWithMiddleware)
 	mux.Handle("/details/", detailsHandlerWithMiddleware)
+	mux.Handle("/badges", listHandlerWithMiddleware)
 
 	// Serve static files
 	fs := http.FileServer(http.Dir("./static"))
