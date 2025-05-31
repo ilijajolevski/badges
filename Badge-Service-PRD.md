@@ -328,20 +328,13 @@ To simplify the data model and enhance flexibility, the distinction between "bad
     - Optional: QR code or short verification URL at the bottom right.
   - **Color Palette:** Neutral, academic, or institutional—background should be white or a very light color, with high-contrast text.
   - **Fonts:** Use web-safe fonts or Google Fonts (e.g., "Lato", "Montserrat", "Roboto Slab") for headings and content; font size for main title: 28-40px, for metadata: 16-20px.
-  - **Graphics:** The SVG can include embedded PNG/JPG for logos, seals, or icons.
-  - **Example SVG Structure:**
-    ```xml
-    <svg width="700" height="500" viewBox="0 0 700 500" xmlns="http://www.w3.org/2000/svg">
-      <rect x="10" y="10" width="680" height="480" rx="24" fill="#fff" stroke="#d4af37" stroke-width="8"/>
-      <image x="30" y="30" width="80" height="80" href="https://finki.edu.mk/logo.png"/>
-      <text x="120" y="75" font-size="32" font-family="Montserrat, Arial, sans-serif" fill="#222">Certificate of Achievement</text>
-      <text x="350" y="170" text-anchor="middle" font-size="28" font-family="Montserrat, Arial, sans-serif" fill="#444">Certified Security Practitioner</text>
-      <text x="350" y="210" text-anchor="middle" font-size="20" font-family="Lato, Arial, sans-serif" fill="#666">Awarded to John Doe</text>
-      <text x="350" y="260" text-anchor="middle" font-size="16" font-family="Lato, Arial, sans-serif" fill="#888">Issued: 2025-05-01 &bull; Valid &bull; ID: abc123</text>
-      <image x="590" y="410" width="80" height="80" href="https://finki.edu.mk/qr.png"/>
-    </svg>
-    ```
-  - The above is an example; actual content and colors should be configurable per badge record or as template defaults.
+  - **Graphics:** The SVG can include embedded PNG/JPG for logos, seals, or icons if necessary, but the main structure should be vector-based for scalability.
+ 
+The certificate template is in the /templates/svg directory,
+the SVG should be designed to be easily customizable with CSS or inline styles, allowing for color changes, font adjustments, and logo replacements.
+the small badge outlook of the is defined ind the file: /templates/svg/small-template.svg
+the big certificate outlook of the is defined ind the file: /templates/svg/big-template.svg
+the template has comments where the colors can and should be changed to customize the badge and certificate outlooks.
 
 ### API & Endpoint Changes
 
