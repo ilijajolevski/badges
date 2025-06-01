@@ -74,19 +74,13 @@ func (g *Generator) GenerateSVG(badge *database.Badge) ([]byte, error) {
 	}
 
 	// Prepare data for the template
-	// Calculate widths
-	totalWidth := calculateWidth(badge.SoftwareName, badge.SoftwareVersion, fontSize)
+	// Calculate widths - always use empty label as we only show the GEANT logo
+	totalWidth := calculateWidth("", badge.SoftwareVersion, fontSize)
 
-	// For GEANT logo case (empty or very short label)
+	// For GEANT logo case (we always use the GEANT logo without software name)
 	var leftWidth, rightWidth int
-	if badge.SoftwareName == "" || len(badge.SoftwareName) <= 2 {
-		leftWidth = 46 // Fixed width for GEANT logo
-		rightWidth = totalWidth - leftWidth
-	} else {
-		// Normal case with text label
-		leftWidth = calculateWidth(badge.SoftwareName, "", fontSize)
-		rightWidth = calculateWidth("", badge.SoftwareVersion, fontSize)
-	}
+	leftWidth = 46 // Fixed width for GEANT logo
+	rightWidth = totalWidth - leftWidth
 
 	data := map[string]interface{}{
 		"ColorLeft":      colorLeft,
@@ -96,7 +90,7 @@ func (g *Generator) GenerateSVG(badge *database.Badge) ([]byte, error) {
 		"TextColorRight": textColorRight,
 		"FontSize":       fontSize,
 		"Style":          style,
-		"Label":          badge.SoftwareName,
+		// Label field removed as we no longer render the software name
 		"Value":          badge.SoftwareVersion,
 		"Width":          totalWidth,
 		"LeftWidth":      leftWidth,
@@ -231,7 +225,7 @@ const badgeSVGTemplate = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="h
   </g>
   <g text-anchor="middle" font-family="DejaVu Sans,Verdana,Geneva,sans-serif" font-size="{{.FontSize}}">
     <!-- Badge text -->
-    <text x="{{div .LeftWidth 2}}" y="15" fill="{{.TextColorLeft}}">{{.Label}}</text>
+    <!-- Removed software name rendering as per requirement -->
     <text x="{{add .LeftWidth (div .RightWidth 2)}}" y="15" fill="{{.TextColorRight}}">{{.Value}}</text>
   </g>
   <filter id="shadow">
