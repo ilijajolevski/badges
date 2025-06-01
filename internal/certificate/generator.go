@@ -71,6 +71,18 @@ func (g *Generator) GenerateSVG(badge *database.Badge) ([]byte, error) {
 	width := g.defaultWidth
 	height := g.defaultHeight
 
+	// Get certificate name with fallback to "Verified Dependencies"
+	certificateName := "Verified Dependencies"
+	if badge.CertificateName.Valid && badge.CertificateName.String != "" {
+		certificateName = badge.CertificateName.String
+	}
+
+	// Get specialty domain (optional)
+	var specialtyDomain string
+	if badge.SpecialtyDomain.Valid {
+		specialtyDomain = badge.SpecialtyDomain.String
+	}
+
 	data := map[string]interface{}{
 		"ColorBorder":     colorBorder,
 		"ColorBg":         colorBg,
@@ -86,6 +98,8 @@ func (g *Generator) GenerateSVG(badge *database.Badge) ([]byte, error) {
 		"HasShadow":       style == "3d",
 		"Width":           width,
 		"Height":          height,
+		"CertificateName": certificateName,
+		"SpecialtyDomain": specialtyDomain,
 	}
 
 	// Generate SVG using template
@@ -125,14 +139,25 @@ const certificateSVGTemplate = `<svg width="{{.Width}}" height="{{.Height}}" vie
     {{.SoftwareName}}
   </text>
 
-  <!-- Badge label: Verified Dependencies (white on blue, no box) -->
+  <!-- Badge label: Certificate Name (white on blue, no box) -->
   <text x="{{.Width | divide 2}}" y="150" text-anchor="middle"
         font-family="Arial, Helvetica, sans-serif"
         font-size="28"
         font-weight="bold"
         fill="{{.TextColor}}">
-    Verified Dependencies
+    {{.CertificateName}}
   </text>
+
+  <!-- Specialty Domain (if provided) -->
+  {{if .SpecialtyDomain}}
+  <text x="{{.Width | divide 2}}" y="180" text-anchor="middle"
+        font-family="Arial, Helvetica, sans-serif"
+        font-size="18"
+        font-weight="normal"
+        fill="{{.TextColor}}">
+    {{.SpecialtyDomain}}
+  </text>
+  {{end}}
 
   <!-- GÉANT logo SVG embedded -->
   <g transform="translate(90,195) scale(1.18)">

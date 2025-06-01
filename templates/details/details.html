@@ -77,6 +77,18 @@
                             <td>{{ .CoveredVersion }}</td>
                         </tr>
                         {{ end }}
+                        {{ if .CertificateName }}
+                        <tr>
+                            <th>Certificate Name:</th>
+                            <td>{{ .CertificateName }}</td>
+                        </tr>
+                        {{ end }}
+                        {{ if .SpecialtyDomain }}
+                        <tr>
+                            <th>Specialty Domain:</th>
+                            <td>{{ .SpecialtyDomain }}</td>
+                        </tr>
+                        {{ end }}
                         {{ if .RepositoryLink }}
                         <tr>
                             <th>Repository:</th>

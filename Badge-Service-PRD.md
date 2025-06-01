@@ -149,6 +149,8 @@ This design ensures the badges are visually consistent, readable, and highly cus
 | `public_note`     | String | Long text note for public display (optional) | `This certificate verifies compliance with security standards...` |
 | `internal_note`   | String | Long text note for internal use only (optional) | `Internal review comments and notes...` |
 | `contact_details` | String | Contact information for public display (optional) | `support@example.com, +1-123-456-7890` |
+| `certificate_name` | String | Name of the certificate (optional) | `Self-Assessed Dependencies` |
+| `specialty_domain` | String | Specialty domain of the certificate (optional) | `SOFTWARE LICENCING` |
 
 - **Notes on New Fields**:
   - `custom_config`: Stores JSON with default customization options for each badge, including:
@@ -329,7 +331,7 @@ To simplify the data model and enhance flexibility, the distinction between "bad
   - **Color Palette:** Neutral, academic, or institutional—background should be white or a very light color, with high-contrast text.
   - **Fonts:** Use web-safe fonts or Google Fonts (e.g., "Lato", "Montserrat", "Roboto Slab") for headings and content; font size for main title: 28-40px, for metadata: 16-20px.
   - **Graphics:** The SVG can include embedded PNG/JPG for logos, seals, or icons if necessary, but the main structure should be vector-based for scalability.
- 
+
 The certificate template is in the /templates/svg directory,
 the SVG should be designed to be easily customizable with CSS or inline styles, allowing for color changes, font adjustments, and logo replacements.
 the small badge outlook of the is defined ind the file: /templates/svg/small-template.svg

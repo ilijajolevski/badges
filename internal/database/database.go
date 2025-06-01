@@ -69,7 +69,9 @@ func initDB(db *sql.DB) error {
 			repository_link TEXT,
 			public_note TEXT,
 			internal_note TEXT,
-			contact_details TEXT
+			contact_details TEXT,
+			certificate_name TEXT,
+			specialty_domain TEXT
 		)
 	`)
 	if err != nil {
@@ -110,6 +112,8 @@ func addTestBadge(db *sql.DB) error {
 	publicNote := sql.NullString{String: "This badge certifies compliance with security standards", Valid: true}
 	internalNote := sql.NullString{String: "Internal review comments and notes", Valid: true}
 	contactDetails := sql.NullString{String: "support@finki.edu.mk, +1-123-456-7890", Valid: true}
+	certificateName := sql.NullString{String: "Self-Assessed Dependencies", Valid: true}
+	specialtyDomain := sql.NullString{String: "SOFTWARE LICENCING", Valid: true}
 
 	// Insert the test badge
 	_, err = db.Exec(`
@@ -117,8 +121,9 @@ func addTestBadge(db *sql.DB) error {
 			commit_id, type, status, issuer, issue_date, 
 			software_name, software_version, software_url, notes, 
 			expiry_date, issuer_url, custom_config, last_review,
-			covered_version, repository_link, public_note, internal_note, contact_details
-		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+			covered_version, repository_link, public_note, internal_note, contact_details,
+			certificate_name, specialty_domain
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 	`,
 		"test123",                       // commit_id
 		"badge",                         // type
@@ -137,7 +142,9 @@ func addTestBadge(db *sql.DB) error {
 		repositoryLink,                  // repository_link
 		publicNote,                      // public_note
 		internalNote,                    // internal_note
-		contactDetails)                  // contact_details
+		contactDetails,                  // contact_details
+		certificateName,                 // certificate_name
+		specialtyDomain)                 // specialty_domain
 	if err != nil {
 		return fmt.Errorf("failed to insert test badge: %w", err)
 	}
@@ -153,7 +160,8 @@ func (db *DB) GetBadge(commitID string) (*Badge, error) {
 			commit_id, type, status, issuer, issue_date, 
 			software_name, software_version, software_url, notes, svg_content, 
 			expiry_date, issuer_url, custom_config, last_review, jpg_content, png_content,
-			covered_version, repository_link, public_note, internal_note, contact_details
+			covered_version, repository_link, public_note, internal_note, contact_details,
+			certificate_name, specialty_domain
 		FROM badges
 		WHERE commit_id = ?
 	`, commitID).Scan(
@@ -161,6 +169,7 @@ func (db *DB) GetBadge(commitID string) (*Badge, error) {
 		&badge.SoftwareName, &badge.SoftwareVersion, &badge.SoftwareURL, &badge.Notes, &badge.SVGContent,
 		&badge.ExpiryDate, &badge.IssuerURL, &badge.CustomConfig, &badge.LastReview, &badge.JPGContent, &badge.PNGContent,
 		&badge.CoveredVersion, &badge.RepositoryLink, &badge.PublicNote, &badge.InternalNote, &badge.ContactDetails,
+		&badge.CertificateName, &badge.SpecialtyDomain,
 	)
 	if err != nil {
 		if err == sql.ErrNoRows {
@@ -179,13 +188,15 @@ func (db *DB) CreateBadge(badge *Badge) error {
 			commit_id, type, status, issuer, issue_date, 
 			software_name, software_version, software_url, notes, svg_content, 
 			expiry_date, issuer_url, custom_config, last_review, jpg_content, png_content,
-			covered_version, repository_link, public_note, internal_note, contact_details
-		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+			covered_version, repository_link, public_note, internal_note, contact_details,
+			certificate_name, specialty_domain
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 	`,
 		badge.CommitID, badge.Type, badge.Status, badge.Issuer, badge.IssueDate,
 		badge.SoftwareName, badge.SoftwareVersion, badge.SoftwareURL, badge.Notes, badge.SVGContent,
 		badge.ExpiryDate, badge.IssuerURL, badge.CustomConfig, badge.LastReview, badge.JPGContent, badge.PNGContent,
 		badge.CoveredVersion, badge.RepositoryLink, badge.PublicNote, badge.InternalNote, badge.ContactDetails,
+		badge.CertificateName, badge.SpecialtyDomain,
 	)
 	if err != nil {
 		return fmt.Errorf("failed to create badge: %w", err)
@@ -201,13 +212,15 @@ func (db *DB) UpdateBadge(badge *Badge) error {
 			type = ?, status = ?, issuer = ?, issue_date = ?,
 			software_name = ?, software_version = ?, software_url = ?, notes = ?, svg_content = ?,
 			expiry_date = ?, issuer_url = ?, custom_config = ?, last_review = ?, jpg_content = ?, png_content = ?,
-			covered_version = ?, repository_link = ?, public_note = ?, internal_note = ?, contact_details = ?
+			covered_version = ?, repository_link = ?, public_note = ?, internal_note = ?, contact_details = ?,
+			certificate_name = ?, specialty_domain = ?
 		WHERE commit_id = ?
 	`,
 		badge.Type, badge.Status, badge.Issuer, badge.IssueDate,
 		badge.SoftwareName, badge.SoftwareVersion, badge.SoftwareURL, badge.Notes, badge.SVGContent,
 		badge.ExpiryDate, badge.IssuerURL, badge.CustomConfig, badge.LastReview, badge.JPGContent, badge.PNGContent,
 		badge.CoveredVersion, badge.RepositoryLink, badge.PublicNote, badge.InternalNote, badge.ContactDetails,
+		badge.CertificateName, badge.SpecialtyDomain,
 		badge.CommitID,
 	)
 	if err != nil {
@@ -256,7 +269,8 @@ func (db *DB) ListBadges() ([]*Badge, error) {
 			commit_id, type, status, issuer, issue_date, 
 			software_name, software_version, software_url, notes, svg_content, 
 			expiry_date, issuer_url, custom_config, last_review, jpg_content, png_content,
-			covered_version, repository_link, public_note, internal_note, contact_details
+			covered_version, repository_link, public_note, internal_note, contact_details,
+			certificate_name, specialty_domain
 		FROM badges
 	`)
 	if err != nil {
@@ -272,6 +286,7 @@ func (db *DB) ListBadges() ([]*Badge, error) {
 			&badge.SoftwareName, &badge.SoftwareVersion, &badge.SoftwareURL, &badge.Notes, &badge.SVGContent,
 			&badge.ExpiryDate, &badge.IssuerURL, &badge.CustomConfig, &badge.LastReview, &badge.JPGContent, &badge.PNGContent,
 			&badge.CoveredVersion, &badge.RepositoryLink, &badge.PublicNote, &badge.InternalNote, &badge.ContactDetails,
+			&badge.CertificateName, &badge.SpecialtyDomain,
 		)
 		if err != nil {
 			return nil, fmt.Errorf("failed to scan badge: %w", err)

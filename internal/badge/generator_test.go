@@ -1,49 +1,96 @@
 package badge
 
 import (
+	"database/sql"
 	"testing"
 
 	"github.com/finki/badges/internal/database"
 )
 
 func TestGenerateSVG(t *testing.T) {
-	// Create a test badge
-	badge := &database.Badge{
-		CommitID:        "abc123",
-		Type:            "badge",
-		Status:          "valid",
-		Issuer:          "Test Issuer",
-		IssueDate:       "2023-01-01",
-		SoftwareName:    "TestApp",
-		SoftwareVersion: "v1.0.0",
-	}
-
-	// Create a generator
-	generator := NewGenerator()
-
-	// Generate SVG
-	svg, err := generator.GenerateSVG(badge)
-	if err != nil {
-		t.Fatalf("Failed to generate SVG: %v", err)
-	}
-
-	// Check that the SVG was generated
-	if len(svg) == 0 {
-		t.Error("Generated SVG is empty")
-	}
-
-	// Check that the SVG contains the expected content
-	svgStr := string(svg)
-	expectedContents := []string{
-		"<svg", "</svg>",
-		"TestApp", "v1.0.0",
-	}
-
-	for _, expected := range expectedContents {
-		if !contains(svgStr, expected) {
-			t.Errorf("Generated SVG does not contain expected content: %s", expected)
+	// Test case 1: Badge with SoftwareVersion only (fallback case)
+	t.Run("With SoftwareVersion only", func(t *testing.T) {
+		// Create a test badge with only SoftwareVersion
+		badge := &database.Badge{
+			CommitID:        "abc123",
+			Type:            "badge",
+			Status:          "valid",
+			Issuer:          "Test Issuer",
+			IssueDate:       "2023-01-01",
+			SoftwareName:    "TestApp",
+			SoftwareVersion: "v1.0.0",
+			// CertificateName is not set, so it should fall back to SoftwareVersion
 		}
-	}
+
+		// Create a generator
+		generator := NewGenerator()
+
+		// Generate SVG
+		svg, err := generator.GenerateSVG(badge)
+		if err != nil {
+			t.Fatalf("Failed to generate SVG: %v", err)
+		}
+
+		// Check that the SVG was generated
+		if len(svg) == 0 {
+			t.Error("Generated SVG is empty")
+		}
+
+		// Check that the SVG contains the expected content
+		svgStr := string(svg)
+		expectedContents := []string{
+			"<svg", "</svg>",
+			"v1.0.0", // Should display SoftwareVersion
+		}
+
+		for _, expected := range expectedContents {
+			if !contains(svgStr, expected) {
+				t.Errorf("Generated SVG does not contain expected content: %s", expected)
+			}
+		}
+	})
+
+	// Test case 2: Badge with CertificateName set
+	t.Run("With CertificateName set", func(t *testing.T) {
+		// Create a test badge with CertificateName set
+		badge := &database.Badge{
+			CommitID:        "def456",
+			Type:            "badge",
+			Status:          "valid",
+			Issuer:          "Test Issuer",
+			IssueDate:       "2023-01-01",
+			SoftwareName:    "TestApp",
+			SoftwareVersion: "v1.0.0",
+			CertificateName: sql.NullString{String: "Self-Assessed Dependencies", Valid: true},
+		}
+
+		// Create a generator
+		generator := NewGenerator()
+
+		// Generate SVG
+		svg, err := generator.GenerateSVG(badge)
+		if err != nil {
+			t.Fatalf("Failed to generate SVG: %v", err)
+		}
+
+		// Check that the SVG was generated
+		if len(svg) == 0 {
+			t.Error("Generated SVG is empty")
+		}
+
+		// Check that the SVG contains the expected content
+		svgStr := string(svg)
+		expectedContents := []string{
+			"<svg", "</svg>",
+			"Self-Assessed Dependencies", // Should display CertificateName
+		}
+
+		for _, expected := range expectedContents {
+			if !contains(svgStr, expected) {
+				t.Errorf("Generated SVG does not contain expected content: %s", expected)
+			}
+		}
+	})
 }
 
 func TestCalculateWidth(t *testing.T) {

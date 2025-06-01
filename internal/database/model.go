@@ -31,6 +31,8 @@ type Badge struct {
 	PublicNote      sql.NullString // long text note for public display
 	InternalNote    sql.NullString // long text note for internal use only
 	ContactDetails  sql.NullString // contact information for public display
+	CertificateName sql.NullString // name of the certificate, e.g., "Self-Assessed Dependencies"
+	SpecialtyDomain sql.NullString // specialty domain of the certificate, e.g., "SOFTWARE LICENCING"
 	// The following fields are for storing pre-generated outlook-specific content
 	BadgeSVGContent      sql.NullString // Pre-generated SVG for badge outlook
 	CertificateSVGContent sql.NullString // Pre-generated SVG for certificate outlook

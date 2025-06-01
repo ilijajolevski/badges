@@ -74,8 +74,14 @@ func (g *Generator) GenerateSVG(badge *database.Badge) ([]byte, error) {
 	}
 
 	// Prepare data for the template
+	// Use CertificateName if available, otherwise fall back to SoftwareVersion
+	displayValue := badge.SoftwareVersion
+	if badge.CertificateName.Valid {
+		displayValue = badge.CertificateName.String
+	}
+
 	// Calculate widths - always use empty label as we only show the GEANT logo
-	totalWidth := calculateWidth("", badge.SoftwareVersion, fontSize)
+	totalWidth := calculateWidth("", displayValue, fontSize)
 
 	// For GEANT logo case (we always use the GEANT logo without software name)
 	var leftWidth, rightWidth int
@@ -91,7 +97,7 @@ func (g *Generator) GenerateSVG(badge *database.Badge) ([]byte, error) {
 		"FontSize":       fontSize,
 		"Style":          style,
 		// Label field removed as we no longer render the software name
-		"Value":          badge.SoftwareVersion,
+		"Value":          displayValue,
 		"Width":          totalWidth,
 		"LeftWidth":      leftWidth,
 		"RightWidth":     rightWidth,
