@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"fmt"
 	"html/template"
+	"os"
 
 	"github.com/finki/badges/internal/database"
 )
@@ -11,25 +12,52 @@ import (
 // Generator is responsible for generating certificate SVGs
 type Generator struct {
 	// Default values for certificate customization
-	defaultColorBorder string
-	defaultColorBg     string
-	defaultTextColor   string
-	defaultFontSize    int
-	defaultStyle       string
-	defaultWidth       int
-	defaultHeight      int
+	defaultColorBorder       string
+	defaultColorBg           string
+	defaultTextColor         string
+	defaultFontSize          int
+	defaultStyle             string
+	defaultWidth             int
+	defaultHeight            int
+
+	// Default values for big certificate template
+	defaultLogoColor         string
+	defaultBackgroundColor   string
+	defaultHorizontalBarsColor string
+	defaultTopLabelColor     string
+	defaultGradientStartColor string
+	defaultGradientEndColor  string
+	defaultBorderColor       string
+	defaultCertNameColor     string
+
+	// Template file path
+	templatePath             string
 }
 
 // NewGenerator creates a new certificate generator
 func NewGenerator() *Generator {
 	return &Generator{
+		// Default values for old template
 		defaultColorBorder: "#ed1556", // GÉANT Red
 		defaultColorBg:     "#003f5f", // GÉANT Blue
 		defaultTextColor:   "#FFFFFF", // White text
 		defaultFontSize:    18,
 		defaultStyle:       "3d",
-		defaultWidth:       340,
-		defaultHeight:      340,
+		defaultWidth:       170,
+		defaultHeight:      200,
+
+		// Default values for big certificate template
+		defaultLogoColor:         "#ffffff", // White
+		defaultBackgroundColor:   "#0e3f5f", // Dark blue
+		defaultHorizontalBarsColor: "#e78a2d", // Orange
+		defaultTopLabelColor:     "#e78a2d", // Orange
+		defaultGradientStartColor: "#ff1463", // Pink
+		defaultGradientEndColor:  "#013a40", // Dark teal
+		defaultBorderColor:       "#e78a2d", // Orange
+		defaultCertNameColor:     "#ffffff", // White
+
+		// Template file path
+		templatePath:             "templates/svg/big-template.svg",
 	}
 }
 
@@ -42,6 +70,7 @@ func (g *Generator) GenerateSVG(badge *database.Badge) ([]byte, error) {
 	}
 
 	// Apply default values if not specified
+	// For backward compatibility
 	colorBorder := g.defaultColorBorder
 	if config.ColorLeft != "" {
 		colorBorder = config.ColorLeft
@@ -67,6 +96,47 @@ func (g *Generator) GenerateSVG(badge *database.Badge) ([]byte, error) {
 		style = config.Style
 	}
 
+	// Apply new color parameters for big certificate template
+	logoColor := g.defaultLogoColor
+	if config.LogoColor != "" {
+		logoColor = config.LogoColor
+	}
+
+	backgroundColor := g.defaultBackgroundColor
+	if config.BackgroundColor != "" {
+		backgroundColor = config.BackgroundColor
+	}
+
+	horizontalBarsColor := g.defaultHorizontalBarsColor
+	if config.HorizontalBarsColor != "" {
+		horizontalBarsColor = config.HorizontalBarsColor
+	}
+
+	topLabelColor := g.defaultTopLabelColor
+	if config.TopLabelColor != "" {
+		topLabelColor = config.TopLabelColor
+	}
+
+	gradientStartColor := g.defaultGradientStartColor
+	if config.GradientStartColor != "" {
+		gradientStartColor = config.GradientStartColor
+	}
+
+	gradientEndColor := g.defaultGradientEndColor
+	if config.GradientEndColor != "" {
+		gradientEndColor = config.GradientEndColor
+	}
+
+	borderColor := g.defaultBorderColor
+	if config.BorderColor != "" {
+		borderColor = config.BorderColor
+	}
+
+	certNameColor := g.defaultCertNameColor
+	if config.CertNameColor != "" {
+		certNameColor = config.CertNameColor
+	}
+
 	// Prepare data for the template
 	width := g.defaultWidth
 	height := g.defaultHeight
@@ -77,13 +147,35 @@ func (g *Generator) GenerateSVG(badge *database.Badge) ([]byte, error) {
 		certificateName = badge.CertificateName.String
 	}
 
+	// Split certificate name into words for multi-line display
+	certNameWords := []string{}
+	if certificateName != "" {
+		certNameWords = splitCertificateName(certificateName)
+	}
+
 	// Get specialty domain (optional)
 	var specialtyDomain string
 	if badge.SpecialtyDomain.Valid {
 		specialtyDomain = badge.SpecialtyDomain.String
 	}
 
+	// Read the template file
+	templateContent, err := os.ReadFile(g.templatePath)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read template file: %w", err)
+	}
+
+	// Remove XML declaration from the template content
+	templateContentStr := string(templateContent)
+	if len(templateContentStr) > 5 && templateContentStr[:5] == "<?xml" {
+		if xmlEndIndex := bytes.Index(templateContent, []byte("?>")); xmlEndIndex != -1 {
+			templateContent = templateContent[xmlEndIndex+2:]
+		}
+	}
+
+	// Prepare data for the template
 	data := map[string]interface{}{
+		// For backward compatibility
 		"ColorBorder":     colorBorder,
 		"ColorBg":         colorBg,
 		"TextColor":       textColor,
@@ -99,7 +191,18 @@ func (g *Generator) GenerateSVG(badge *database.Badge) ([]byte, error) {
 		"Width":           width,
 		"Height":          height,
 		"CertificateName": certificateName,
+		"CertNameWords":   certNameWords,
 		"SpecialtyDomain": specialtyDomain,
+
+		// New color parameters for big certificate template
+		"LogoColor":          logoColor,
+		"BackgroundColor":    backgroundColor,
+		"HorizontalBarsColor": horizontalBarsColor,
+		"TopLabelColor":      topLabelColor,
+		"GradientStartColor": gradientStartColor,
+		"GradientEndColor":   gradientEndColor,
+		"BorderColor":        borderColor,
+		"CertNameColor":      certNameColor,
 	}
 
 	// Generate SVG using template
@@ -110,11 +213,22 @@ func (g *Generator) GenerateSVG(badge *database.Badge) ([]byte, error) {
 		"subtract": func(a, b int) int {
 			return a - b
 		},
+		"getWord": func(i int, a []string) string {
+			if i < len(a) {
+				return a[i]
+			}
+			return ""
+		},
 	})
 
-	tmpl, err = tmpl.Parse(certificateSVGTemplate)
+	// Parse the template from the file content
+	tmpl, err = tmpl.Parse(string(templateContent))
 	if err != nil {
-		return nil, fmt.Errorf("failed to parse template: %w", err)
+		// Fallback to the hardcoded template if the file can't be parsed
+		tmpl, err = tmpl.Parse(certificateSVGTemplate)
+		if err != nil {
+			return nil, fmt.Errorf("failed to parse template: %w", err)
+		}
 	}
 
 	var buf bytes.Buffer
@@ -123,6 +237,37 @@ func (g *Generator) GenerateSVG(badge *database.Badge) ([]byte, error) {
 	}
 
 	return buf.Bytes(), nil
+}
+
+// splitCertificateName splits a certificate name into words for multi-line display
+func splitCertificateName(name string) []string {
+	// For simplicity, we'll just split by space and return up to 3 words
+	// In a real implementation, you might want to use a more sophisticated algorithm
+	words := []string{"", "", ""}
+
+	// Split the name by space
+	parts := []string{}
+	currentPart := ""
+	for _, char := range name {
+		if char == ' ' {
+			if currentPart != "" {
+				parts = append(parts, currentPart)
+				currentPart = ""
+			}
+		} else {
+			currentPart += string(char)
+		}
+	}
+	if currentPart != "" {
+		parts = append(parts, currentPart)
+	}
+
+	// Assign parts to words (up to 3)
+	for i := 0; i < len(parts) && i < 3; i++ {
+		words[i] = parts[i]
+	}
+
+	return words
 }
 
 // SVG template for certificates

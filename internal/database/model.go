@@ -52,6 +52,16 @@ type CustomConfig struct {
 	LogoURL       string `json:"logo,omitempty"`
 	FontSize      int    `json:"font_size,omitempty"`
 	Style         string `json:"style,omitempty"`
+
+	// New color parameters for big certificate template
+	LogoColor          string `json:"logo_color,omitempty"`
+	BackgroundColor    string `json:"background_color,omitempty"`
+	HorizontalBarsColor string `json:"horizontal_bars_color,omitempty"`
+	TopLabelColor      string `json:"top_label_color,omitempty"`
+	GradientStartColor string `json:"gradient_start_color,omitempty"`
+	GradientEndColor   string `json:"gradient_end_color,omitempty"`
+	BorderColor        string `json:"border_color,omitempty"`
+	CertNameColor      string `json:"cert_name_color,omitempty"`
 }
 
 // GetCustomConfig parses the custom configuration JSON

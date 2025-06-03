@@ -1,59 +1,150 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="243" height="20">
-  <!-- Gradient overlay for the badge (faint shadow) -->
-  <linearGradient id="b" x2="0" y2="100%">
-    <stop offset="0" stop-color="#bbb" stop-opacity=".1"/>
-    <stop offset="1" stop-opacity=".1"/>
-  </linearGradient>
-  <clipPath id="a">
-    <rect width="243" height="20" rx="3" fill="#fff"/>
-  </clipPath>
-  <g clip-path="url(#a)">
-    <!-- Left part background: DARK (badge left background) -->
-    <rect width="46" height="20" fill="#333"/>
-    <!-- Change #333 here for another color, e.g. "#0072ce" for blue -->
-
-    <!-- Right part background: LIGHT (badge right background) -->
-    <rect x="46" width="197" height="20" fill="#e8e8e8"/>
-    <!-- Change #e8e8e8 here for another color -->
-
-    <!-- Gradient overlay again -->
-    <rect width="243" height="20" fill="url(#b)"/>
-  </g>
-  <!-- GEANT logo inserted here, scaled to fit 46x20. 
-       All fills below are white ("#fff"). 
-       You can change to e.g. "#0072ce" for blue, "#e5004b" for red, etc. -->
-  <g>
-    <g transform="translate(3,1.5) scale(0.016)">
-      <g>
-        <!-- LOGO PATHS -->
-        <!-- Change fill="#0072ce" below to another color as desired, e.g. fill="#0072ce" -->
-        <!-- letter G -->
-        <path fill="#fff" d="m164.73,891.04v-59h182s5.99,198.27-.23,206.89-99.52,63.64-197.77,41.11S14.09,997.13,1.9,891.34s33-238.75,173.35-238.75c142.98,0,180.63,78.66,174.48,136.44h-82s8.97-81.21-81.8-76.31-112.9,83.31-103.2,176.14c9.95,95.16,38.47,160.16,189,120.16v-118h-107Z"/>
-        <!-- letter E -->
-        <polygon fill="#fff" points="643.73 718.04 643.73 659.04 394.73 659.04 394.73 1078.04 649.73 1078.04 649.73 1019.04 469.73 1019.04 469.73 889.04 635.73 889.04 635.73 830.04 469.73 830.04 469.73 718.04 643.73 718.04"/>
-        <!-- letter A -->
-        <path fill="#fff" d="m905.73,659.04h-79l-157,418h75l44-121h155l46,121h75l-159-418Zm-94,238l54-155,56.66,155h-110.66Z"/>
-        <!-- letters NT -->
-        <polyline fill="#fff" points="1414.73 1077.04 1414.73 718.04 1529.73 718.04 1529.73 1077.04 1603.73 1077.04 1603.73 718.04 1714.73 718.04 1714.73 661.04 1343.73 659.04 1343.73 968.04 1165.73 659.04 1080.73 659.04 1080.73 1078.04 1152.52 1078.04 1152.52 772.04 1329.73 1077.04"/>
-        <!-- É or é (e-acute) accent over E -->
-        <path fill="#fff" d="m424.21,607.03c6.91-11.08,68.73-68.83,101.96-74.86,36.05-6.54,55.59,28.44,50.22,35.04s-144.49,49.24-144.49,49.24c-3.2,1.55-9.71-6.17-7.69-9.42Z"/>
-        <g>
-          <!-- left curve -->
-          <path fill="#fff" d="m662.69,516.06l-6.01,4.1s-31.22-7.03-44.99-125.1c-16.37-140.34-52.4-350.24,153.59-389.75,205.99-39.51,519.9,151.7,601.71,226.33,100.36,74.71,472.66,373.9,511.84,429.6,72.84,63.94,316.87,276.46,323.38,279.31,0,0,5.67,2.52.25,7.2-5.42,4.68-44.28-21.69-110.77-72.69-54.67-41.93-298-272.5-466.02-386.82-75.84-51.6-144.39-114.29-222.68-164.66-96.59-62.14-222.4-143.17-249.87-161.3,0,0-133.05-90.43-314.73-84.87-181.68,5.56-189.89,195.49-190.87,198.71s-23.01,164.87,15.18,239.94Z"/>
-          <!-- right curve -->
-          <path fill="#fff" d="m662.69,516.06l-6.01,4.1s7.56,4.72,21.2,4.85c14.33.13,21.26.55,129.38-38.81,98.12-35.72,541.21-196.09,777.83-246.93,108.6-23.34,263.26-35.36,375.4-36.72,193.54-2.36,286.2,62.63,320.7,94.24,53,48.56,64.81,76.81,86.13,140.24,44.19,131.51-50.71,375.82-73.38,413.57-20.04,33.37-36.3,103.23-94.42,88.02-.26,6.49-4.11,8.34-4.11,8.34,0,.28,34.23,12.68,56.8-10.84,22.91-23.87,52.92-67.43,90.73-147.53,64-135.59,109.53-247.13,114.11-353.79,4.58-106.66-53.35-213.43-146.11-258.21-110.52-53.34-293.83-75.46-550.41-22.78-188.57,43.02-353.75,98.2-353.75,98.2,0,0-291.57,90.9-416.09,145.04-24.96,10.85-242.28,104.19-252.87,107.9-5.8,2.03-62.28,28.72-75.13,11.1Z"/>
-        </g>
-      </g>
-    </g>
-  </g>
-  <g text-anchor="middle" font-family="DejaVu Sans,Verdana,Geneva,sans-serif" font-size="12">
-    <!-- Badge right text color: dark blue -->
-    <text x="144" y="15" fill="#0c0f5e">Self-Assessed Dependencies</text>
-    <!-- Change fill="#0c0f5e" to another color as needed -->
-  </g>
-  <filter id="shadow">
-    <feDropShadow dx="0" dy="1" stdDeviation="0.5" flood-color="#000" flood-opacity="0.3"/>
-  </filter>
-  <!-- Border/shadow is just a transparent rectangle with shadow filter -->
-  <rect width="243" height="20" rx="3" fill="transparent" filter="url(#shadow)"/>
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+        xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+        xmlns:svg="http://www.w3.org/2000/svg"
+        xmlns="http://www.w3.org/2000/svg"
+        id="Layer_1"
+        viewBox="0 0 170 199.99999"
+        version="1.1"
+        width="170"
+        height="200">
+  <defs
+          id="defs896">
+    <style id="style889">
+      <!-- .cls-1 fill for GEANT logo, default #ffffff -->
+      .cls-1{fill:{{.LogoColor}};}
+      <!-- .cls-2 background color, default #0e3f5f -->
+      .cls-2{fill:{{.BackgroundColor}};}
+      <!-- .cls-3 horizontal bars color, default #e78a2d -->
+      .cls-3{fill:{{.HorizontalBarsColor}};}
+      <!-- .cls-4 top label color both lines, default #e78a2d -->
+      .cls-4{fill:{{.TopLabelColor}};font-family:Verdana,sans-serif;font-size:16px;font-weight:600;}
+      <!-- .cls-5 top label color both lines, default #e78a2d -->
+      .cls-5{fill:url(#linear-gradient);}
+      <!-- .cls-6 border color, default #e78a2d -->
+      .cls-6{fill:{{.BorderColor}};}
+      <!-- .cls-7 cert name label color, all 3 lines, default #fff -->
+      .cls-7{fill:{{.CertNameColor}};font-family:Verdana,sans-serif;font-size:16px;font-weight:600;}
+    </style>
+    <linearGradient
+            id="linear-gradient"
+            x1="71.209999"
+            y1="27.66"
+            x2="109.51"
+            y2="39.759998"
+            gradientTransform="matrix(1,0,0,-1,0,202)"
+            gradientUnits="userSpaceOnUse">
+      <stop
+              offset="1"
+              stop-color="{{.GradientStartColor}}"
+              id="stop891" />
+      <stop
+              offset="1"
+              stop-color="{{.GradientEndColor}}"
+              id="stop893" />
+    </linearGradient>
+  </defs>
+  <rect
+          class="cls-6"
+          width="170"
+          height="200"
+          id="rect898"
+          x="0"
+          y="0" />
+  <polygon
+          class="cls-2"
+          points="164.81,54.48 165.31,193.5 6.3,193.15 6.3,5.89 116.22,5.89 "
+          id="polygon900" />
+  <rect
+          class="cls-3"
+          x="21.110001"
+          y="67"
+          width="131.83"
+          height="3.78"
+          rx="1.89"
+          ry="1.89"
+          id="rect902" />
+  <rect
+          class="cls-3"
+          x="19.879999"
+          y="142.56"
+          width="131.83"
+          height="3.78"
+          rx="1.89"
+          ry="1.89"
+          id="rect904" />
+  <path
+          class="cls-1"
+          d="m 57.61,178.6 v -1.69 h 5.21 c 0,0 0.17,5.68 0,5.93 -0.17,0.25 -2.85,1.82 -5.67,1.18 -2.81,-0.65 -3.86,-2.37 -4.21,-5.41 -0.35,-3.03 0.95,-6.84 4.97,-6.84 4.02,0 5.17,2.25 5,3.91 h -2.35 c 0,0 0.26,-2.33 -2.34,-2.19 -2.6,0.14 -3.23,2.39 -2.96,5.05 0.29,2.73 1.1,4.59 5.41,3.44 v -3.38 z"
+          id="path906" />
+  <polygon
+          class="cls-1"
+          points="64.2,171.96 64.2,183.96 71.5,183.96 71.5,182.27 66.34,182.27 66.34,178.55 71.1,178.55 71.1,176.86 66.34,176.86 66.34,173.65 71.33,173.65 71.33,171.96 "
+          id="polygon908" />
+  <path
+          class="cls-1"
+          d="m 78.83,171.96 h -2.26 l -4.5,11.97 h 2.15 l 1.26,-3.47 h 4.44 l 1.32,3.47 h 2.15 l -4.55,-11.97 v 0 z m -2.69,6.82 1.55,-4.44 1.62,4.44 z"
+          id="path910" />
+  <polyline
+          class="cls-1"
+          points="93.41 183.93 93.41 173.65 96.71 173.65 96.71 183.93 98.83 183.93 98.83 173.65 102.01 173.65 102.01 172.02 91.38 171.96 91.38 180.81 86.28 171.96 83.85 171.96 83.85 183.96 85.9 183.96 85.9 175.2 90.98 183.93"
+          id="polyline912" />
+  <path
+          class="cls-1"
+          d="m 65.04,170.47 c 0.2,-0.32 1.97,-1.97 2.92,-2.14 1.03,-0.19 1.59,0.81 1.44,1 -0.15,0.19 -4.14,1.41 -4.14,1.41 -0.09,0.04 -0.28,-0.18 -0.22,-0.27 z"
+          id="path914" />
+  <path
+          class="cls-5"
+          d="m 71.87,167.86 -0.17,0.12 c 0,0 -0.89,-0.2 -1.29,-3.58 -0.47,-4.02 -1.5,-10.03 4.4,-11.16 5.9,-1.13 14.89,4.35 17.24,6.48 2.87,2.14 13.54,10.71 14.66,12.31 2.09,1.83 9.08,7.92 9.26,8 0,0 0.16,0.07 0,0.21 -0.16,0.14 -1.27,-0.62 -3.17,-2.08 -1.57,-1.2 -8.54,-7.81 -13.35,-11.08 -2.17,-1.48 -4.14,-3.27 -6.38,-4.72 -2.77,-1.78 -6.37,-4.1 -7.16,-4.62 0,0 -3.81,-2.59 -9.02,-2.43 -5.21,0.16 -5.44,5.6 -5.47,5.69 -0.03,0.09 -0.66,4.72 0.43,6.87 v 0 z"
+          id="path916"
+          style="fill:url(#linear-gradient)" />
+  <path
+          class="cls-1"
+          d="m 71.87,167.86 -0.17,0.12 c 0,0 0.22,0.14 0.61,0.14 0.41,0 0.61,0.02 3.71,-1.11 2.81,-1.02 15.5,-5.62 22.28,-7.07 3.11,-0.67 7.54,-1.01 10.75,-1.05 5.54,-0.07 8.2,1.79 9.19,2.7 1.52,1.39 1.86,2.2 2.47,4.02 1.27,3.77 -1.45,10.77 -2.1,11.85 -0.57,0.96 -1.04,2.96 -2.7,2.52 0,0.19 -0.12,0.24 -0.12,0.24 0,0 0.98,0.36 1.63,-0.31 0.66,-0.68 1.52,-1.93 2.6,-4.23 1.83,-3.88 3.14,-7.08 3.27,-10.13 0.13,-3.06 -1.53,-6.11 -4.19,-7.4 -3.17,-1.53 -8.42,-2.16 -15.77,-0.65 -5.4,1.23 -10.13,2.81 -10.13,2.81 0,0 -8.35,2.6 -11.92,4.15 -0.71,0.31 -6.94,2.98 -7.24,3.09 -0.17,0.06 -1.78,0.82 -2.15,0.32 v 0 z"
+          id="path918" />
+  <!-- Software name -->
+  <text
+          class="cls-4"
+          id="text922"
+          x="20"
+          y="31.940001"><tspan
+          x="20"
+          y="31.940001"
+          id="tspan920">{{.SoftwareName}}</tspan></text>
+  <!-- Software version -->
+  <text
+          class="cls-4"
+          id="text926"
+          x="20"
+          y="48.900002"><tspan
+          x="20"
+          y="48.900002"
+          id="tspan924">{{.SoftwareVersion}}</tspan></text>
+  <!-- Line 1 (word 1) from certificate name -->
+  <text
+          class="cls-7"
+          id="text930"
+          x="20"
+          y="95.889999"><tspan
+          x="20"
+          y="95.889999"
+          id="tspan928">{{getWord 0 .CertNameWords}}</tspan></text>
+  <!-- Line 2 (word 2) from certificate name -->
+  <text
+          class="cls-7"
+          id="text934"
+          x="20"
+          y="113"><tspan
+          x="20"
+          y="113"
+          id="tspan932">{{getWord 1 .CertNameWords}}</tspan></text>
+  <!-- Line 3 (word 3) from certificate name -->
+  <text
+          class="cls-7"
+          id="text938"
+          x="20"
+          y="129.92"><tspan
+          x="20"
+          y="129.92"
+          id="tspan936">{{getWord 2 .CertNameWords}}</tspan></text>
 </svg>

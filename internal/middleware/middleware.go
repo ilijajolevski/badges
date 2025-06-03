@@ -4,6 +4,7 @@ import (
 	"html/template"
 	"net/http"
 	"regexp"
+	"strings"
 	"sync"
 	"time"
 
@@ -98,12 +99,30 @@ func getErrorDetails(statusCode int) (string, string) {
 type customResponseWriter struct {
 	http.ResponseWriter
 	statusCode int
+	wroteHeader bool
 }
 
 // WriteHeader captures the status code
 func (crw *customResponseWriter) WriteHeader(statusCode int) {
 	crw.statusCode = statusCode
+	crw.wroteHeader = true
 	crw.ResponseWriter.WriteHeader(statusCode)
+}
+
+// Write writes the data to the connection as part of an HTTP reply
+func (crw *customResponseWriter) Write(b []byte) (int, error) {
+	if !crw.wroteHeader {
+		crw.WriteHeader(http.StatusOK)
+	}
+
+	// Check if this is an SVG or other XML content
+	contentType := crw.ResponseWriter.Header().Get("Content-Type")
+	if contentType == "image/svg+xml" || strings.HasPrefix(contentType, "application/xml") || strings.HasPrefix(contentType, "text/xml") {
+		// For SVG/XML content, write directly without HTML escaping
+		return crw.ResponseWriter.Write(b)
+	}
+
+	return crw.ResponseWriter.Write(b)
 }
 
 // Sanitizer is a middleware that sanitizes input
