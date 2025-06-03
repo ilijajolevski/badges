@@ -76,10 +76,17 @@ main {
     gap: 30px;
 }
 
-.badge-preview {
+.badges-container {
     flex: 1;
     min-width: 300px;
     display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.badge-preview {
+    display: flex;
+    flex-direction: column;
     justify-content: center;
     align-items: center;
     padding: 20px;
@@ -88,13 +95,17 @@ main {
     border: 1px solid var(--border-color);
 }
 
+.badge-preview h3, .certificate-preview h3 {
+    margin-bottom: 15px;
+    color: var(--primary-color);
+}
+
 .certificate-preview {
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     padding: 20px;
-    margin-top: 30px;
     background-color: #f9f9f9;
     border-radius: 8px;
     border: 1px solid var(--border-color);
@@ -113,7 +124,12 @@ table {
 table th, table td {
     padding: 12px 15px;
     text-align: left;
-    border-bottom: 1px solid var(--border-color);
+
+}
+
+/* Remove horizontal lines in details-info */
+.details-info table th, .details-info table td {
+    border-bottom: none;
 }
 
 table th {
@@ -238,7 +254,11 @@ footer a:hover {
         flex-direction: column;
     }
 
-    .badge-preview, .details-info, .certificate-preview {
+    .badges-container, .details-info {
+        width: 100%;
+    }
+
+    .badge-preview, .certificate-preview {
         width: 100%;
     }
 

@@ -32,6 +32,8 @@ type TemplateData struct {
 	PublicNote      string
 	InternalNote    string
 	ContactDetails  string
+	CertificateName string
+	SpecialtyDomain string
 }
 
 // Handler handles details page requests
@@ -142,6 +144,14 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if badge.ContactDetails.Valid {
 		data.ContactDetails = badge.ContactDetails.String
+	}
+
+	if badge.CertificateName.Valid {
+		data.CertificateName = badge.CertificateName.String
+	}
+
+	if badge.SpecialtyDomain.Valid {
+		data.SpecialtyDomain = badge.SpecialtyDomain.String
 	}
 
 	// Render the template

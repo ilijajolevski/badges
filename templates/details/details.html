@@ -6,6 +6,26 @@
     <title>Badge Details: {{ .CommitID }}</title>
     <link rel="stylesheet" href="/static/css/styles.css">
     <meta name="description" content="Details for the badge {{ .CommitID }}">
+    <style>
+        .code-container {
+            position: relative;
+        }
+        .copy-btn {
+            position: absolute;
+            top: 5px;
+            right: 5px;
+            padding: 5px 10px;
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        .copy-btn:hover {
+            background-color: var(--secondary-color);
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -16,8 +36,16 @@
 
         <main>
             <div class="details-card">
-                <div class="badge-preview">
-                    <img src="/badge/{{ .CommitID }}" alt="{{ .SoftwareName }} {{ .SoftwareVersion }} Badge">
+                <div class="badges-container">
+                    <div class="badge-preview">
+                        <img src="/badge/{{ .CommitID }}" alt="{{ .SoftwareName }} {{ .SoftwareVersion }} Badge">
+                    </div>
+
+                    <div class="certificate-preview">
+                        <object data="/certificate/{{ .CommitID }}" type="image/svg+xml" width="400" height="300">
+                            {{ .SoftwareName }} {{ .SoftwareVersion }} Certificate
+                        </object>
+                    </div>
                 </div>
 
                 <div class="details-info">
@@ -117,26 +145,43 @@
 
             <div class="integration-info">
                 <h2>Integration</h2>
-                <p>Use one of the following HTML snippets to embed this badge in your website:</p>
+                <p>Use one of the following snippets to embed this badge in your website or documentation:</p>
 
-                <h3>Badge Outlook</h3>
-                <pre><code>&lt;a href="https://badges.finki.edu.mk/details/{{ .CommitID }}"&gt;
+                <h3>HTML - Small Badge</h3>
+                <div class="code-container">
+                    <button class="copy-btn" data-code="&lt;a href=&quot;https://badges.finki.edu.mk/details/{{ .CommitID }}&quot;&gt;
+    &lt;img src=&quot;https://badges.finki.edu.mk/badge/{{ .CommitID }}&quot; alt=&quot;{{ .SoftwareName }} {{ .SoftwareVersion }} Badge&quot;&gt;
+&lt;/a&gt;">copy</button>
+                    <pre><code>&lt;a href="https://badges.finki.edu.mk/details/{{ .CommitID }}"&gt;
     &lt;img src="https://badges.finki.edu.mk/badge/{{ .CommitID }}" alt="{{ .SoftwareName }} {{ .SoftwareVersion }} Badge"&gt;
 &lt;/a&gt;</code></pre>
+                </div>
 
-                <h3>Certificate Outlook</h3>
-                <pre><code>&lt;a href="https://badges.finki.edu.mk/details/{{ .CommitID }}"&gt;
+                <h3>HTML - Big Badge</h3>
+                <div class="code-container">
+                    <button class="copy-btn" data-code="&lt;a href=&quot;https://badges.finki.edu.mk/details/{{ .CommitID }}&quot;&gt;
+    &lt;object data=&quot;https://badges.finki.edu.mk/certificate/{{ .CommitID }}&quot; type=&quot;image/svg+xml&quot; width=&quot;400&quot; height=&quot;300&quot;&gt;
+        {{ .SoftwareName }} {{ .SoftwareVersion }} Certificate
+    &lt;/object&gt;
+&lt;/a&gt;">copy</button>
+                    <pre><code>&lt;a href="https://badges.finki.edu.mk/details/{{ .CommitID }}"&gt;
     &lt;object data="https://badges.finki.edu.mk/certificate/{{ .CommitID }}" type="image/svg+xml" width="400" height="300"&gt;
         {{ .SoftwareName }} {{ .SoftwareVersion }} Certificate
     &lt;/object&gt;
 &lt;/a&gt;</code></pre>
-            </div>
+                </div>
 
-            <div class="certificate-preview">
-                <h2>Certificate Outlook</h2>
-                <object data="/certificate/{{ .CommitID }}" type="image/svg+xml" width="400" height="300">
-                    {{ .SoftwareName }} {{ .SoftwareVersion }} Certificate
-                </object>
+                <h3>Markdown - Small Badge</h3>
+                <div class="code-container">
+                    <button class="copy-btn" data-code="[![{{ .SoftwareName }} {{ .SoftwareVersion }} Badge](https://badges.finki.edu.mk/badge/{{ .CommitID }})](https://badges.finki.edu.mk/details/{{ .CommitID }})">copy</button>
+                    <pre><code>[![{{ .SoftwareName }} {{ .SoftwareVersion }} Badge](https://badges.finki.edu.mk/badge/{{ .CommitID }})](https://badges.finki.edu.mk/details/{{ .CommitID }})</code></pre>
+                </div>
+
+                <h3>Markdown - Big Badge</h3>
+                <div class="code-container">
+                    <button class="copy-btn" data-code="[{{ .SoftwareName }} {{ .SoftwareVersion }} Certificate](https://badges.finki.edu.mk/details/{{ .CommitID }})">copy</button>
+                    <pre><code>[{{ .SoftwareName }} {{ .SoftwareVersion }} Certificate](https://badges.finki.edu.mk/details/{{ .CommitID }})</code></pre>
+                </div>
             </div>
         </main>
 
@@ -144,5 +189,42 @@
             <p>&copy; {{ .CurrentYear }} <a href="https://badges.finki.edu.mk">badges.finki.edu.mk</a></p>
         </footer>
     </div>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const copyButtons = document.querySelectorAll('.copy-btn');
+
+            copyButtons.forEach(button => {
+                button.addEventListener('click', function() {
+                    const code = this.getAttribute('data-code');
+
+                    // Create a temporary textarea element to copy from
+                    const textarea = document.createElement('textarea');
+                    textarea.value = code;
+                    textarea.setAttribute('readonly', '');
+                    textarea.style.position = 'absolute';
+                    textarea.style.left = '-9999px';
+                    document.body.appendChild(textarea);
+
+                    // Select and copy the text
+                    textarea.select();
+                    document.execCommand('copy');
+
+                    // Remove the temporary textarea
+                    document.body.removeChild(textarea);
+
+                    // Provide visual feedback
+                    const originalText = this.textContent;
+                    this.textContent = 'Copied!';
+                    this.style.backgroundColor = 'var(--accent-color)';
+
+                    // Reset button after a delay
+                    setTimeout(() => {
+                        this.textContent = originalText;
+                        this.style.backgroundColor = '';
+                    }, 1500);
+                });
+            });
+        });
+    </script>
 </body>
 </html>
