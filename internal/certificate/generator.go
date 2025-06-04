@@ -12,26 +12,26 @@ import (
 // Generator is responsible for generating certificate SVGs
 type Generator struct {
 	// Default values for certificate customization
-	defaultColorBorder       string
-	defaultColorBg           string
-	defaultTextColor         string
-	defaultFontSize          int
-	defaultStyle             string
-	defaultWidth             int
-	defaultHeight            int
+	defaultColorBorder string
+	defaultColorBg     string
+	defaultTextColor   string
+	defaultFontSize    int
+	defaultStyle       string
+	defaultWidth       int
+	defaultHeight      int
 
 	// Default values for big certificate template
-	defaultLogoColor         string
-	defaultBackgroundColor   string
+	defaultLogoColor           string
+	defaultBackgroundColor     string
 	defaultHorizontalBarsColor string
-	defaultTopLabelColor     string
-	defaultGradientStartColor string
-	defaultGradientEndColor  string
-	defaultBorderColor       string
-	defaultCertNameColor     string
+	defaultTopLabelColor       string
+	defaultGradientStartColor  string
+	defaultGradientEndColor    string
+	defaultBorderColor         string
+	defaultCertNameColor       string
 
 	// Template file path
-	templatePath             string
+	templatePath string
 }
 
 // NewGenerator creates a new certificate generator
@@ -47,17 +47,17 @@ func NewGenerator() *Generator {
 		defaultHeight:      200,
 
 		// Default values for big certificate template
-		defaultLogoColor:         "#ffffff", // White
-		defaultBackgroundColor:   "#0e3f5f", // Dark blue
+		defaultLogoColor:           "#ffffff", // White
+		defaultBackgroundColor:     "#0e3f5f", // Dark blue
 		defaultHorizontalBarsColor: "#e78a2d", // Orange
-		defaultTopLabelColor:     "#e78a2d", // Orange
-		defaultGradientStartColor: "#ff1463", // Pink
-		defaultGradientEndColor:  "#013a40", // Dark teal
-		defaultBorderColor:       "#e78a2d", // Orange
-		defaultCertNameColor:     "#ffffff", // White
+		defaultTopLabelColor:       "#e78a2d", // Orange
+		defaultGradientStartColor:  "#ff1463", // Pink
+		defaultGradientEndColor:    "#013a40", // Dark teal
+		defaultBorderColor:         "#e78a2d", // Orange
+		defaultCertNameColor:       "#ffffff", // White
 
 		// Template file path
-		templatePath:             "templates/svg/big-template.svg",
+		templatePath: "templates/svg/big-template.svg",
 	}
 }
 
@@ -195,14 +195,14 @@ func (g *Generator) GenerateSVG(badge *database.Badge) ([]byte, error) {
 		"SpecialtyDomain": specialtyDomain,
 
 		// New color parameters for big certificate template
-		"LogoColor":          logoColor,
-		"BackgroundColor":    backgroundColor,
+		"LogoColor":           logoColor,
+		"BackgroundColor":     backgroundColor,
 		"HorizontalBarsColor": horizontalBarsColor,
-		"TopLabelColor":      topLabelColor,
-		"GradientStartColor": gradientStartColor,
-		"GradientEndColor":   gradientEndColor,
-		"BorderColor":        borderColor,
-		"CertNameColor":      certNameColor,
+		"TopLabelColor":       topLabelColor,
+		"GradientStartColor":  gradientStartColor,
+		"GradientEndColor":    gradientEndColor,
+		"BorderColor":         borderColor,
+		"CertNameColor":       certNameColor,
 	}
 
 	// Generate SVG using template
@@ -281,7 +281,7 @@ const certificateSVGTemplate = `<svg width="{{.Width}}" height="{{.Height}}" vie
         font-size="28"
         font-weight="bold"
         fill="{{.ColorBorder}}">
-    {{.SoftwareName}}
+   {{.SpecialtyDomain}}
   </text>
 
   <!-- Badge label: Certificate Name (white on blue, no box) -->
