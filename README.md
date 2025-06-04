@@ -121,6 +121,8 @@ To embed a certificate in your HTML:
     </object>
 </a>
 ```
+test
+[![Badge Service v1.0.0 Badge](https://badges.finki.edu.mk/badge/test123)](https://badges.finki.edu.mk/details/test123)
 
 ## License
 
