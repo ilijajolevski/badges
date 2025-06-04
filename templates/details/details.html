@@ -149,23 +149,23 @@
 
                 <h3>HTML - Small Badge</h3>
                 <div class="code-container">
-                    <button class="copy-btn" data-code="&lt;a href=&quot;https://badges.finki.edu.mk/details/{{ .CommitID }}&quot;&gt;
-    &lt;img src=&quot;https://badges.finki.edu.mk/badge/{{ .CommitID }}&quot; alt=&quot;{{ .SoftwareName }} {{ .SoftwareVersion }} Badge&quot;&gt;
+                    <button class="copy-btn" data-code="&lt;a href=&quot;http://badges.finki.edu.mk/details/{{ .CommitID }}&quot;&gt;
+    &lt;img src=&quot;http://badges.finki.edu.mk/badge/{{ .CommitID }}&quot; alt=&quot;{{ .SoftwareName }} {{ .SoftwareVersion }} Badge&quot;&gt;
 &lt;/a&gt;">copy</button>
-                    <pre><code>&lt;a href="https://badges.finki.edu.mk/details/{{ .CommitID }}"&gt;
-    &lt;img src="https://badges.finki.edu.mk/badge/{{ .CommitID }}" alt="{{ .SoftwareName }} {{ .SoftwareVersion }} Badge"&gt;
+                    <pre><code>&lt;a href="https://badges.finki.ukim.mk/details/{{ .CommitID }}"&gt;
+    &lt;img src="http://badges.finki.ukim.mk/badge/{{ .CommitID }}" alt="{{ .SoftwareName }} {{ .SoftwareVersion }} Badge"&gt;
 &lt;/a&gt;</code></pre>
                 </div>
 
                 <h3>HTML - Big Badge</h3>
                 <div class="code-container">
-                    <button class="copy-btn" data-code="&lt;a href=&quot;https://badges.finki.edu.mk/details/{{ .CommitID }}&quot;&gt;
-    &lt;object data=&quot;https://badges.finki.edu.mk/certificate/{{ .CommitID }}&quot; type=&quot;image/svg+xml&quot; width=&quot;400&quot; height=&quot;300&quot;&gt;
+                    <button class="copy-btn" data-code="&lt;a href=&quot;http://badges.finki.ukim.mk/details/{{ .CommitID }}&quot;&gt;
+    &lt;object data=&quot;http://badges.finki.ukim.mk/certificate/{{ .CommitID }}&quot; type=&quot;image/svg+xml&quot; width=&quot;400&quot; height=&quot;300&quot;&gt;
         {{ .SoftwareName }} {{ .SoftwareVersion }} Certificate
     &lt;/object&gt;
 &lt;/a&gt;">copy</button>
-                    <pre><code>&lt;a href="https://badges.finki.edu.mk/details/{{ .CommitID }}"&gt;
-    &lt;object data="https://badges.finki.edu.mk/certificate/{{ .CommitID }}" type="image/svg+xml" width="400" height="300"&gt;
+                    <pre><code>&lt;a href="http://badges.finki.ukim.mk/details/{{ .CommitID }}"&gt;
+    &lt;object data="http://badges.finki.ukim.mk/certificate/{{ .CommitID }}" type="image/svg+xml" width="400" height="300"&gt;
         {{ .SoftwareName }} {{ .SoftwareVersion }} Certificate
     &lt;/object&gt;
 &lt;/a&gt;</code></pre>
@@ -173,20 +173,20 @@
 
                 <h3>Markdown - Small Badge</h3>
                 <div class="code-container">
-                    <button class="copy-btn" data-code="[![{{ .SoftwareName }} {{ .SoftwareVersion }} Badge](https://badges.finki.edu.mk/badge/{{ .CommitID }})](https://badges.finki.edu.mk/details/{{ .CommitID }})">copy</button>
-                    <pre><code>[![{{ .SoftwareName }} {{ .SoftwareVersion }} Badge](https://badges.finki.edu.mk/badge/{{ .CommitID }})](https://badges.finki.edu.mk/details/{{ .CommitID }})</code></pre>
+                    <button class="copy-btn" data-code="[![{{ .SoftwareName }} {{ .SoftwareVersion }} Badge](http://badges.finki.ukim.mk/badge/{{ .CommitID }})](http://badges.finki.ukim.mk/details/{{ .CommitID }})">copy</button>
+                    <pre><code>[![{{ .SoftwareName }} {{ .SoftwareVersion }} Badge](http://badges.finki.ukim.mk/badge/{{ .CommitID }})](http://badges.finki.edu.mk/details/{{ .CommitID }})</code></pre>
                 </div>
 
                 <h3>Markdown - Big Badge</h3>
                 <div class="code-container">
-                    <button class="copy-btn" data-code="[{{ .SoftwareName }} {{ .SoftwareVersion }} Certificate](https://badges.finki.edu.mk/details/{{ .CommitID }})">copy</button>
-                    <pre><code>[{{ .SoftwareName }} {{ .SoftwareVersion }} Certificate](https://badges.finki.edu.mk/details/{{ .CommitID }})</code></pre>
+                    <button class="copy-btn" data-code="[{{ .SoftwareName }} {{ .SoftwareVersion }} Certificate](http://badges.finki.ukim.mk/details/{{ .CommitID }})">copy</button>
+                    <pre><code>[{{ .SoftwareName }} {{ .SoftwareVersion }} Certificate](http://badges.finki.ukim.mk/details/{{ .CommitID }})</code></pre>
                 </div>
             </div>
         </main>
 
         <footer>
-            <p>&copy; {{ .CurrentYear }} <a href="https://badges.finki.edu.mk">badges.finki.edu.mk</a></p>
+            <p>&copy; {{ .CurrentYear }} <a href="http://badges.finki.ukim.mk">badges.finki.ukim.mk</a></p>
         </footer>
     </div>
     <script>
