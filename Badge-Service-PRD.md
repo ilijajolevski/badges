@@ -1,7 +1,7 @@
 # Product Requirements Document (PRD) for Badge Service
 
 ## 1. Overview
-The badge service, hosted at `badges.finki.edu.mk`, serves pre-issued badges and certificates as SVG images, identified by a unique short Git commit ID (e.g., `abc123`). The service verifies the validity of each ID against a database and returns SVGs for embedding in HTML via `<img>` or `<object>` tags. A new feature adds a details page, accessible via `/details/<commit_id>`, to display comprehensive information about each badge or certificate when clicked.
+The badge service, hosted at `certificates.software.geant.org`, serves pre-issued badges and certificates as SVG images, identified by a unique short Git commit ID (e.g., `abc123`). The service verifies the validity of each ID against a database and returns SVGs for embedding in HTML via `<img>` or `<object>` tags. A new feature adds a details page, accessible via `/details/<commit_id>`, to display comprehensive information about each badge or certificate when clicked.
 
 ## 2. Goals and Objectives
 - Serve SVG images for pre-issued badges and certificates, ensuring only valid items are displayed.
@@ -14,11 +14,11 @@ The badge service, hosted at `badges.finki.edu.mk`, serves pre-issued badges and
 ## 3. Functional Requirements
 
 ### 3.1 Existing Endpoints (Recap)
-- **Small Badge Endpoint**: `badges.finki.edu.mk/badge/<commit_id>`
-  - Returns an SVG for a small badge (e.g., `badges.finki.edu.mk/badge/abc123`).
+- **Small Badge Endpoint**: `certificates.software.geant.org/badge/<commit_id>`
+  - Returns an SVG for a small badge (e.g., `certificates.software.geant.org/badge/abc123`).
   - Used in `<img>` tags.
-- **Large Certificate Endpoint**: `badges.finki.edu.mk/certificate/<commit_id>`
-  - Returns an SVG for a large certificate (e.g., `badges.finki.edu.mk/certificate/abc123`).
+- **Large Certificate Endpoint**: `certificates.software.geant.org/certificate/<commit_id>`
+  - Returns an SVG for a large certificate (e.g., `certificates.software.geant.org/certificate/abc123`).
   - Used in `<object>` tags.
 - **Behavior**:
   - Verify `<commit_id>` in the database.
@@ -72,9 +72,9 @@ The small badges served by the `/badge/<commit_id>` endpoint follow a specific d
 This design ensures the badges are visually consistent, readable, and highly customizable, aligning with industry standards (e.g., [Shields.io](https://shields.io/)).
 
 ### 3.2 New Endpoint: Details Page
-- **Endpoint**: `badges.finki.edu.mk/details/<commit_id>`
+- **Endpoint**: `certificates.software.geant.org/details/<commit_id>`
   - Returns an HTML page with details about the badge or certificate.
-  - Example: `badges.finki.edu.mk/details/abc123`
+  - Example: `certificates.software.geant.org/details/abc123`
 - **Purpose**: Destination for badge/certificate clicks, providing metadata.
 - **Content Requirements**:
   - Issuer (e.g., "FINKI Certification Board")
@@ -92,22 +92,22 @@ This design ensures the badges are visually consistent, readable, and highly cus
 ### 3.3 Integration with Badge/Certificate Images
 - Badges/certificates link to the details page:
   ```html
-  <a href="badges.finki.edu.mk/details/abc123">
-    <img src="badges.finki.edu.mk/badge/abc123" alt="Certification Badge">
+  <a href="https://certificates.software.geant.org/details/abc123">
+    <img src="https://certificates.software.geant.org/badge/abc123" alt="Certification Badge">
   </a>
   ```
 
 ### 3.4 Image Format Support
 - **Option 1: New Endpoint**
-  - **Endpoint**: `badges.finki.edu.mk/badge/<commit_id>/image`
+  - **Endpoint**: `certificates.software.geant.org/badge/<commit_id>/image`
   - Returns a JPG or PNG image based on a query parameter.
-  - Example: `badges.finki.edu.mk/badge/abc123/image?format=png`
+  - Example: `certificates.software.geant.org/badge/abc123/image?format=png`
   - Supported formats: `format=jpg` or `format=png` (default: SVG if no format specified).
   - Behavior: Convert the SVG to the requested format using an image processing library (e.g., ImageMagick or Go’s `image` package).
   - Content-Type: `image/jpeg` for JPG, `image/png` for PNG.
 - **Option 2: Existing Endpoint with Parameter**
   - Enhance `/badge/<commit_id>` to support a `format` query parameter.
-  - Example: `badges.finki.edu.mk/badge/abc123?format=png`
+  - Example: `certificates.software.geant.org/badge/abc123?format=png`
   - Supported formats: `format=svg` (default), `format=jpg`, `format=png`.
   - Behavior: Return SVG, JPG, or PNG based on the parameter.
   - Content-Type: Adjusts to `image/svg+xml`, `image/jpeg`, or `image/png` accordingly.
@@ -191,7 +191,7 @@ This design ensures the badges are visually consistent, readable, and highly cus
 - **Header**: Title (e.g., "Badge/Certificate Details: abc123"), issuer logo.
 - **Main Content**:
   - Type, Status, Issuer, Issuance Date, Software Name and Version, Notes, Expiry Date, Covered Version, Repository Link, Public Note, Contact Details, Embedded SVG (optional).
-- **Footer**: Link to `badges.finki.edu.mk`, copyright notice.
+- **Footer**: Link to `certificates.software.geant.org`, copyright notice.
 
 ### 7.2 Badges List Page
 - **Header**: Title ("Badge List"), issuer logo.
@@ -199,7 +199,7 @@ This design ensures the badges are visually consistent, readable, and highly cus
   - Table with columns for Software Name, Status (valid/expired), and Issue Date.
   - Each row links to the corresponding badge details page.
   - Responsive design for mobile devices.
-- **Footer**: Link to `badges.finki.edu.mk`, copyright notice.
+- **Footer**: Link to `certificates.software.geant.org`, copyright notice.
 
 ## 8. Implementation Notes
 - Use Go (Golang) with the standard `net/http` library.
@@ -374,15 +374,15 @@ the template has comments where the colors can and should be changed to customiz
   - **Integration Snippets:**
     - For **small badge**:
       ```html
-      <img src="https://badges.finki.edu.mk/badge/abc123" alt="Certification Badge">
+      <img src="https://certificates.software.geant.org/badge/abc123" alt="Certification Badge">
       ```
     - For **certificate**:
       ```html
-      <img src="https://badges.finki.edu.mk/certificate/abc123" alt="Certificate">
+      <img src="https://certificates.software.geant.org/certificate/abc123" alt="Certificate">
       ```
     - Optionally, provide `<object>` examples for SVG:
       ```html
-      <object type="image/svg+xml" data="https://badges.finki.edu.mk/certificate/abc123"></object>
+      <object type="image/svg+xml" data="https://certificates.software.geant.org/certificate/abc123"></object>
       ```
   - **Responsiveness:** The layout must remain usable and readable on both desktop and mobile. On narrow screens, stack columns vertically.
 
@@ -418,9 +418,9 @@ the template has comments where the colors can and should be changed to customiz
 
 For a badge with `commit_id=abc123`, the following are all possible and valid (all reference the same underlying badge entity):
 
-- `/badge/abc123` → small badge outlook (SVG/png/jpg)
-- `/certificate/abc123` → certificate outlook (SVG/png/jpg)
-- `/badge/abc123?format=png` → badge outlook in PNG
-- `/certificate/abc123?format=svg` → certificate outlook in SVG
-- `/badge/abc123?outlook=certificate` → certificate outlook from the badge endpoint
-- `/certificate/abc123?outlook=badge` → badge outlook from the certificate endpoint
+- `https://certificates.software.geant.org/badge/abc123` → small badge outlook (SVG/png/jpg)
+- `https://certificates.software.geant.org/certificate/abc123` → certificate outlook (SVG/png/jpg)
+- `https://certificates.software.geant.org/badge/abc123?format=png` → badge outlook in PNG
+- `https://certificates.software.geant.org/certificate/abc123?format=svg` → certificate outlook in SVG
+- `https://certificates.software.geant.org/badge/abc123?outlook=certificate` → certificate outlook from the badge endpoint
+- `https://certificates.software.geant.org/certificate/abc123?outlook=badge` → badge outlook from the certificate endpoint

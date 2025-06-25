@@ -107,28 +107,28 @@ The service can be configured using environment variables:
 To embed a badge in your HTML:
 
 ```html
-<a href="https://badges.finki.edu.mk/details/abc123">
-    <img src="https://badges.finki.edu.mk/badge/abc123" alt="Badge">
+<a href="https://certificates.software.geant.org/details/abc123">
+    <img src="https://certificates.software.geant.org/badge/abc123" alt="Badge">
 </a>
 ```
 
 To embed a certificate in your HTML:
 
 ```html
-<a href="https://badges.finki.edu.mk/details/abc123">
-    <object data="https://badges.finki.edu.mk/certificate/abc123" type="image/svg+xml" width="400" height="300">
+<a href="https://certificates.software.geant.org/details/abc123">
+    <object data="https://certificates.software.geant.org/certificate/abc123" type="image/svg+xml" width="400" height="300">
         Certificate
     </object>
 </a>
 ```
 Small Badge look:
 
-[![Badge Service v1.0.0 Badge](http://badges.finki.ukim.mk/badge/test123)](http://badges.finki.ukim.mk/details/test123)
+[![Badge Service v1.0.0 Badge](https://certificates.software.geant.org/badge/test123)](https://certificates.software.geant.org/details/test123)
 
 
 Big Certificate Look:
 
-[![Badge Service v1.0.0 Badge](http://badges.finki.ukim.mk/certificate/test123)](http://badges.finki.ukim.mk/details/test123)
+[![Badge Service v1.0.0 Badge](https://certificates.software.geant.org/certificate/test123)](https://certificates.software.geant.org/details/test123)
 
 ## License
 
