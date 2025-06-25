@@ -123,6 +123,18 @@
                             <td><a href="{{ .RepositoryLink }}" target="_blank" rel="noopener noreferrer">{{ .RepositoryLink }}</a></td>
                         </tr>
                         {{ end }}
+                        {{ if .SoftwareSCID }}
+                        <tr>
+                            <th>Software Catalogue:</th>
+                            <td>{{ .SoftwareSCID }}</td>
+                        </tr>
+                        {{ end }}
+                        {{ if .SoftwareSCURL }}
+                        <tr>
+                            <th>SC Link:</th>
+                            <td><a href="{{ .SoftwareSCURL }}" target="_blank" rel="noopener noreferrer">{{ .SoftwareSCURL }}</a></td>
+                        </tr>
+                        {{ end }}
                         {{ if .PublicNote }}
                         <tr>
                             <th>Public Note:</th>

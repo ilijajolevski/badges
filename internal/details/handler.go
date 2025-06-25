@@ -34,6 +34,8 @@ type TemplateData struct {
 	ContactDetails  string
 	CertificateName string
 	SpecialtyDomain string
+	SoftwareSCID    string
+	SoftwareSCURL   string
 }
 
 // Handler handles details page requests
@@ -152,6 +154,14 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if badge.SpecialtyDomain.Valid {
 		data.SpecialtyDomain = badge.SpecialtyDomain.String
+	}
+
+	if badge.SoftwareSCID.Valid {
+		data.SoftwareSCID = badge.SoftwareSCID.String
+	}
+
+	if badge.SoftwareSCURL.Valid {
+		data.SoftwareSCURL = badge.SoftwareSCURL.String
 	}
 
 	// Render the template

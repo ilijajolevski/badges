@@ -151,6 +151,8 @@ This design ensures the badges are visually consistent, readable, and highly cus
 | `contact_details` | String | Contact information for public display (optional) | `support@example.com, +1-123-456-7890` |
 | `certificate_name` | String | Name of the certificate (optional) | `Self-Assessed Dependencies` |
 | `specialty_domain` | String | Specialty domain of the certificate (optional) | `SOFTWARE LICENCING` |
+| `software_sc_id`  | String | Software Catalogue Project ID (optional) | `project-123` |
+| `software_sc_url` | String | Software Catalogue Link (optional) | `https://sc.geant.org/ui/project/project-123` |
 
 - **Notes on New Fields**:
   - `custom_config`: Stores JSON with default customization options for each badge, including:

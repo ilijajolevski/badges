@@ -33,6 +33,8 @@ type Badge struct {
 	ContactDetails  sql.NullString // contact information for public display
 	CertificateName sql.NullString // name of the certificate, e.g., "Self-Assessed Dependencies"
 	SpecialtyDomain sql.NullString // specialty domain of the certificate, e.g., "SOFTWARE LICENCING"
+	SoftwareSCID    sql.NullString // Software Catalogue Project ID
+	SoftwareSCURL   sql.NullString // Software Catalogue Link, constructed as "https://sc.geant.org/ui/project/<software_sc_id>"
 	// The following fields are for storing pre-generated outlook-specific content
 	BadgeSVGContent      sql.NullString // Pre-generated SVG for badge outlook
 	CertificateSVGContent sql.NullString // Pre-generated SVG for certificate outlook
