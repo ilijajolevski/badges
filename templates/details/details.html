@@ -42,9 +42,7 @@
                     </div>
 
                     <div class="certificate-preview">
-                        <object data="/certificate/{{ .CommitID }}" type="image/svg+xml" width="400" height="300">
-                            {{ .SoftwareName }} {{ .SoftwareVersion }} Certificate
-                        </object>
+                        <img src="/certificate/{{ .CommitID }}" alt="{{ .SoftwareName }} {{ .SoftwareVersion }} Certificate" width="400" height="300">
                     </div>
                 </div>
 
@@ -172,14 +170,10 @@
                 <h3>HTML - Big Badge</h3>
                 <div class="code-container">
                     <button class="copy-btn" data-code="&lt;a href=&quot;https://certificates.software.geant.org/details/{{ .CommitID }}&quot;&gt;
-    &lt;object data=&quot;https://certificates.software.geant.org/certificate/{{ .CommitID }}&quot; type=&quot;image/svg+xml&quot; width=&quot;400&quot; height=&quot;300&quot;&gt;
-        {{ .SoftwareName }} {{ .SoftwareVersion }} Certificate
-    &lt;/object&gt;
+    &lt;img src=&quot;https://certificates.software.geant.org/certificate/{{ .CommitID }}&quot; alt=&quot;{{ .SoftwareName }} {{ .SoftwareVersion }} Certificate&quot; width=&quot;400&quot; height=&quot;300&quot;&gt;
 &lt;/a&gt;">copy</button>
                     <pre><code>&lt;a href="https://certificates.software.geant.org/details/{{ .CommitID }}"&gt;
-    &lt;object data="https://certificates.software.geant.org/certificate/{{ .CommitID }}" type="image/svg+xml" width="400" height="300"&gt;
-        {{ .SoftwareName }} {{ .SoftwareVersion }} Certificate
-    &lt;/object&gt;
+    &lt;img src="https://certificates.software.geant.org/certificate/{{ .CommitID }}" alt="{{ .SoftwareName }} {{ .SoftwareVersion }} Certificate" width="400" height="300"&gt;
 &lt;/a&gt;</code></pre>
                 </div>
 
