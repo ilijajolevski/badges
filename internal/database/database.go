@@ -103,15 +103,15 @@ func addTestBadge(db *sql.DB) error {
 	// Create a test badge with proper handling of NULL values
 	notes := sql.NullString{String: "This is a test badge for demonstration", Valid: true}
 	expiryDate := sql.NullString{String: time.Now().AddDate(1, 0, 0).Format("2006-01-02"), Valid: true}
-	issuerURL := sql.NullString{String: "https://finki.edu.mk", Valid: true}
+	issuerURL := sql.NullString{String: "https://certificates.software.geant.org", Valid: true}
 	softwareURL := sql.NullString{String: "https://github.com/finki/badges", Valid: true}
 	customConfig := sql.NullString{String: `{"color_left":"#4B6CB7","color_right":"#182848","style":"3d"}`, Valid: true}
 	lastReview := sql.NullString{String: time.Now().Format("2006-01-02"), Valid: true}
 	coveredVersion := sql.NullString{String: "1.0.0", Valid: true}
 	repositoryLink := sql.NullString{String: "https://github.com/finki/badges", Valid: true}
-	publicNote := sql.NullString{String: "This badge certifies compliance with security standards", Valid: true}
+	publicNote := sql.NullString{String: "This badge certifies compliance with Software Licence standards", Valid: true}
 	internalNote := sql.NullString{String: "Internal review comments and notes", Valid: true}
-	contactDetails := sql.NullString{String: "support@finki.edu.mk, +1-123-456-7890", Valid: true}
+	contactDetails := sql.NullString{String: "support@certificates.software.geant.org, +1-123-456-7890", Valid: true}
 	certificateName := sql.NullString{String: "Self-Assessed Dependencies", Valid: true}
 	specialtyDomain := sql.NullString{String: "SOFTWARE LICENCING", Valid: true}
 
@@ -125,26 +125,26 @@ func addTestBadge(db *sql.DB) error {
 			certificate_name, specialty_domain
 		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 	`,
-		"test123",                       // commit_id
-		"badge",                         // type
-		"valid",                         // status
-		"FINKI Certification Board",     // issuer
-		time.Now().Format("2006-01-02"), // issue_date
-		"Badge Service",                 // software_name
-		"v1.0.0",                        // software_version
-		softwareURL,                     // software_url
-		notes,                           // notes
-		expiryDate,                      // expiry_date
-		issuerURL,                       // issuer_url
-		customConfig,                    // custom_config
-		lastReview,                      // last_review
-		coveredVersion,                  // covered_version
-		repositoryLink,                  // repository_link
-		publicNote,                      // public_note
-		internalNote,                    // internal_note
-		contactDetails,                  // contact_details
-		certificateName,                 // certificate_name
-		specialtyDomain)                 // specialty_domain
+		"test123",                         // commit_id
+		"badge",                           // type
+		"valid",                           // status
+		"GEANT WP9T2 Certification Board", // issuer
+		time.Now().Format("2006-01-02"),   // issue_date
+		"Badge Service",                   // software_name
+		"v1.0.0",                          // software_version
+		softwareURL,                       // software_url
+		notes,                             // notes
+		expiryDate,                        // expiry_date
+		issuerURL,                         // issuer_url
+		customConfig,                      // custom_config
+		lastReview,                        // last_review
+		coveredVersion,                    // covered_version
+		repositoryLink,                    // repository_link
+		publicNote,                        // public_note
+		internalNote,                      // internal_note
+		contactDetails,                    // contact_details
+		certificateName,                   // certificate_name
+		specialtyDomain) // specialty_domain
 	if err != nil {
 		return fmt.Errorf("failed to insert test badge: %w", err)
 	}
