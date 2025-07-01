@@ -107,7 +107,7 @@ func addTestBadge(db *sql.DB) error {
 	expiryDate := sql.NullString{String: time.Now().AddDate(1, 0, 0).Format("2006-01-02"), Valid: true}
 	issuerURL := sql.NullString{String: "https://certificates.software.geant.org", Valid: true}
 	softwareURL := sql.NullString{String: "https://github.com/finki/badges", Valid: true}
-	customConfig := sql.NullString{String: `{"color_left":"#003f5f","color_right":"#FFFFFF","style":"3d","text_color_right":"#333"}`, Valid: true}
+	customConfig := sql.NullString{String: `{"color_left":"#003f5f","color_right":"#FFFFFF","style":"3d","text_color_right":"#333", "border_color":"#bbb", "horizontal_bars_color":"#bbb", "top_label_color":"#bbb"}`, Valid: true}
 	lastReview := sql.NullString{String: time.Now().Format("2006-01-02"), Valid: true}
 	coveredVersion := sql.NullString{String: "1.0.0", Valid: true}
 	repositoryLink := sql.NullString{String: "https://github.com/finki/badges", Valid: true}

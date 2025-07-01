@@ -125,18 +125,18 @@
           class="cls-7"
           id="text930"
           x="20"
-          y="95.889999"><tspan
+          y="100"><tspan
           x="20"
-          y="95.889999"
+          y="100"
           id="tspan928">{{getWord 0 .CertNameWords}}</tspan></text>
   <!-- Line 2 (word 2) from certificate name -->
   <text
           class="cls-7"
           id="text934"
           x="20"
-          y="113"><tspan
+          y="122"><tspan
           x="20"
-          y="113"
+          y="122"
           id="tspan932">{{getWord 1 .CertNameWords}}</tspan></text>
   <!-- Line 3 (word 3) from certificate name -->
   <text
