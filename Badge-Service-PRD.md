@@ -166,7 +166,7 @@ This design ensures the badges are visually consistent, readable, and highly cus
 | Endpoint                  | Method | Description               | Response         |
 |---------------------------|--------|---------------------------|------------------|
 | `/badge/<commit_id>`      | GET    | Retrieve small badge SVG, JPG, or PNG | SVG (`image/svg+xml`), JPG (`image/jpeg`), or PNG (`image/png`) |
-| `/certificate/<commit_id>`| GET    | Retrieve certificate SVG | SVG (`image/svg+xml`) |
+| `/certificate/<commit_id>`| GET    | Retrieve certificate SVG, JPG, or PNG | SVG (`image/svg+xml`), JPG (`image/jpeg`), or PNG (`image/png`) |
 | `/details/<commit_id>`    | GET    | Retrieve details page    | HTML (`text/html`) |
 | `/badges`                 | GET    | Retrieve badges list page | HTML (`text/html`) |
 
@@ -181,6 +181,18 @@ This design ensures the badges are visually consistent, readable, and highly cus
 - `font_size=<px>`: Custom font size.
 - `style=<flat|3d>`: Badge style.
 - `no_cache=true`: Bypasses the cache and generates a fresh badge. Useful for immediately seeing style changes during development.
+
+**Query Parameters for `/certificate/<commit_id>`**:
+- `format=svg|jpg|png`: Specifies the image format (default: `svg`).
+- `color_left=<hex>`: Custom left section color.
+- `color_right=<hex>`: Custom right section color.
+- `text_color=<hex>`: Custom text color for both sections (overridden by section-specific colors if provided).
+- `text_color_left=<hex>`: Custom text color for the left section only.
+- `text_color_right=<hex>`: Custom text color for the right section only.
+- `logo=<url>`: URL of a logo image for the left section.
+- `font_size=<px>`: Custom font size.
+- `style=<flat|3d>`: Badge style.
+- `no_cache=true`: Bypasses the cache and generates a fresh certificate. Useful for immediately seeing style changes during development.
 
 **Error Handling**:
 - Return 404 for invalid `<commit_id>`.
