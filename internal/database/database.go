@@ -80,9 +80,126 @@ func initDB(db *sql.DB) error {
 		return fmt.Errorf("failed to create badges table: %w", err)
 	}
 
+	// Create the roles table
+	_, err = db.Exec(`
+		CREATE TABLE IF NOT EXISTS roles (
+			role_id TEXT PRIMARY KEY,
+			name TEXT NOT NULL UNIQUE,
+			description TEXT NOT NULL,
+			permissions TEXT NOT NULL,
+			created_at TIMESTAMP NOT NULL,
+			updated_at TIMESTAMP NOT NULL
+		)
+	`)
+	if err != nil {
+		return fmt.Errorf("failed to create roles table: %w", err)
+	}
+
+	// Create the users table
+	_, err = db.Exec(`
+		CREATE TABLE IF NOT EXISTS users (
+			user_id TEXT PRIMARY KEY,
+			username TEXT NOT NULL UNIQUE,
+			email TEXT NOT NULL UNIQUE,
+			password_hash TEXT NOT NULL,
+			first_name TEXT NOT NULL,
+			last_name TEXT NOT NULL,
+			role_id TEXT NOT NULL,
+			created_at TIMESTAMP NOT NULL,
+			updated_at TIMESTAMP NOT NULL,
+			last_login TIMESTAMP,
+			status TEXT NOT NULL,
+			failed_attempts INTEGER NOT NULL DEFAULT 0,
+			FOREIGN KEY (role_id) REFERENCES roles (role_id)
+		)
+	`)
+	if err != nil {
+		return fmt.Errorf("failed to create users table: %w", err)
+	}
+
+	// Create the api_keys table
+	_, err = db.Exec(`
+		CREATE TABLE IF NOT EXISTS api_keys (
+			api_key_id TEXT PRIMARY KEY,
+			user_id TEXT NOT NULL,
+			api_key TEXT NOT NULL,
+			name TEXT NOT NULL,
+			permissions TEXT NOT NULL,
+			created_at TIMESTAMP NOT NULL,
+			expires_at TIMESTAMP NOT NULL,
+			last_used TIMESTAMP,
+			status TEXT NOT NULL,
+			ip_restrictions TEXT,
+			FOREIGN KEY (user_id) REFERENCES users (user_id)
+		)
+	`)
+	if err != nil {
+		return fmt.Errorf("failed to create api_keys table: %w", err)
+	}
+
 	// Add a test badge if it doesn't exist
 	if err := addTestBadge(db); err != nil {
 		return fmt.Errorf("failed to add test badge: %w", err)
+	}
+
+	// Add default admin role if it doesn't exist
+	if err := addDefaultRole(db); err != nil {
+		return fmt.Errorf("failed to add default admin role: %w", err)
+	}
+
+	return nil
+}
+
+// addDefaultRole adds a default admin role to the database if it doesn't already exist
+func addDefaultRole(db *sql.DB) error {
+	// Check if the admin role already exists
+	var count int
+	err := db.QueryRow("SELECT COUNT(*) FROM roles WHERE name = ?", "admin").Scan(&count)
+	if err != nil {
+		return fmt.Errorf("failed to check for admin role: %w", err)
+	}
+
+	// If the role already exists, don't add it again
+	if count > 0 {
+		return nil
+	}
+
+	// Create admin role with full permissions
+	permissions := `{
+		"badges": {
+			"read": true,
+			"write": true,
+			"delete": true
+		},
+		"users": {
+			"read": true,
+			"write": true,
+			"delete": true
+		},
+		"api_keys": {
+			"read": true,
+			"write": true,
+			"delete": true
+		}
+	}`
+
+	// Generate a UUID for the role ID
+	roleID := fmt.Sprintf("%x", time.Now().UnixNano())
+	
+	// Insert the admin role
+	_, err = db.Exec(`
+		INSERT INTO roles (
+			role_id, name, description, permissions, created_at, updated_at
+		) VALUES (?, ?, ?, ?, ?, ?)
+	`,
+		roleID,                           // role_id
+		"admin",                          // name
+		"Administrator with full access", // description
+		permissions,                      // permissions
+		time.Now(),                       // created_at
+		time.Now())                       // updated_at
+	if err != nil {
+		return fmt.Errorf("failed to insert admin role: %w", err)
 	}
 
 	return nil
@@ -305,4 +422,440 @@ func (db *DB) ListBadges() ([]*Badge, error) {
 	}
 
 	return badges, nil
+}
+
+// ==================== User CRUD Operations ====================
+
+// CreateUser creates a new user in the database
+func (db *DB) CreateUser(user *User) error {
+	_, err := db.Exec(`
+		INSERT INTO users (
+			user_id, username, email, password_hash, first_name, last_name,
+			role_id, created_at, updated_at, status, failed_attempts
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+	`,
+		user.UserID, user.Username, user.Email, user.PasswordHash, user.FirstName, user.LastName,
+		user.RoleID, user.CreatedAt, user.UpdatedAt, user.Status, user.FailedAttempts,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to create user: %w", err)
+	}
+
+	return nil
+}
+
+// GetUser retrieves a user from the database by user ID
+func (db *DB) GetUser(userID string) (*User, error) {
+	var user User
+	err := db.QueryRow(`
+		SELECT 
+			user_id, username, email, password_hash, first_name, last_name,
+			role_id, created_at, updated_at, last_login, status, failed_attempts
+		FROM users
+		WHERE user_id = ?
+	`, userID).Scan(
+		&user.UserID, &user.Username, &user.Email, &user.PasswordHash, &user.FirstName, &user.LastName,
+		&user.RoleID, &user.CreatedAt, &user.UpdatedAt, &user.LastLogin, &user.Status, &user.FailedAttempts,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil // User not found
+		}
+		return nil, fmt.Errorf("failed to get user: %w", err)
+	}
+
+	return &user, nil
+}
+
+// GetUserByUsername retrieves a user from the database by username
+func (db *DB) GetUserByUsername(username string) (*User, error) {
+	var user User
+	err := db.QueryRow(`
+		SELECT 
+			user_id, username, email, password_hash, first_name, last_name,
+			role_id, created_at, updated_at, last_login, status, failed_attempts
+		FROM users
+		WHERE username = ?
+	`, username).Scan(
+		&user.UserID, &user.Username, &user.Email, &user.PasswordHash, &user.FirstName, &user.LastName,
+		&user.RoleID, &user.CreatedAt, &user.UpdatedAt, &user.LastLogin, &user.Status, &user.FailedAttempts,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil // User not found
+		}
+		return nil, fmt.Errorf("failed to get user by username: %w", err)
+	}
+
+	return &user, nil
+}
+
+// UpdateUser updates an existing user in the database
+func (db *DB) UpdateUser(user *User) error {
+	_, err := db.Exec(`
+		UPDATE users SET
+			username = ?, email = ?, password_hash = ?, first_name = ?, last_name = ?,
+			role_id = ?, updated_at = ?, last_login = ?, status = ?, failed_attempts = ?
+		WHERE user_id = ?
+	`,
+		user.Username, user.Email, user.PasswordHash, user.FirstName, user.LastName,
+		user.RoleID, user.UpdatedAt, user.LastLogin, user.Status, user.FailedAttempts,
+		user.UserID,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to update user: %w", err)
+	}
+
+	return nil
+}
+
+// DeleteUser deletes a user from the database
+func (db *DB) DeleteUser(userID string) error {
+	_, err := db.Exec("DELETE FROM users WHERE user_id = ?", userID)
+	if err != nil {
+		return fmt.Errorf("failed to delete user: %w", err)
+	}
+
+	return nil
+}
+
+// ListUsers retrieves all users from the database
+func (db *DB) ListUsers() ([]*User, error) {
+	rows, err := db.Query(`
+		SELECT 
+			user_id, username, email, password_hash, first_name, last_name,
+			role_id, created_at, updated_at, last_login, status, failed_attempts
+		FROM users
+	`)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list users: %w", err)
+	}
+	defer rows.Close()
+
+	var users []*User
+	for rows.Next() {
+		var user User
+		err := rows.Scan(
+			&user.UserID, &user.Username, &user.Email, &user.PasswordHash, &user.FirstName, &user.LastName,
+			&user.RoleID, &user.CreatedAt, &user.UpdatedAt, &user.LastLogin, &user.Status, &user.FailedAttempts,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan user: %w", err)
+		}
+		users = append(users, &user)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating users: %w", err)
+	}
+
+	return users, nil
+}
+
+// UpdateUserFailedAttempts increments the failed login attempts for a user
+func (db *DB) UpdateUserFailedAttempts(userID string, attempts int) error {
+	_, err := db.Exec("UPDATE users SET failed_attempts = ? WHERE user_id = ?", attempts, userID)
+	if err != nil {
+		return fmt.Errorf("failed to update user failed attempts: %w", err)
+	}
+
+	return nil
+}
+
+// UpdateUserLastLogin updates the last login timestamp for a user
+func (db *DB) UpdateUserLastLogin(userID string, lastLogin time.Time) error {
+	_, err := db.Exec("UPDATE users SET last_login = ? WHERE user_id = ?", lastLogin, userID)
+	if err != nil {
+		return fmt.Errorf("failed to update user last login: %w", err)
+	}
+
+	return nil
+}
+
+// ==================== Role CRUD Operations ====================
+
+// CreateRole creates a new role in the database
+func (db *DB) CreateRole(role *Role) error {
+	_, err := db.Exec(`
+		INSERT INTO roles (
+			role_id, name, description, permissions, created_at, updated_at
+		) VALUES (?, ?, ?, ?, ?, ?)
+	`,
+		role.RoleID, role.Name, role.Description, role.Permissions, role.CreatedAt, role.UpdatedAt,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to create role: %w", err)
+	}
+
+	return nil
+}
+
+// GetRole retrieves a role from the database by role ID
+func (db *DB) GetRole(roleID string) (*Role, error) {
+	var role Role
+	err := db.QueryRow(`
+		SELECT 
+			role_id, name, description, permissions, created_at, updated_at
+		FROM roles
+		WHERE role_id = ?
+	`, roleID).Scan(
+		&role.RoleID, &role.Name, &role.Description, &role.Permissions, &role.CreatedAt, &role.UpdatedAt,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil // Role not found
+		}
+		return nil, fmt.Errorf("failed to get role: %w", err)
+	}
+
+	return &role, nil
+}
+
+// GetRoleByName retrieves a role from the database by name
+func (db *DB) GetRoleByName(name string) (*Role, error) {
+	var role Role
+	err := db.QueryRow(`
+		SELECT 
+			role_id, name, description, permissions, created_at, updated_at
+		FROM roles
+		WHERE name = ?
+	`, name).Scan(
+		&role.RoleID, &role.Name, &role.Description, &role.Permissions, &role.CreatedAt, &role.UpdatedAt,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil // Role not found
+		}
+		return nil, fmt.Errorf("failed to get role by name: %w", err)
+	}
+
+	return &role, nil
+}
+
+// UpdateRole updates an existing role in the database
+func (db *DB) UpdateRole(role *Role) error {
+	_, err := db.Exec(`
+		UPDATE roles SET
+			name = ?, description = ?, permissions = ?, updated_at = ?
+		WHERE role_id = ?
+	`,
+		role.Name, role.Description, role.Permissions, role.UpdatedAt,
+		role.RoleID,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to update role: %w", err)
+	}
+
+	return nil
+}
+
+// DeleteRole deletes a role from the database
+func (db *DB) DeleteRole(roleID string) error {
+	_, err := db.Exec("DELETE FROM roles WHERE role_id = ?", roleID)
+	if err != nil {
+		return fmt.Errorf("failed to delete role: %w", err)
+	}
+
+	return nil
+}
+
+// ListRoles retrieves all roles from the database
+func (db *DB) ListRoles() ([]*Role, error) {
+	rows, err := db.Query(`
+		SELECT 
+			role_id, name, description, permissions, created_at, updated_at
+		FROM roles
+	`)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list roles: %w", err)
+	}
+	defer rows.Close()
+
+	var roles []*Role
+	for rows.Next() {
+		var role Role
+		err := rows.Scan(
+			&role.RoleID, &role.Name, &role.Description, &role.Permissions, &role.CreatedAt, &role.UpdatedAt,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan role: %w", err)
+		}
+		roles = append(roles, &role)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating roles: %w", err)
+	}
+
+	return roles, nil
+}
+
+// ==================== API Key CRUD Operations ====================
+
+// CreateAPIKey creates a new API key in the database
+func (db *DB) CreateAPIKey(apiKey *APIKey) error {
+	_, err := db.Exec(`
+		INSERT INTO api_keys (
+			api_key_id, user_id, api_key, name, permissions,
+			created_at, expires_at, status, ip_restrictions
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+	`,
+		apiKey.APIKeyID, apiKey.UserID, apiKey.APIKey, apiKey.Name, apiKey.Permissions,
+		apiKey.CreatedAt, apiKey.ExpiresAt, apiKey.Status, apiKey.IPRestrictions,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to create API key: %w", err)
+	}
+
+	return nil
+}
+
+// GetAPIKey retrieves an API key from the database by API key ID
+func (db *DB) GetAPIKey(apiKeyID string) (*APIKey, error) {
+	var apiKey APIKey
+	err := db.QueryRow(`
+		SELECT 
+			api_key_id, user_id, api_key, name, permissions,
+			created_at, expires_at, last_used, status, ip_restrictions
+		FROM api_keys
+		WHERE api_key_id = ?
+	`, apiKeyID).Scan(
+		&apiKey.APIKeyID, &apiKey.UserID, &apiKey.APIKey, &apiKey.Name, &apiKey.Permissions,
+		&apiKey.CreatedAt, &apiKey.ExpiresAt, &apiKey.LastUsed, &apiKey.Status, &apiKey.IPRestrictions,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil // API key not found
+		}
+		return nil, fmt.Errorf("failed to get API key: %w", err)
+	}
+
+	return &apiKey, nil
+}
+
+// GetAPIKeyByKey retrieves an API key from the database by the hashed key value
+func (db *DB) GetAPIKeyByKey(hashedKey string) (*APIKey, error) {
+	var apiKey APIKey
+	err := db.QueryRow(`
+		SELECT 
+			api_key_id, user_id, api_key, name, permissions,
+			created_at, expires_at, last_used, status, ip_restrictions
+		FROM api_keys
+		WHERE api_key = ?
+	`, hashedKey).Scan(
+		&apiKey.APIKeyID, &apiKey.UserID, &apiKey.APIKey, &apiKey.Name, &apiKey.Permissions,
+		&apiKey.CreatedAt, &apiKey.ExpiresAt, &apiKey.LastUsed, &apiKey.Status, &apiKey.IPRestrictions,
+	)
+	if err != nil {
+		if err == sql.ErrNoRows {
+			return nil, nil // API key not found
+		}
+		return nil, fmt.Errorf("failed to get API key by key: %w", err)
+	}
+
+	return &apiKey, nil
+}
+
+// UpdateAPIKey updates an existing API key in the database
+func (db *DB) UpdateAPIKey(apiKey *APIKey) error {
+	_, err := db.Exec(`
+		UPDATE api_keys SET
+			name = ?, permissions = ?, expires_at = ?, last_used = ?, status = ?, ip_restrictions = ?
+		WHERE api_key_id = ?
+	`,
+		apiKey.Name, apiKey.Permissions, apiKey.ExpiresAt, apiKey.LastUsed, apiKey.Status, apiKey.IPRestrictions,
+		apiKey.APIKeyID,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to update API key: %w", err)
+	}
+
+	return nil
+}
+
+// DeleteAPIKey deletes an API key from the database
+func (db *DB) DeleteAPIKey(apiKeyID string) error {
+	_, err := db.Exec("DELETE FROM api_keys WHERE api_key_id = ?", apiKeyID)
+	if err != nil {
+		return fmt.Errorf("failed to delete API key: %w", err)
+	}
+
+	return nil
+}
+
+// ListAPIKeys retrieves all API keys from the database
+func (db *DB) ListAPIKeys() ([]*APIKey, error) {
+	rows, err := db.Query(`
+		SELECT 
+			api_key_id, user_id, api_key, name, permissions,
+			created_at, expires_at, last_used, status, ip_restrictions
+		FROM api_keys
+	`)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list API keys: %w", err)
+	}
+	defer rows.Close()
+
+	var apiKeys []*APIKey
+	for rows.Next() {
+		var apiKey APIKey
+		err := rows.Scan(
+			&apiKey.APIKeyID, &apiKey.UserID, &apiKey.APIKey, &apiKey.Name, &apiKey.Permissions,
+			&apiKey.CreatedAt, &apiKey.ExpiresAt, &apiKey.LastUsed, &apiKey.Status, &apiKey.IPRestrictions,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan API key: %w", err)
+		}
+		apiKeys = append(apiKeys, &apiKey)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating API keys: %w", err)
+	}
+
+	return apiKeys, nil
+}
+
+// ListAPIKeysByUser retrieves all API keys for a specific user
+func (db *DB) ListAPIKeysByUser(userID string) ([]*APIKey, error) {
+	rows, err := db.Query(`
+		SELECT 
+			api_key_id, user_id, api_key, name, permissions,
+			created_at, expires_at, last_used, status, ip_restrictions
+		FROM api_keys
+		WHERE user_id = ?
+	`, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list API keys by user: %w", err)
+	}
+	defer rows.Close()
+
+	var apiKeys []*APIKey
+	for rows.Next() {
+		var apiKey APIKey
+		err := rows.Scan(
+			&apiKey.APIKeyID, &apiKey.UserID, &apiKey.APIKey, &apiKey.Name, &apiKey.Permissions,
+			&apiKey.CreatedAt, &apiKey.ExpiresAt, &apiKey.LastUsed, &apiKey.Status, &apiKey.IPRestrictions,
+		)
+		if err != nil {
+			return nil, fmt.Errorf("failed to scan API key: %w", err)
+		}
+		apiKeys = append(apiKeys, &apiKey)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("error iterating API keys: %w", err)
+	}
+
+	return apiKeys, nil
+}
+
+// UpdateAPIKeyLastUsed updates the last used timestamp for an API key
+func (db *DB) UpdateAPIKeyLastUsed(apiKeyID string, lastUsed time.Time) error {
+	_, err := db.Exec("UPDATE api_keys SET last_used = ? WHERE api_key_id = ?", lastUsed, apiKeyID)
+	if err != nil {
+		return fmt.Errorf("failed to update API key last used: %w", err)
+	}
+
+	return nil
 }

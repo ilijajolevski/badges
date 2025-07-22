@@ -6,6 +6,166 @@ import (
 	"time"
 )
 
+// User represents a user entity in the database
+type User struct {
+	UserID         string
+	Username       string
+	Email          string
+	PasswordHash   string
+	FirstName      string
+	LastName       string
+	RoleID         string
+	CreatedAt      time.Time
+	UpdatedAt      time.Time
+	LastLogin      sql.NullTime
+	Status         string
+	FailedAttempts int
+}
+
+// Role represents a role entity in the database
+type Role struct {
+	RoleID      string
+	Name        string
+	Description string
+	Permissions string // JSON string of permissions
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+}
+
+// RolePermissions represents the permissions for a role
+type RolePermissions struct {
+	Badges struct {
+		Read   bool `json:"read"`
+		Write  bool `json:"write"`
+		Delete bool `json:"delete"`
+	} `json:"badges"`
+	Users struct {
+		Read   bool `json:"read"`
+		Write  bool `json:"write"`
+		Delete bool `json:"delete"`
+	} `json:"users"`
+	APIKeys struct {
+		Read   bool `json:"read"`
+		Write  bool `json:"write"`
+		Delete bool `json:"delete"`
+	} `json:"api_keys"`
+}
+
+// GetPermissions parses the permissions JSON
+func (r *Role) GetPermissions() (*RolePermissions, error) {
+	if r.Permissions == "" {
+		return &RolePermissions{}, nil
+	}
+
+	var permissions RolePermissions
+	err := json.Unmarshal([]byte(r.Permissions), &permissions)
+	if err != nil {
+		return nil, err
+	}
+
+	return &permissions, nil
+}
+
+// SetPermissions sets the permissions JSON
+func (r *Role) SetPermissions(permissions *RolePermissions) error {
+	if permissions == nil {
+		r.Permissions = ""
+		return nil
+	}
+
+	data, err := json.Marshal(permissions)
+	if err != nil {
+		return err
+	}
+
+	r.Permissions = string(data)
+	return nil
+}
+
+// APIKey represents an API key entity in the database
+type APIKey struct {
+	APIKeyID       string
+	UserID         string
+	APIKey         string // Hashed API key
+	Name           string
+	Permissions    string // JSON string of permissions
+	CreatedAt      time.Time
+	ExpiresAt      time.Time
+	LastUsed       sql.NullTime
+	Status         string
+	IPRestrictions string // JSON array of IP restrictions
+}
+
+// APIKeyPermissions represents the permissions for an API key
+type APIKeyPermissions struct {
+	Badges struct {
+		Read  bool `json:"read"`
+		Write bool `json:"write"`
+	} `json:"badges"`
+}
+
+// GetPermissions parses the permissions JSON
+func (a *APIKey) GetPermissions() (*APIKeyPermissions, error) {
+	if a.Permissions == "" {
+		return &APIKeyPermissions{}, nil
+	}
+
+	var permissions APIKeyPermissions
+	err := json.Unmarshal([]byte(a.Permissions), &permissions)
+	if err != nil {
+		return nil, err
+	}
+
+	return &permissions, nil
+}
+
+// SetPermissions sets the permissions JSON
+func (a *APIKey) SetPermissions(permissions *APIKeyPermissions) error {
+	if permissions == nil {
+		a.Permissions = ""
+		return nil
+	}
+
+	data, err := json.Marshal(permissions)
+	if err != nil {
+		return err
+	}
+
+	a.Permissions = string(data)
+	return nil
+}
+
+// GetIPRestrictions parses the IP restrictions JSON
+func (a *APIKey) GetIPRestrictions() ([]string, error) {
+	if a.IPRestrictions == "" {
+		return []string{}, nil
+	}
+
+	var restrictions []string
+	err := json.Unmarshal([]byte(a.IPRestrictions), &restrictions)
+	if err != nil {
+		return nil, err
+	}
+
+	return restrictions, nil
+}
+
+// SetIPRestrictions sets the IP restrictions JSON
+func (a *APIKey) SetIPRestrictions(restrictions []string) error {
+	if restrictions == nil {
+		a.IPRestrictions = ""
+		return nil
+	}
+
+	data, err := json.Marshal(restrictions)
+	if err != nil {
+		return err
+	}
+
+	a.IPRestrictions = string(data)
+	return nil
+}
+
 // Badge represents a badge entity in the database
 // The visual difference between "badge" (small) and "certificate" (large) is determined
 // by the endpoint or a rendering parameter, not by the entity itself
