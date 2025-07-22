@@ -126,6 +126,8 @@ This design ensures the badges are visually consistent, readable, and highly cus
 - **Accessibility**: Follow basic accessibility guidelines (e.g., alt text, semantic HTML).
 
 ## 5. Database Schema
+
+### 5.1 Badge Schema
 | Field             | Type   | Description                     | Example                     |
 |-------------------|--------|---------------------------------|-----------------------------|
 | `commit_id`       | String | Unique ID                      | `abc123`                   |
@@ -154,7 +156,7 @@ This design ensures the badges are visually consistent, readable, and highly cus
 | `software_sc_id`  | String | Software Catalogue Project ID (optional) | `project-123` |
 | `software_sc_url` | String | Software Catalogue Link (optional) | `https://sc.geant.org/ui/project/project-123` |
 
-- **Notes on New Fields**:
+- **Notes on Badge Fields**:
   - `custom_config`: Stores JSON with default customization options for each badge, including:
     - Colors for left and right sections (`color_left`, `color_right`)
     - Text colors, with options for both sections (`text_color`) or individual sections (`text_color_left`, `text_color_right`)
@@ -162,13 +164,146 @@ This design ensures the badges are visually consistent, readable, and highly cus
   - `last_review`: Stores the date when the badge was last reviewed or verified, useful for tracking badge maintenance and validity checks.
   - `jpg_content` and `png_content`: Store pre-generated images to reduce conversion overhead, populated on demand or during issuance.
 
+### 5.2 User Authentication Schema
+
+#### 5.2.1 Users Table
+| Field             | Type     | Description                     | Example                     |
+|-------------------|----------|---------------------------------|-----------------------------|
+| `user_id`         | UUID     | Unique user identifier          | `550e8400-e29b-41d4-a716-446655440000` |
+| `username`        | String   | Unique username                 | `admin_user`                |
+| `email`           | String   | User email address              | `admin@example.com`         |
+| `password_hash`   | String   | Bcrypt hashed password          | `$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LJZdL17lhWy` |
+| `first_name`      | String   | User's first name               | `John`                      |
+| `last_name`       | String   | User's last name                | `Doe`                       |
+| `role_id`         | UUID     | Reference to role               | `123e4567-e89b-12d3-a456-426614174000` |
+| `created_at`      | DateTime | Account creation timestamp      | `2025-07-01T10:30:00Z`      |
+| `updated_at`      | DateTime | Last update timestamp           | `2025-07-15T14:45:00Z`      |
+| `last_login`      | DateTime | Last login timestamp            | `2025-07-22T09:15:00Z`      |
+| `status`          | String   | Account status                  | `active`                    |
+| `failed_attempts` | Integer  | Failed login attempts           | `0`                         |
+
+#### 5.2.2 Roles Table
+| Field             | Type     | Description                     | Example                     |
+|-------------------|----------|---------------------------------|-----------------------------|
+| `role_id`         | UUID     | Unique role identifier          | `123e4567-e89b-12d3-a456-426614174000` |
+| `name`            | String   | Role name                       | `admin`                     |
+| `description`     | String   | Role description                | `Administrator with full access` |
+| `permissions`     | JSON     | Permission set                  | `{"badges": {"read": true, "write": true, "delete": true}}` |
+| `created_at`      | DateTime | Creation timestamp              | `2025-07-01T10:30:00Z`      |
+| `updated_at`      | DateTime | Last update timestamp           | `2025-07-15T14:45:00Z`      |
+
+#### 5.2.3 API Keys Table
+| Field             | Type     | Description                     | Example                     |
+|-------------------|----------|---------------------------------|-----------------------------|
+| `api_key_id`      | UUID     | Unique API key identifier       | `98765432-abcd-efgh-ijkl-123456789012` |
+| `user_id`         | UUID     | Reference to user               | `550e8400-e29b-41d4-a716-446655440000` |
+| `api_key`         | String   | Hashed API key                  | `2c17c6393771ee3048ae34d6b380c5ec` |
+| `name`            | String   | Key name/description            | `Service Integration Key`   |
+| `permissions`     | JSON     | Specific permissions for key    | `{"badges": {"read": true, "write": false}}` |
+| `created_at`      | DateTime | Creation timestamp              | `2025-07-01T10:30:00Z`      |
+| `expires_at`      | DateTime | Expiration timestamp            | `2026-07-01T10:30:00Z`      |
+| `last_used`       | DateTime | Last usage timestamp            | `2025-07-22T09:15:00Z`      |
+| `status`          | String   | Key status                      | `active`                    |
+| `ip_restrictions` | JSON     | Optional IP address restrictions| `["192.168.1.0/24", "10.0.0.1"]` |
+
 ## 6. API Specification
-| Endpoint                  | Method | Description               | Response         |
-|---------------------------|--------|---------------------------|------------------|
-| `/badge/<commit_id>`      | GET    | Retrieve small badge SVG, JPG, or PNG | SVG (`image/svg+xml`), JPG (`image/jpeg`), or PNG (`image/png`) |
-| `/certificate/<commit_id>`| GET    | Retrieve certificate SVG, JPG, or PNG | SVG (`image/svg+xml`), JPG (`image/jpeg`), or PNG (`image/png`) |
-| `/details/<commit_id>`    | GET    | Retrieve details page    | HTML (`text/html`) |
-| `/badges`                 | GET    | Retrieve badges list page | HTML (`text/html`) |
+
+### 6.1 Authentication
+
+All API endpoints that require authentication support two authentication methods:
+
+1. **JWT Token Authentication**:
+   ```
+   Authorization: Bearer <jwt_token>
+   ```
+
+2. **API Key Authentication** (for read-only operations):
+   ```
+   X-API-Key: <api_key>
+   ```
+
+#### 6.1.1 JWT Token Structure
+
+JWT tokens include the following claims:
+
+```json
+{
+  "sub": "550e8400-e29b-41d4-a716-446655440000",
+  "username": "admin_user",
+  "email": "admin@example.com",
+  "role": "admin",
+  "permissions": {
+    "badges": {
+      "read": true,
+      "write": true,
+      "delete": true
+    },
+    "users": {
+      "read": true,
+      "write": true,
+      "delete": true
+    },
+    "api_keys": {
+      "read": true,
+      "write": true,
+      "delete": true
+    }
+  },
+  "iat": 1690048380,
+  "exp": 1690051980,
+  "iss": "certificates.software.geant.org"
+}
+```
+
+**Note**: The JWT token claims include:
+- `sub`: User ID
+- `iat`: Issued at timestamp
+- `exp`: Expiration timestamp (1 hour later)
+- `iss`: Issuer
+```
+
+#### 6.1.2 Authentication Endpoints
+
+| Endpoint                  | Method | Description               | Authentication | Response         |
+|---------------------------|--------|---------------------------|----------------|------------------|
+| `/api/v1/auth/login`      | POST   | Authenticate user and get JWT token | None | JSON with token and user info |
+| `/api/v1/auth/refresh`    | POST   | Refresh JWT token         | JWT Token      | JSON with new token |
+| `/api/v1/auth/logout`     | POST   | Invalidate JWT token      | JWT Token      | JSON with success message |
+
+**Request Body for `/api/v1/auth/login`**:
+```json
+{
+  "username": "admin_user",
+  "password": "secure_password"
+}
+```
+
+**Response for `/api/v1/auth/login`** (200 OK):
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "user": {
+    "user_id": "550e8400-e29b-41d4-a716-446655440000",
+    "username": "admin_user",
+    "email": "admin@example.com",
+    "first_name": "John",
+    "last_name": "Doe",
+    "role": "admin"
+  },
+  "expires_at": "2025-07-22T19:53:00Z"
+}
+```
+
+### 6.2 Public Badge Endpoints
+
+These endpoints are publicly accessible and do not require authentication.
+
+| Endpoint                  | Method | Description               | Authentication | Response         |
+|---------------------------|--------|---------------------------|----------------|------------------|
+| `/badge/<commit_id>`      | GET    | Retrieve small badge SVG, JPG, or PNG | None | SVG (`image/svg+xml`), JPG (`image/jpeg`), or PNG (`image/png`) |
+| `/certificate/<commit_id>`| GET    | Retrieve certificate SVG, JPG, or PNG | None | SVG (`image/svg+xml`), JPG (`image/jpeg`), or PNG (`image/png`) |
+| `/details/<commit_id>`    | GET    | Retrieve details page    | None | HTML (`text/html`) |
+| `/badges`                 | GET    | Retrieve badges list page | None | HTML (`text/html`) |
 
 **Query Parameters for `/badge/<commit_id>`**:
 - `format=svg|jpg|png`: Specifies the image format (default: `svg`).
@@ -194,10 +329,262 @@ This design ensures the badges are visually consistent, readable, and highly cus
 - `style=<flat|3d>`: Badge style.
 - `no_cache=true`: Bypasses the cache and generates a fresh certificate. Useful for immediately seeing style changes during development.
 
-**Error Handling**:
+### 6.3 Integration API Endpoints (Read-Only)
+
+These endpoints allow other services to retrieve badge data in JSON format. They require authentication with either JWT token or API key.
+
+| Endpoint                  | Method | Description               | Authentication | Response         |
+|---------------------------|--------|---------------------------|----------------|------------------|
+| `/api/v1/badges`          | GET    | List all badges (paginated) | JWT Token or API Key | JSON |
+| `/api/v1/badges/<commit_id>` | GET | Get badge details        | JWT Token or API Key | JSON |
+
+**Query Parameters for `/api/v1/badges`**:
+- `page` (optional): Page number (default: 1)
+- `limit` (optional): Items per page (default: 20, max: 100)
+- `status` (optional): Filter by status ("valid", "expired", "revoked")
+- `issuer` (optional): Filter by issuer name
+- `software_name` (optional): Filter by software name
+- `sort` (optional): Sort field (default: "issue_date")
+- `order` (optional): Sort order ("asc" or "desc", default: "desc")
+
+**Response for `/api/v1/badges`** (200 OK):
+```json
+{
+  "total": 125,
+  "page": 1,
+  "limit": 20,
+  "badges": [
+    {
+      "commit_id": "abc123",
+      "status": "valid",
+      "issuer": "FINKI Certification Board",
+      "issue_date": "2025-05-01",
+      "software_name": "MyApp",
+      "software_version": "v1.3.1",
+      "certificate_name": "Self-Assessed Dependencies",
+      "specialty_domain": "SOFTWARE LICENCING",
+      "expiry_date": "2026-05-01"
+    }
+  ]
+}
+```
+
+**Note**: The actual response will include multiple badge entries in the array.
+```
+
+**Response for `/api/v1/badges/<commit_id>`** (200 OK):
+```json
+{
+  "commit_id": "abc123",
+  "status": "valid",
+  "issuer": "FINKI Certification Board",
+  "issue_date": "2025-05-01",
+  "software_name": "MyApp",
+  "software_version": "v1.3.1",
+  "software_url": "https://myapp.com",
+  "notes": "Certified for security compliance",
+  "expiry_date": "2026-05-01",
+  "issuer_url": "https://finki.edu.mk",
+  "last_review": "2025-06-15",
+  "covered_version": "1.2.3",
+  "repository_link": "https://github.com/org/repo",
+  "public_note": "This certificate verifies compliance with security standards...",
+  "contact_details": "support@example.com, +1-123-456-7890",
+  "certificate_name": "Self-Assessed Dependencies",
+  "specialty_domain": "SOFTWARE LICENCING",
+  "software_sc_id": "project-123",
+  "software_sc_url": "https://sc.geant.org/ui/project/project-123",
+  "badge_url": "https://certificates.software.geant.org/badge/abc123",
+  "certificate_url": "https://certificates.software.geant.org/certificate/abc123",
+  "details_url": "https://certificates.software.geant.org/details/abc123"
+}
+```
+
+### 6.4 Admin API Endpoints (CRUD Operations)
+
+These endpoints allow administrators to manage badges through a web admin interface. They require authentication with JWT token and appropriate permissions.
+
+#### 6.4.1 Badge Management Endpoints
+
+| Endpoint                  | Method | Description               | Authentication | Response         |
+|---------------------------|--------|---------------------------|----------------|------------------|
+| `/api/v1/admin/badges`    | POST   | Create a new badge        | JWT Token (admin/editor) | JSON |
+| `/api/v1/admin/badges/<commit_id>` | PUT | Update an existing badge | JWT Token (admin/editor) | JSON |
+| `/api/v1/admin/badges/<commit_id>` | DELETE | Delete a badge   | JWT Token (admin) | JSON |
+| `/api/v1/admin/badges/batch` | POST | Perform batch operations | JWT Token (admin) | JSON |
+| `/api/v1/admin/badges/<commit_id>/svg` | POST | Upload custom SVG | JWT Token (admin/editor) | JSON |
+
+**Request Body for `/api/v1/admin/badges`**:
+```json
+{
+  "commit_id": "abc123",
+  "status": "valid",
+  "issuer": "FINKI Certification Board",
+  "issue_date": "2025-05-01",
+  "software_name": "MyApp",
+  "software_version": "v1.3.1",
+  "software_url": "https://myapp.com",
+  "notes": "Certified for security compliance",
+  "expiry_date": "2026-05-01",
+  "issuer_url": "https://finki.edu.mk",
+  "covered_version": "1.2.3",
+  "repository_link": "https://github.com/org/repo",
+  "public_note": "This certificate verifies compliance with security standards...",
+  "internal_note": "Internal review comments and notes...",
+  "contact_details": "support@example.com, +1-123-456-7890",
+  "certificate_name": "Self-Assessed Dependencies",
+  "specialty_domain": "SOFTWARE LICENCING",
+  "software_sc_id": "project-123",
+  "software_sc_url": "https://sc.geant.org/ui/project/project-123",
+  "custom_config": {
+    "color_left": "#333",
+    "color_right": "#4CAF50",
+    "text_color": "#FFFFFF",
+    "text_color_left": "#EEEEEE",
+    "text_color_right": "#FFFFFF",
+    "logo": "https://example.com/logo.png",
+    "font_size": 12,
+    "style": "3d"
+  }
+}
+```
+
+**Response for `/api/v1/admin/badges`** (201 Created):
+```json
+{
+  "commit_id": "abc123",
+  "message": "Badge created successfully",
+  "badge_url": "https://certificates.software.geant.org/badge/abc123",
+  "certificate_url": "https://certificates.software.geant.org/certificate/abc123",
+  "details_url": "https://certificates.software.geant.org/details/abc123"
+}
+```
+
+#### 6.4.2 User Management Endpoints
+
+| Endpoint                  | Method | Description               | Authentication | Response         |
+|---------------------------|--------|---------------------------|----------------|------------------|
+| `/api/v1/admin/users`     | POST   | Create a new user         | JWT Token (admin) | JSON |
+| `/api/v1/admin/users`     | GET    | List all users (paginated) | JWT Token (admin) | JSON |
+| `/api/v1/admin/users/<user_id>` | GET | Get user details       | JWT Token (admin) | JSON |
+| `/api/v1/admin/users/<user_id>` | PUT | Update an existing user | JWT Token (admin) | JSON |
+| `/api/v1/admin/users/<user_id>` | DELETE | Delete a user       | JWT Token (admin) | JSON |
+| `/api/v1/admin/users/<user_id>/password` | PUT | Change user password | JWT Token (admin or self) | JSON |
+
+**Request Body for `/api/v1/admin/users`**:
+```json
+{
+  "username": "new_user",
+  "email": "user@example.com",
+  "password": "secure_password",
+  "first_name": "Jane",
+  "last_name": "Smith",
+  "role_id": "123e4567-e89b-12d3-a456-426614174000"
+}
+```
+
+**Response for `/api/v1/admin/users`** (201 Created):
+```json
+{
+  "user_id": "550e8400-e29b-41d4-a716-446655440000",
+  "username": "new_user",
+  "email": "user@example.com",
+  "first_name": "Jane",
+  "last_name": "Smith",
+  "role": "editor",
+  "created_at": "2025-07-22T18:53:00Z"
+}
+```
+
+#### 6.4.3 API Key Management Endpoints
+
+| Endpoint                  | Method | Description               | Authentication | Response         |
+|---------------------------|--------|---------------------------|----------------|------------------|
+| `/api/v1/admin/api-keys`  | POST   | Create a new API key      | JWT Token | JSON |
+| `/api/v1/admin/api-keys`  | GET    | List all API keys         | JWT Token | JSON |
+| `/api/v1/admin/api-keys/<api_key_id>` | GET | Get API key details | JWT Token | JSON |
+| `/api/v1/admin/api-keys/<api_key_id>` | PUT | Update an API key | JWT Token | JSON |
+| `/api/v1/admin/api-keys/<api_key_id>` | DELETE | Delete an API key | JWT Token | JSON |
+| `/api/v1/admin/api-keys/<api_key_id>/revoke` | POST | Revoke an API key | JWT Token | JSON |
+
+**Request Body for `/api/v1/admin/api-keys`**:
+```json
+{
+  "name": "Service Integration Key",
+  "permissions": {
+    "badges": {
+      "read": true,
+      "write": false
+    }
+  },
+  "expires_at": "2026-07-22T18:53:00Z",
+  "ip_restrictions": ["192.168.1.0/24", "10.0.0.1"]
+}
+```
+
+**Response for `/api/v1/admin/api-keys`** (201 Created):
+```json
+{
+  "api_key_id": "98765432-abcd-efgh-ijkl-123456789012",
+  "api_key": "...",
+  "name": "Service Integration Key",
+  "permissions": {
+    "badges": {
+      "read": true,
+      "write": false
+    }
+  },
+  "created_at": "2025-07-22T18:53:00Z",
+  "expires_at": "2026-07-22T18:53:00Z",
+  "status": "active"
+}
+```
+
+**Note**: The `api_key` value is only shown once when the key is created. It cannot be retrieved later.
+```
+
+### 6.5 Error Handling
+
+All API endpoints follow a consistent error response format:
+
+```json
+{
+  "error": {
+    "code": "RESOURCE_NOT_FOUND",
+    "message": "Badge with commit_id 'abc123' not found",
+    "details": {
+      "commit_id": "abc123"
+    }
+  }
+}
+```
+
+Common error codes:
+- `UNAUTHORIZED`: Missing or invalid authentication
+- `FORBIDDEN`: Insufficient permissions
+- `RESOURCE_NOT_FOUND`: Requested resource not found
+- `VALIDATION_ERROR`: Invalid request data
+- `INTERNAL_ERROR`: Server-side error
+
+For public endpoints:
 - Return 404 for invalid `<commit_id>`.
 - For `/badge` and `/certificate`, return error image in the requested format.
 - For `/details`, return error HTML page.
+
+### 6.6 Rate Limiting
+
+API endpoints implement rate limiting to prevent abuse:
+
+- Public endpoints: 200 requests per minute per IP
+- Integration API: 100 requests per minute per token/key
+- Admin API: 60 requests per minute per token
+
+Rate limit headers are included in responses:
+```
+X-RateLimit-Limit: 100
+X-RateLimit-Remaining: 95
+X-RateLimit-Reset: 1627834096
+```
 
 ## 7. User Interface
 
@@ -216,24 +603,88 @@ This design ensures the badges are visually consistent, readable, and highly cus
 - **Footer**: Link to `certificates.software.geant.org`, copyright notice.
 
 ## 8. Implementation Notes
+
+### 8.1 Core Technology Stack
 - Use Go (Golang) with the standard `net/http` library.
 - Use SQLite as the database, stored in the `/db` folder.
 - Use the `zap` library for logging.
 - Use a template engine (e.g., `html/template` package) for `/details` HTML.
 - Cache SVGs, JPGs, and HTML pages (e.g., using an in-memory cache like `sync.Map` or a library like `gocache`).
 - Sanitize inputs, use HTTPS.
+
+### 8.2 Authentication and Authorization
+- **JWT Token Management**:
+  - Use a library like `github.com/golang-jwt/jwt` for JWT token generation and validation.
+  - Store JWT secret in environment variables or a secure configuration.
+  - Implement token refresh mechanism to extend sessions without requiring re-login.
+  - Include comprehensive claims in tokens (user ID, username, role, permissions).
+  - Set token expiration to 1 hour for security.
+
+- **Password Security**:
+  - Use bcrypt with a work factor of 12+ for password hashing.
+  - Implement password validation rules (minimum length, complexity requirements).
+  - Store only password hashes, never plaintext passwords.
+  - Implement account lockout after multiple failed login attempts.
+
+- **API Key Management**:
+  - Generate API keys with sufficient entropy (at least 32 bytes).
+  - Store only hashed API keys in the database.
+  - Implement IP restriction validation for API keys.
+  - Log API key usage for audit purposes.
+
+- **Authentication Middleware**:
+  - Create middleware for JWT token validation.
+  - Create middleware for API key validation.
+  - Implement role-based access control (RBAC) for endpoints.
+  - Add rate limiting to prevent abuse.
+
+### 8.3 Database and Data Management
+- **Database Schema**:
+  - Implement the schema as defined in Section 5.
+  - Create appropriate indexes for performance optimization.
+  - Implement database migrations for schema updates.
+
+- **Data Validation**:
+  - Validate all input data before storing in the database.
+  - Implement comprehensive error handling for database operations.
+
+### 8.4 Logging and Monitoring
 - **Logging**: 
   - Log all available badges at server startup for monitoring and debugging purposes.
   - Each badge's commit ID, type, status, and software information is logged.
+  - Log authentication events (login, logout, failed attempts).
+  - Log API key creation, usage, and revocation.
+  - Use structured logging for easier parsing and analysis.
+
+- **Monitoring**:
+  - Implement health check endpoints.
+  - Add metrics for API usage and performance.
+  - Monitor authentication failures and rate limit triggers.
+
+### 8.5 Deployment
 - **Dockerfile**: Implement a multi-stage build to optimize the image size:
   - Stage 1: Build the Go binary.
   - Stage 2: Copy the binary and SQLite DB into a lightweight image (e.g., `alpine`).
+
 - **Makefile**: Include targets:
   - `run`: Start the service locally.
   - `build`: Compile the Go binary.
   - `build-image`: Build the Docker image.
   - `push-image`: Push the Docker image to a registry.
+  - `migrate`: Run database migrations.
+  - `test`: Run unit and integration tests.
+
+### 8.6 Image Processing
 - **Image Conversion**: Use a library like `github.com/disintegration/imaging` to convert SVG to JPG/PNG on demand if not pre-generated.
+- **SVG Generation**: Use templates for generating SVG badges and certificates.
+
+### 8.7 Security Considerations
+- Implement HTTPS for all endpoints.
+- Set secure HTTP headers (HSTS, Content-Security-Policy, etc.).
+- Sanitize all user inputs to prevent injection attacks.
+- Implement rate limiting to prevent brute force and DoS attacks.
+- Regularly rotate JWT secrets and API keys.
+- Implement proper error handling to avoid information leakage.
 
 ## 9. Success Criteria
 - Badges/certificates display correctly and link to details page.
@@ -259,11 +710,40 @@ This design ensures the badges are visually consistent, readable, and highly cus
 - [x] Configure logging with zap library
 
 ### Database Implementation
-- [x] Design and implement SQLite database schema as per section 5
+- [x] Design and implement SQLite database schema for badges as per section 5.1
 - [x] Create database initialization and migration scripts
 - [x] Implement database connection and query functions
 - [x] Create CRUD operations for badge/certificate data
 - [x] Implement data validation for database operations
+- [ ] Extend database schema to include authentication tables as per section 5.2
+- [ ] Create migration scripts for authentication tables
+- [ ] Implement CRUD operations for users, roles, and API keys
+
+### Authentication and Authorization
+- [ ] Implement JWT token generation and validation
+- [ ] Create authentication middleware for JWT tokens
+- [ ] Implement API key generation and validation
+- [ ] Create authentication middleware for API keys
+- [ ] Implement role-based access control (RBAC)
+- [ ] Create password hashing and validation functions
+- [ ] Implement account lockout mechanism for failed login attempts
+- [ ] Add IP restriction validation for API keys
+- [ ] Implement rate limiting for authentication endpoints
+
+### User Management
+- [ ] Create user registration and login functionality
+- [ ] Implement user profile management
+- [ ] Create role management functionality
+- [ ] Implement password reset mechanism
+- [ ] Create user listing and search functionality
+- [ ] Implement user account deactivation/reactivation
+
+### API Key Management
+- [ ] Implement API key generation with sufficient entropy
+- [ ] Create API key listing and management functionality
+- [ ] Implement API key revocation
+- [ ] Add API key usage logging for audit purposes
+- [ ] Create API key permission management
 
 ### Core Badge Service
 - [x] Implement badge generation logic for SVG format
@@ -280,6 +760,9 @@ This design ensures the badges are visually consistent, readable, and highly cus
 - [x] Create middleware for input sanitization and validation
 - [x] Implement rate limiting middleware
 - [x] Create error handling for all endpoints
+- [ ] Implement authentication endpoints as per section 6.1.2
+- [ ] Create integration API endpoints as per section 6.3
+- [ ] Implement admin API endpoints as per section 6.4
 
 ### User Interface
 - [x] Design and implement HTML template for details page
@@ -287,6 +770,10 @@ This design ensures the badges are visually consistent, readable, and highly cus
 - [x] Create CSS styles for responsive design
 - [x] Implement error page templates
 - [x] Ensure accessibility compliance
+- [ ] Create login and user management interface
+- [ ] Implement API key management interface
+- [ ] Design and implement admin dashboard
+- [ ] Create forms for badge creation and management
 
 ### Testing
 - [x] Write unit tests for core badge generation functions
@@ -294,6 +781,10 @@ This design ensures the badges are visually consistent, readable, and highly cus
 - [x] Create API endpoint tests
 - [ ] Implement performance testing for response time requirements
 - [ ] Test image format conversion
+- [ ] Write unit tests for authentication functions
+- [ ] Create integration tests for authentication endpoints
+- [ ] Test user management functionality
+- [ ] Implement security testing for authentication mechanisms
 
 ### Deployment
 - [x] Create Dockerfile with multi-stage build
@@ -301,15 +792,126 @@ This design ensures the badges are visually consistent, readable, and highly cus
 - [ ] Set up CI/CD pipeline configuration
 - [ ] Create deployment documentation
 - [x] Implement graceful shutdown handling
+- [ ] Configure secure environment for JWT secrets and API keys
+- [ ] Set up monitoring for authentication failures and rate limit triggers
 
 ### Documentation
 - [x] Create API documentation
 - [x] Write user guide for badge/certificate integration
 - [x] Document database schema and operations
 - [x] Create developer onboarding documentation
+- [ ] Write authentication and authorization documentation
+- [ ] Create user management documentation
+- [ ] Document API key management
+- [ ] Write security best practices guide
 
 
-## 12. Unified Badge Entity and Outlook Separation
+## 12. Implementation Phases
+
+### Phase 1: Core Authentication Infrastructure
+
+**Objective**: Establish the foundational authentication infrastructure.
+
+**Tasks**:
+- Extend database schema to include users, roles, and API keys tables
+- Create database migration scripts if needed
+- Implement JWT token generation and validation
+- Create password hashing and validation functions
+- Implement basic authentication middleware
+
+**Deliverables**:
+- Updated database schema with authentication tables
+- Working JWT token generation and validation
+- Functional password security system
+- Basic authentication middleware
+
+### Phase 2: User Management System
+
+**Objective**: Implement user management functionality.
+
+**Tasks**:
+- Create user registration and login endpoints
+- Implement user profile management
+- Develop role management functionality
+- Create user listing and search functionality
+- Implement account lockout mechanism
+
+**Deliverables**:
+- Functional user registration and login system
+- User profile management interface
+- Role management system
+- User administration interface
+
+### Phase 3: API Key Management
+
+**Objective**: Implement API key management system.
+
+**Tasks**:
+- Develop API key generation with sufficient entropy
+- Create API key listing and management functionality
+- Implement API key revocation
+- Add IP restriction validation for API keys
+- Implement API key usage logging
+
+**Deliverables**:
+- API key generation and validation system
+- API key management interface
+- API key security features (IP restrictions, logging)
+
+### Phase 4: Integration and Admin APIs
+
+**Objective**: Implement integration and admin API endpoints.
+
+**Tasks**:
+- Create integration API endpoints for badge listing and details
+- Implement admin API endpoints for badge management
+- Develop batch operations functionality
+- Implement rate limiting for API endpoints
+- Create comprehensive error handling
+
+**Deliverables**:
+- Functional integration API endpoints
+- Admin API endpoints for badge management
+- API documentation
+- Rate limiting and security features
+
+### Phase 5: Admin Interface
+
+**Objective**: Develop the web admin interface.
+
+**Tasks**:
+- Design and implement admin dashboard
+- Create forms for badge creation and management
+- Implement API key management interface
+- Develop user management interface
+- Create comprehensive error handling and feedback
+
+**Deliverables**:
+- Functional admin dashboard
+- Badge management interface
+- User and API key management interfaces
+- Comprehensive error handling and user feedback
+
+### Phase 6: Testing and Security Hardening
+
+**Objective**: Ensure the system is thoroughly tested and secure.
+
+**Tasks**:
+- Write unit tests for authentication functions
+- Create integration tests for all endpoints
+- Implement security testing for authentication mechanisms
+- Perform performance testing
+- Conduct security audit and penetration testing
+
+**Deliverables**:
+- Comprehensive test suite
+- Security audit report
+- Performance testing results
+- Documentation of security measures
+
+
+
+## 13. Unified Badge Entity and Outlook Separation
 
 ### Overview
 
