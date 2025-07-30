@@ -10,6 +10,8 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/finki/badges/internal/apikey"
+	"github.com/finki/badges/internal/auth"
 	"github.com/finki/badges/internal/badge"
 	"github.com/finki/badges/internal/cache"
 	"github.com/finki/badges/internal/certificate"
@@ -71,12 +73,18 @@ func main() {
 	if err != nil {
 		logger.Fatal("Failed to initialize list handler", zap.Error(err))
 	}
+	
+	// Initialize API key handler
+	apiKeyHandler := apikey.NewHandler(db, logger)
+	
+	// Initialize auth handler
+	authHandler := auth.NewHandler(db, logger)
 
 	// Initialize HTTP server
 	mux := http.NewServeMux()
 
 	// Register routes
-	registerRoutes(mux, badgeHandler, certificateHandler, detailsHandler, listHandler, errorHandler, sanitizer, rateLimiter, requestLogger)
+	registerRoutes(mux, badgeHandler, certificateHandler, detailsHandler, listHandler, apiKeyHandler, authHandler, errorHandler, sanitizer, rateLimiter, requestLogger)
 
 	// Create HTTP server
 	server := &http.Server{
@@ -148,6 +156,8 @@ func registerRoutes(
 	certificateHandler *certificate.Handler,
 	detailsHandler *details.Handler,
 	listHandler *list.Handler,
+	apiKeyHandler *apikey.Handler,
+	authHandler *auth.Handler,
 	errorHandler *middleware.ErrorHandler,
 	sanitizer *middleware.Sanitizer,
 	rateLimiter *middleware.RateLimiter,
@@ -186,11 +196,50 @@ func registerRoutes(
 		),
 	)
 
+	// Create a handler function for the ListAPIKeys endpoint
+	listAPIKeysHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		// Only handle GET requests
+		if r.Method != http.MethodGet {
+			http.Error(w, "Method not allowed", http.StatusMethodNotAllowed)
+			return
+		}
+		
+		// Call the ListAPIKeys method
+		apiKeyHandler.ListAPIKeys(w, r)
+	})
+	
+	// Apply middleware to the ListAPIKeys handler
+	listAPIKeysHandlerWithMiddleware := requestLogger.Middleware(
+		errorHandler.Middleware(
+			rateLimiter.Middleware(
+				sanitizer.Middleware(
+					auth.JWTAuthMiddleware(listAPIKeysHandler),
+				),
+			),
+		),
+	)
+
+	// Create a handler function for the login endpoint
+	loginHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		authHandler.Login(w, r)
+	})
+	
+	// Apply middleware to the login handler
+	loginHandlerWithMiddleware := requestLogger.Middleware(
+		errorHandler.Middleware(
+			rateLimiter.Middleware(
+				sanitizer.Middleware(loginHandler),
+			),
+		),
+	)
+
 	// Register routes
 	mux.Handle("/badge/", badgeHandlerWithMiddleware)
 	mux.Handle("/certificate/", certificateHandlerWithMiddleware)
 	mux.Handle("/details/", detailsHandlerWithMiddleware)
 	mux.Handle("/badges", listHandlerWithMiddleware)
+	mux.Handle("/api/keys", listAPIKeysHandlerWithMiddleware)
+	mux.Handle("/api/auth/login", loginHandlerWithMiddleware)
 
 	// Serve static files
 	fs := http.FileServer(http.Dir("./static"))

@@ -9,6 +9,7 @@ import (
 
 	_ "github.com/mattn/go-sqlite3"
 	"go.uber.org/zap"
+	"golang.org/x/crypto/bcrypt"
 )
 
 // DB represents a database connection
@@ -147,6 +148,11 @@ func initDB(db *sql.DB) error {
 		return fmt.Errorf("failed to add default admin role: %w", err)
 	}
 
+	// Add default admin user if no users exist
+	if err := addDefaultAdminUser(db); err != nil {
+		return fmt.Errorf("failed to add default admin user: %w", err)
+	}
+
 	return nil
 }
 
@@ -202,6 +208,65 @@ func addDefaultRole(db *sql.DB) error {
 		return fmt.Errorf("failed to insert admin role: %w", err)
 	}
 
+	return nil
+}
+
+// addDefaultAdminUser adds a default admin user to the database if no users exist
+func addDefaultAdminUser(db *sql.DB) error {
+	// Check if any users exist
+	var count int
+	err := db.QueryRow("SELECT COUNT(*) FROM users").Scan(&count)
+	if err != nil {
+		return fmt.Errorf("failed to check for existing users: %w", err)
+	}
+
+	// If users already exist, don't add the default admin
+	if count > 0 {
+		return nil
+	}
+
+	// Get the admin role ID
+	var roleID string
+	err = db.QueryRow("SELECT role_id FROM roles WHERE name = ?", "admin").Scan(&roleID)
+	if err != nil {
+		return fmt.Errorf("failed to get admin role ID: %w", err)
+	}
+
+	// Generate a unique user ID
+	userID := fmt.Sprintf("user_%x", time.Now().UnixNano())
+
+	// Create a secure password
+	password := "Admin@123" // Default password
+	
+	// Hash the password using bcrypt
+	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 12) // Cost factor of 12
+	if err != nil {
+		return fmt.Errorf("failed to hash password: %w", err)
+	}
+
+	// Insert the admin user
+	_, err = db.Exec(`
+		INSERT INTO users (
+			user_id, username, email, password_hash, first_name, last_name,
+			role_id, created_at, updated_at, status, failed_attempts
+		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+	`,
+		userID,                  // user_id
+		"admin",                 // username
+		"admin@example.com",     // email
+		string(hashedPassword),  // password_hash
+		"Admin",                 // first_name
+		"User",                  // last_name
+		roleID,                  // role_id
+		time.Now(),              // created_at
+		time.Now(),              // updated_at
+		"active",                // status
+		0)                       // failed_attempts
+	if err != nil {
+		return fmt.Errorf("failed to insert admin user: %w", err)
+	}
+
+	fmt.Println("Created default admin user with username 'admin' and password 'Admin@123'")
 	return nil
 }
 

@@ -1,0 +1,29 @@
+meta {
+  name: Creati API key
+  type: http
+  seq: 1
+}
+
+post {
+  url: http://localhost/api/keys
+  body: json
+  auth: inherit
+}
+
+body:json {
+   {
+         "name": "My API Key",
+         "expires_at": "2026-07-22T19:45:00Z",
+         "ip_restrictions": ["192.168.1.1", "10.0.0.0/24"],
+         "permissions": {
+           "badges": {
+             "read": true,
+             "write": false
+           }
+         }
+       }
+}
+
+settings {
+  encodeUrl: true
+}

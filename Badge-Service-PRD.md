@@ -856,16 +856,175 @@ X-RateLimit-Reset: 1627834096
 **Objective**: Implement API key management system.
 
 **Tasks**:
-- Develop API key generation with sufficient entropy
-- Create API key listing and management functionality
-- Implement API key revocation
-- Add IP restriction validation for API keys
-- Implement API key usage logging
+- ✅ Develop API key generation with sufficient entropy
+- ✅ Create API key listing and management functionality
+- ✅ Implement API key revocation
+- ✅ Add IP restriction validation for API keys
+- ✅ Implement API key usage logging
 
 **Deliverables**:
-- API key generation and validation system
-- API key management interface
-- API key security features (IP restrictions, logging)
+- ✅ API key generation and validation system
+- ✅ API key management interface
+- ✅ API key security features (IP restrictions, logging)
+
+#### Implementation Details
+
+##### API Key Model
+
+The API key system uses the following data model:
+
+```
+// From internal/database/model.go
+// APIKey represents an API key entity in the database
+type APIKey struct {
+    APIKeyID       string
+    UserID         string
+    APIKey         string // Hashed API key
+    Name           string
+    Permissions    string // JSON string of permissions
+    CreatedAt      time.Time
+    ExpiresAt      time.Time
+    LastUsed       sql.NullTime
+    Status         string
+    IPRestrictions string // JSON array of IP restrictions
+}
+
+// APIKeyPermissions represents the permissions for an API key
+type APIKeyPermissions struct {
+    Badges struct {
+        Read  bool `json:"read"`
+        Write bool `json:"write"`
+    } `json:"badges"`
+}
+```
+
+Key features of the model:
+- Each API key is associated with a user (UserID)
+- API keys are stored in hashed form for security
+- Keys have a descriptive name for easy identification
+- Granular permissions control what actions the key can perform
+- Expiration dates ensure keys don't remain valid indefinitely
+- Usage tracking records when keys are used
+- Status field allows for key revocation
+- IP restrictions limit where keys can be used from
+
+##### API Key Generation
+
+API keys are generated with high entropy using the crypto/rand package:
+
+```
+// From internal/auth/apikey.go
+// GenerateAPIKey generates a new API key with sufficient entropy
+func GenerateAPIKey() (string, error) {
+    // Generate random bytes
+    randomBytes := make([]byte, 32) // 256 bits of entropy
+    _, err := rand.Read(randomBytes)
+    if err != nil {
+        return "", fmt.Errorf("failed to generate random bytes: %w", err)
+    }
+
+    // Encode as hex with a prefix for easy identification
+    apiKey := "bsvc_" + hex.EncodeToString(randomBytes)
+
+    return apiKey, nil
+}
+```
+
+The generated keys:
+- Have 256 bits of entropy (32 bytes)
+- Use a prefix ("bsvc_") for easy identification
+- Are encoded as hex strings for safe transmission
+
+##### API Key Validation
+
+API keys are validated using bcrypt for secure comparison:
+
+```
+// From internal/auth/apikey.go
+// VerifyAPIKey verifies an API key against a hash
+func VerifyAPIKey(hashedAPIKey, apiKey string) error {
+    // Validate API key format
+    if !strings.HasPrefix(apiKey, "bsvc_") {
+        return ErrInvalidAPIKey
+    }
+
+    // Compare API keys using bcrypt
+    err := bcrypt.CompareHashAndPassword([]byte(hashedAPIKey), []byte(apiKey))
+    if err != nil {
+        return ErrInvalidAPIKey
+    }
+
+    return nil
+}
+```
+
+The validation process:
+1. Checks that the key has the correct prefix
+2. Uses bcrypt to securely compare the key against the stored hash
+3. Validates that the key is active and not expired
+4. Checks IP restrictions if configured
+
+##### API Endpoints
+
+The following RESTful API endpoints have been implemented for API key management:
+
+1. **Create API Key**
+   - **Endpoint**: `POST /api/keys`
+   - **Description**: Creates a new API key for the authenticated user
+   - **Request Body**:
+     ```json
+     {
+       "name": "My API Key",
+       "expires_at": "2026-07-22T19:45:00Z",
+       "ip_restrictions": ["192.168.1.1", "10.0.0.0/24"],
+       "permissions": {
+         "badges": {
+           "read": true,
+           "write": false
+         }
+       }
+     }
+     ```
+   - **Response**: Returns the created API key with its unique ID and the raw key (shown only once)
+
+2. **List API Keys**
+   - **Endpoint**: `GET /api/keys`
+   - **Description**: Lists all active API keys for the authenticated user
+   - **Response**: Returns an array of API key objects (without the raw key)
+
+3. **Revoke API Key**
+   - **Endpoint**: `DELETE /api/keys?id={api_key_id}`
+   - **Description**: Revokes an API key by setting its status to "revoked"
+   - **Response**: Returns a 204 No Content status on success
+
+4. **Update API Key**
+   - **Endpoint**: `PUT /api/keys?id={api_key_id}`
+   - **Description**: Updates an API key's name, expiration, permissions, or IP restrictions
+   - **Request Body**: Same format as the create endpoint
+   - **Response**: Returns the updated API key object
+
+##### Security Features
+
+1. **IP Restrictions**
+   - API keys can be restricted to specific IP addresses or CIDR ranges
+   - The system validates the client IP against the configured restrictions
+   - Supports exact matches, CIDR notation, and prefix matching
+
+2. **Usage Logging**
+   - Each API key use is logged by updating the LastUsed timestamp
+   - This provides an audit trail of key usage and helps detect potential abuse
+
+3. **Secure Storage**
+   - API keys are never stored in plain text, only bcrypt hashes are saved
+   - The raw key is only shown once when created, then never again
+
+4. **Expiration**
+   - All API keys have an expiration date (default: 1 year)
+   - Expired keys are automatically rejected by the validation system
+
+5. **Granular Permissions**
+   - Each API key has specific permissions that limit what actions it can perform
+   - This follows the principle of least privilege
 
 ### Phase 4: Integration and Admin APIs
 
@@ -1049,3 +1208,143 @@ For a badge with `commit_id=abc123`, the following are all possible and valid (a
 - `https://certificates.software.geant.org/certificate/abc123?format=svg` → certificate outlook in SVG
 - `https://certificates.software.geant.org/badge/abc123?outlook=certificate` → certificate outlook from the badge endpoint
 - `https://certificates.software.geant.org/certificate/abc123?outlook=badge` → badge outlook from the certificate endpoint
+
+## 14. Default Admin User and API Usage
+
+### 14.1 Default Admin User
+
+During the initial database setup, a default admin user is automatically created if the users table is empty. This user has full administrative privileges and can be used to create additional users, manage API keys, and perform other administrative tasks.
+
+**Default Admin User Credentials:**
+- **Username:** `admin`
+- **Password:** `Admin@123`
+- **Email:** `admin@example.com`
+- **Role:** Administrator with full access
+- **Permissions:** Full read, write, and delete permissions for badges, users, and API keys
+
+> **IMPORTANT:** For security reasons, it is strongly recommended to change the default password immediately after the first login.
+
+### 14.2 API Authentication
+
+All API endpoints that require authentication support JWT token authentication. To authenticate, you need to:
+
+1. Obtain a JWT token by logging in with valid credentials
+2. Include the token in the Authorization header of subsequent requests
+
+#### 14.2.1 Login and Get JWT Token
+
+```bash
+curl -X POST http://localhost:8080/api/auth/login \
+  -H "Content-Type: application/json" \
+  -d '{
+    "username": "admin",
+    "password": "Admin@123"
+  }'
+```
+
+**Response:**
+```json
+{
+  "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "expires_at": "2025-07-23T10:23:00Z",
+  "user": {
+    "user_id": "user_1234567890",
+    "username": "admin",
+    "email": "admin@example.com",
+    "first_name": "Admin",
+    "last_name": "User",
+    "role": "admin"
+  }
+}
+```
+
+### 14.3 API Key Management
+
+API keys provide an alternative authentication method for specific operations. They can be created, listed, and managed through the API.
+
+#### 14.3.1 List API Keys
+
+```bash
+curl -X GET http://localhost:8080/api/keys \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+**Response:**
+```json
+[
+  {
+    "id": "98765432-abcd-efgh-ijkl-123456789012",
+    "name": "Service Integration Key",
+    "created_at": "2025-07-01T10:30:00Z",
+    "expires_at": "2026-07-01T10:30:00Z",
+    "status": "active",
+    "permissions": {
+      "badges": {
+        "read": true,
+        "write": false
+      }
+    },
+    "ip_restrictions": ["192.168.1.0/24", "10.0.0.1"]
+  }
+]
+```
+
+#### 14.3.2 Create API Key
+
+```bash
+curl -X POST http://localhost:8080/api/keys \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "name": "New API Key",
+    "expires_at": "2026-07-23T09:23:00Z",
+    "permissions": {
+      "badges": {
+        "read": true,
+        "write": false
+      }
+    },
+    "ip_restrictions": ["192.168.1.0/24"]
+  }'
+```
+
+**Response:**
+```json
+{
+  "id": "abcdef12-3456-7890-abcd-ef1234567890",
+  "key": "bsvc_1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef",
+  "name": "New API Key",
+  "created_at": "2025-07-23T09:23:00Z",
+  "expires_at": "2026-07-23T09:23:00Z",
+  "status": "active",
+  "permissions": {
+    "badges": {
+      "read": true,
+      "write": false
+    }
+  },
+  "ip_restrictions": ["192.168.1.0/24"]
+}
+```
+
+> **IMPORTANT:** The `key` value is only shown once when the key is created. It cannot be retrieved later, so make sure to save it securely.
+
+#### 14.3.3 Revoke API Key
+
+```bash
+curl -X DELETE http://localhost:8080/api/keys?id=abcdef12-3456-7890-abcd-ef1234567890 \
+  -H "Authorization: Bearer YOUR_JWT_TOKEN"
+```
+
+**Response:** HTTP 204 No Content
+
+### 14.4 Using API Keys for Authentication
+
+Once you have an API key, you can use it to authenticate requests to endpoints that support API key authentication:
+
+```bash
+curl -X GET http://localhost:8080/api/v1/badges \
+  -H "X-API-Key: bsvc_1234567890abcdef1234567890abcdef1234567890abcdef1234567890abcdef"
+```
+
+API keys have more limited permissions than JWT tokens and are typically used for read-only operations or specific integrations.
