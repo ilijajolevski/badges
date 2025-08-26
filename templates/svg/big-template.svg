@@ -18,7 +18,7 @@
       <!-- .cls-3 horizontal bars color, default #e78a2d -->
       .cls-3{fill:{{.HorizontalBarsColor}};}
       <!-- .cls-4 top label color both lines, default #e78a2d -->
-      .cls-4{fill:{{.TopLabelColor}};font-family:Verdana,sans-serif;font-size:16px;font-weight:600;}
+      .cls-4{fill:{{.TopLabelColor}};font-family:Verdana,sans-serif;font-size:14px;font-weight:600;}
       <!-- .cls-5 top label color both lines, default #e78a2d -->
       .cls-5{fill:url(#linear-gradient);}
       <!-- .cls-6 border color, default #e78a2d -->
@@ -53,25 +53,25 @@
           y="0" />
   <polygon
           class="cls-2"
-          points="164.81,54.48 165.31,193.5 6.3,193.15 6.3,5.89 116.22,5.89 "
+          points="164.81,44 165.31,193.5 6.3,193.15 6.3,5.89 124,5.89 "
           id="polygon900" />
   <rect
           class="cls-3"
           x="21.110001"
           y="67"
           width="131.83"
-          height="3.78"
-          rx="1.89"
-          ry="1.89"
+          height="3.0"
+          rx="1.5"
+          ry="1.5"
           id="rect902" />
   <rect
           class="cls-3"
           x="19.879999"
           y="142.56"
           width="131.83"
-          height="3.78"
-          rx="1.89"
-          ry="1.89"
+          height="3.0"
+          rx="1.5"
+          ry="1.5"
           id="rect904" />
   <path
           class="cls-1"
@@ -102,49 +102,22 @@
           class="cls-1"
           d="m 71.87,167.86 -0.17,0.12 c 0,0 0.22,0.14 0.61,0.14 0.41,0 0.61,0.02 3.71,-1.11 2.81,-1.02 15.5,-5.62 22.28,-7.07 3.11,-0.67 7.54,-1.01 10.75,-1.05 5.54,-0.07 8.2,1.79 9.19,2.7 1.52,1.39 1.86,2.2 2.47,4.02 1.27,3.77 -1.45,10.77 -2.1,11.85 -0.57,0.96 -1.04,2.96 -2.7,2.52 0,0.19 -0.12,0.24 -0.12,0.24 0,0 0.98,0.36 1.63,-0.31 0.66,-0.68 1.52,-1.93 2.6,-4.23 1.83,-3.88 3.14,-7.08 3.27,-10.13 0.13,-3.06 -1.53,-6.11 -4.19,-7.4 -3.17,-1.53 -8.42,-2.16 -15.77,-0.65 -5.4,1.23 -10.13,2.81 -10.13,2.81 0,0 -8.35,2.6 -11.92,4.15 -0.71,0.31 -6.94,2.98 -7.24,3.09 -0.17,0.06 -1.78,0.82 -2.15,0.32 v 0 z"
           id="path918" />
-  <!-- Software name -->
-  <text
-          class="cls-4"
-          id="text922"
-          x="20"
-          y="31.940001"><tspan
-          x="20"
-          y="31.940001"
-          id="tspan920">{{.SoftwareName}}</tspan></text>
-  <!-- Software version -->
-  <text
-          class="cls-4"
-          id="text926"
-          x="20"
-          y="48.900002"><tspan
-          x="20"
-          y="48.900002"
-          id="tspan924">{{.SoftwareVersion}}</tspan></text>
-  <!-- Line 1 (word 1) from certificate name -->
-  <text
-          class="cls-7"
-          id="text930"
-          x="20"
-          y="100"><tspan
-          x="20"
-          y="100"
-          id="tspan928">{{getWord 0 .CertNameWords}}</tspan></text>
-  <!-- Line 2 (word 2) from certificate name -->
-  <text
-          class="cls-7"
-          id="text934"
-          x="20"
-          y="122"><tspan
-          x="20"
-          y="122"
-          id="tspan932">{{getWord 1 .CertNameWords}}</tspan></text>
-  <!-- Line 3 (word 3) from certificate name -->
-  <text
-          class="cls-7"
-          id="text938"
-          x="20"
-          y="129.92"><tspan
-          x="20"
-          y="129.92"
-          id="tspan936">{{getWord 2 .CertNameWords}}</tspan></text>
+  <!-- Top label: Certificate name in gray (from CertificateName words) -->
+  <text class="cls-4" id="text_top1" x="20" y="31.94">
+    <tspan x="20" y="31.94" id="tspan_top1">{{getWord 0 .CertNameWords}}</tspan>
+  </text>
+  <text class="cls-4" id="text_top2" x="20" y="48.9">
+    <tspan x="20" y="48.9" id="tspan_top2">{{getWord 1 .CertNameWords}}</tspan>
+  </text>
+  <text class="cls-4" id="text_top3" x="20" y="61">
+    <tspan x="20" y="61" id="tspan_top3">{{getWord 2 .CertNameWords}}</tspan>
+  </text>
+  <!-- Center label: Badge Service and version in white -->
+  <!-- Center label: Badge Service name and version (white) -->
+  <text class="cls-7" id="center_name" x="20" y="100">
+    <tspan x="20" y="100" id="tspan_center_name">{{.SoftwareName}}</tspan>
+  </text>
+  <text class="cls-7" id="center_version" x="20" y="122">
+    <tspan x="20" y="122" id="tspan_center_version">{{.SoftwareVersion}}</tspan>
+  </text>
 </svg>

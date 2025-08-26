@@ -678,7 +678,7 @@ X-RateLimit-Reset: 1627834096
 - **Image Conversion**: Use a library like `github.com/disintegration/imaging` to convert SVG to JPG/PNG on demand if not pre-generated.
 - **SVG Generation**: Use templates for generating SVG badges and certificates.
 
-### 8.7 Security Considerations
+### 8.7 Security Considerations (do not implement this yet)
 - Implement HTTPS for all endpoints.
 - Set secure HTTP headers (HSTS, Content-Security-Policy, etc.).
 - Sanitize all user inputs to prevent injection attacks.
@@ -788,8 +788,7 @@ X-RateLimit-Reset: 1627834096
 
 ### Deployment
 - [x] Create Dockerfile with multi-stage build
-- [x] Implement Makefile with required targets
-- [ ] Set up CI/CD pipeline configuration
+- [x] Implement Makefile with required targets![Screenshot 2025-08-26 at 17.06.48.png](../../../Desktop/Screenshots/Screenshot%202025-08-26%20at%2017.06.48.png)
 - [ ] Create deployment documentation
 - [x] Implement graceful shutdown handling
 - [ ] Configure secure environment for JWT secrets and API keys
