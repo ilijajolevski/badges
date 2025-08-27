@@ -203,7 +203,7 @@ func addDefaultRole(db *sql.DB) error {
 		"Administrator with full access", // description
 		permissions,                      // permissions
 		time.Now(),                       // created_at
-		time.Now()) // updated_at
+		time.Now())                       // updated_at
 	if err != nil {
 		return fmt.Errorf("failed to insert admin role: %w", err)
 	}
@@ -261,7 +261,7 @@ func addDefaultAdminUser(db *sql.DB) error {
 		time.Now(),             // created_at
 		time.Now(),             // updated_at
 		"active",               // status
-		0) // failed_attempts
+		0)                      // failed_attempts
 	if err != nil {
 		return fmt.Errorf("failed to insert admin user: %w", err)
 	}
@@ -332,7 +332,7 @@ func addTestBadge(db *sql.DB) error {
 		certificateName,                   // certificate_name
 		specialtyDomain,                   // specialty_domain
 		softwareSCID,                      // software_sc_id
-		softwareSCURL) // software_sc_url
+		softwareSCURL)                     // software_sc_url
 	if err != nil {
 		return fmt.Errorf("failed to insert test badge: %w", err)
 	}
