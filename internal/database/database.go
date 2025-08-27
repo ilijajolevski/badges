@@ -191,7 +191,7 @@ func addDefaultRole(db *sql.DB) error {
 
 	// Generate a UUID for the role ID
 	roleID := fmt.Sprintf("%x", time.Now().UnixNano())
-	
+
 	// Insert the admin role
 	_, err = db.Exec(`
 		INSERT INTO roles (
@@ -203,7 +203,7 @@ func addDefaultRole(db *sql.DB) error {
 		"Administrator with full access", // description
 		permissions,                      // permissions
 		time.Now(),                       // created_at
-		time.Now())                       // updated_at
+		time.Now()) // updated_at
 	if err != nil {
 		return fmt.Errorf("failed to insert admin role: %w", err)
 	}
@@ -237,7 +237,7 @@ func addDefaultAdminUser(db *sql.DB) error {
 
 	// Create a secure password
 	password := "Admin@123" // Default password
-	
+
 	// Hash the password using bcrypt
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 12) // Cost factor of 12
 	if err != nil {
@@ -251,17 +251,17 @@ func addDefaultAdminUser(db *sql.DB) error {
 			role_id, created_at, updated_at, status, failed_attempts
 		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 	`,
-		userID,                  // user_id
-		"admin",                 // username
-		"admin@example.com",     // email
-		string(hashedPassword),  // password_hash
-		"Admin",                 // first_name
-		"User",                  // last_name
-		roleID,                  // role_id
-		time.Now(),              // created_at
-		time.Now(),              // updated_at
-		"active",                // status
-		0)                       // failed_attempts
+		userID,                 // user_id
+		"admin",                // username
+		"admin@example.com",    // email
+		string(hashedPassword), // password_hash
+		"Admin",                // first_name
+		"User",                 // last_name
+		roleID,                 // role_id
+		time.Now(),             // created_at
+		time.Now(),             // updated_at
+		"active",               // status
+		0) // failed_attempts
 	if err != nil {
 		return fmt.Errorf("failed to insert admin user: %w", err)
 	}
@@ -297,8 +297,8 @@ func addTestBadge(db *sql.DB) error {
 	internalNote := sql.NullString{String: "Internal review comments and notes", Valid: true}
 	contactDetails := sql.NullString{String: "support@certificates.software.geant.org, +1-123-456-7890", Valid: true}
 	certificateName := sql.NullString{String: "Self-Assessed Dependencies", Valid: true}
-	specialtyDomain := sql.NullString{String: "SOFTWARE LICENCING", Valid: true}
-	softwareSCID := sql.NullString{String: "NMAAS", Valid: true}
+	specialtyDomain := sql.NullString{String: "Software Licencing", Valid: true}
+	softwareSCID := sql.NullString{String: "CERTHUB", Valid: true}
 	softwareSCURL := sql.NullString{String: "https://sc.geant.org/ui/project/NMAAS", Valid: true}
 
 	// Insert the test badge
@@ -316,7 +316,7 @@ func addTestBadge(db *sql.DB) error {
 		"valid",                           // status
 		"GEANT WP9T2 Certification Board", // issuer
 		time.Now().Format("2006-01-02"),   // issue_date
-		"Badge Service",                   // software_name
+		"CertifyHub",                      // software_name
 		"v1.0.0",                          // software_version
 		softwareURL,                       // software_url
 		notes,                             // notes
