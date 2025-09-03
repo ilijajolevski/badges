@@ -1,16 +1,13 @@
-# Badge Service
+# CertifyHub Service
 
-A service for serving pre-issued badges and certificates as SVG images, identified by a unique short Git commit ID.
+A service for serving pre-issued certificates as SVG images, identified by a unique short certificate ID.
 
 ## Features
 
-- Serve SVG images for pre-issued badges and certificates
-- Provide a details page for each badge or certificate
-- Support for JPG and PNG image formats
+- Serve SVG images for pre-issued certificates
+- Provide a details page for each certificate
 - Customizable badge styles via query parameters
 - Input sanitization and validation
-- Rate limiting
-- Graceful error handling
 
 ## API Endpoints
 
@@ -20,7 +17,7 @@ A service for serving pre-issued badges and certificates as SVG images, identifi
 GET /badge/<commit_id>
 ```
 
-Returns an SVG for a small badge. Used in `<img>` tags.
+Returns an SVG for a small inline badge. Used in `<img>` tags.
 
 Query parameters:
 - `format=svg|jpg|png`: Specifies the image format (default: `svg`)
@@ -47,7 +44,7 @@ Supports the same query parameters as the badge endpoint.
 GET /details/<commit_id>
 ```
 
-Returns an HTML page with details about the badge or certificate.
+Returns an HTML page with details about the certificate.
 
 ## Building and Running
 
@@ -104,7 +101,7 @@ The service can be configured using environment variables:
 
 ## Integration
 
-To embed a badge in your HTML:
+To embed a small inline badge in your HTML:
 
 ```html
 <a href="https://certificates.software.geant.org/details/abc123">
@@ -112,7 +109,7 @@ To embed a badge in your HTML:
 </a>
 ```
 
-To embed a certificate in your HTML:
+To embed a bigger certificate in your HTML:
 
 ```html
 <a href="https://certificates.software.geant.org/details/abc123">
@@ -121,7 +118,7 @@ To embed a certificate in your HTML:
     </object>
 </a>
 ```
-Small Badge look:
+Small (inline) Badge look of the certificate:
 
 [![Badge Service v1.0.0 Badge](https://certificates.software.geant.org/badge/test123)](https://certificates.software.geant.org/details/test123)
 
@@ -130,6 +127,6 @@ Big Certificate Look:
 
 [![Badge Service v1.0.0 Badge](https://certificates.software.geant.org/certificate/test123)](https://certificates.software.geant.org/details/test123)
 
-## License
+## Licence
 
-This project is licensed under the Apache-2.0 Licence - see the LICENSE file for details.
+This project is licenced under the Apache-2.0 Licence - see the LICENCE file for details.
