@@ -93,7 +93,7 @@
                         {{ end }}
                         {{ if .Notes }}
                         <tr>
-                            <th>Notes:</th>
+                            <th>Internal note:</th>
                             <td>{{ .Notes }}</td>
                         </tr>
                         {{ end }}
@@ -111,7 +111,7 @@
                         {{ end }}
                         {{ if .SpecialtyDomain }}
                         <tr>
-                            <th>Specialty Domain:</th>
+                            <th>Compliance Domain:</th>
                             <td>{{ .SpecialtyDomain }}</td>
                         </tr>
                         {{ end }}
@@ -123,7 +123,7 @@
                         {{ end }}
                         {{ if .SoftwareSCID }}
                         <tr>
-                            <th>Software Catalogue:</th>
+                            <th>SC Name:</th>
                             <td>{{ .SoftwareSCID }}</td>
                         </tr>
                         {{ end }}
@@ -154,10 +154,10 @@
             </div>
 
             <div class="integration-info">
-                <h2>Integration</h2>
-                <p>Use one of the following snippets to embed this badge in your website or documentation:</p>
+                <h2>Referencing Certificate and Badges</h2>
+                <p>Use one of the following snippets to embed this certificate in your website or documentation:</p>
 
-                <h3>HTML - Small Badge</h3>
+                <h3>HTML - Small inline certificate (badge)</h3>
                 <div class="code-container">
                     <button class="copy-btn" data-code="&lt;a href=&quot;https://certificates.software.geant.org/details/{{ .CommitID }}&quot;&gt;
     &lt;img src=&quot;https://certificates.software.geant.org/badge/{{ .CommitID }}&quot; alt=&quot;{{ .SoftwareName }} {{ .SoftwareVersion }} Badge&quot;&gt;
@@ -167,7 +167,7 @@
 &lt;/a&gt;</code></pre>
                 </div>
 
-                <h3>HTML - Big Badge</h3>
+                <h3>HTML - Detailed Certificate</h3>
                 <div class="code-container">
                     <button class="copy-btn" data-code="&lt;a href=&quot;https://certificates.software.geant.org/details/{{ .CommitID }}&quot;&gt;
     &lt;img src=&quot;https://certificates.software.geant.org/certificate/{{ .CommitID }}&quot; alt=&quot;{{ .SoftwareName }} {{ .SoftwareVersion }} Certificate&quot; width=&quot;400&quot; height=&quot;300&quot;&gt;
@@ -177,13 +177,13 @@
 &lt;/a&gt;</code></pre>
                 </div>
 
-                <h3>Markdown - Small Badge</h3>
+                <h3>Markdown - Small inline certificate (badge)</h3>
                 <div class="code-container">
                     <button class="copy-btn" data-code="[![{{ .SoftwareName }} {{ .SoftwareVersion }} Badge](https://certificates.software.geant.org/badge/{{ .CommitID }})](https://certificates.software.geant.org/details/{{ .CommitID }})">copy</button>
                     <pre><code>[![{{ .SoftwareName }} {{ .SoftwareVersion }} Badge](https://certificates.software.geant.org/badge/{{ .CommitID }})](https://certificates.software.geant.org/details/{{ .CommitID }})</code></pre>
                 </div>
 
-                <h3>Markdown - Big Badge</h3>
+                <h3>Markdown - Detailed Certificate</h3>
                 <div class="code-container">
                     <button class="copy-btn" data-code="[{{ .SoftwareName }} {{ .SoftwareVersion }} Certificate](https://certificates.software.geant.org/details/{{ .CommitID }})">copy</button>
                     <pre><code>[{{ .SoftwareName }} {{ .SoftwareVersion }} Certificate](https://certificates.software.geant.org/details/{{ .CommitID }})</code></pre>

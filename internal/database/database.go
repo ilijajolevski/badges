@@ -285,21 +285,21 @@ func addTestBadge(db *sql.DB) error {
 	}
 
 	// Create a test badge with proper handling of NULL values
-	notes := sql.NullString{String: "This is a test certificate for demonstration", Valid: true}
+	notes := sql.NullString{String: "", Valid: true}
 	expiryDate := sql.NullString{String: time.Now().AddDate(1, 0, 0).Format("2006-01-02"), Valid: true}
 	issuerURL := sql.NullString{String: "https://certificates.software.geant.org", Valid: true}
-	softwareURL := sql.NullString{String: "https://github.com/finki/badges", Valid: true}
+	softwareURL := sql.NullString{String: "https://sc.geant.org/ui/project/SOFTCAT", Valid: true}
 	customConfig := sql.NullString{String: `{"color_left":"#003f5f","color_right":"#FFFFFF","style":"3d","text_color_right":"#333", "border_color":"#bbb", "horizontal_bars_color":"#bbb", "top_label_color":"#bbb"}`, Valid: true}
 	lastReview := sql.NullString{String: time.Now().Format("2006-01-02"), Valid: true}
-	coveredVersion := sql.NullString{String: "1.0.0", Valid: true}
-	repositoryLink := sql.NullString{String: "https://github.com/finki/badges", Valid: true}
+	coveredVersion := sql.NullString{String: "1.12.0", Valid: true}
+	repositoryLink := sql.NullString{String: "https://bitbucket.software.geant.org/scm/sc/softwarecataloguegit.git", Valid: true}
 	publicNote := sql.NullString{String: "This certificate certifies compliance with Software Licence standards", Valid: true}
 	internalNote := sql.NullString{String: "Internal review comments and notes", Valid: true}
-	contactDetails := sql.NullString{String: "support@certificates.software.geant.org, +1-123-456-7890", Valid: true}
+	contactDetails := sql.NullString{String: "certificates.software.geant.org", Valid: true}
 	certificateName := sql.NullString{String: "Self-Assessed Dependencies", Valid: true}
 	specialtyDomain := sql.NullString{String: "Software Licencing", Valid: true}
-	softwareSCID := sql.NullString{String: "CERTHUB", Valid: true}
-	softwareSCURL := sql.NullString{String: "https://sc.geant.org/ui/project/NMAAS", Valid: true}
+	softwareSCID := sql.NullString{String: "SOFTCAT", Valid: true}
+	softwareSCURL := sql.NullString{String: "https://sc.geant.org/ui/project/SOFTCAT", Valid: true}
 
 	// Insert the test badge
 	_, err = db.Exec(`
@@ -311,27 +311,27 @@ func addTestBadge(db *sql.DB) error {
 			certificate_name, specialty_domain, software_sc_id, software_sc_url
 		) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 	`,
-		"test123",                         // commit_id
-		"badge",                           // type
-		"valid",                           // status
-		"GEANT WP9T2 Certification Board", // issuer
-		time.Now().Format("2006-01-02"),   // issue_date
-		"CertifyHub",                      // software_name
-		"v1.0.0",                          // software_version
-		softwareURL,                       // software_url
-		notes,                             // notes
-		expiryDate,                        // expiry_date
-		issuerURL,                         // issuer_url
-		customConfig,                      // custom_config
-		lastReview,                        // last_review
-		coveredVersion,                    // covered_version
-		repositoryLink,                    // repository_link
-		publicNote,                        // public_note
-		internalNote,                      // internal_note
-		contactDetails,                    // contact_details
-		certificateName,                   // certificate_name
-		specialtyDomain,                   // specialty_domain
-		softwareSCID,                      // software_sc_id
+		"softcat",                        // commit_id
+		"badge",                          // type
+		"valid",                          // status
+		"GEANT WP9T2 Software Licencing", // issuer
+		time.Now().Format("2006-01-02"),  // issue_date
+		"GÉANT Software Catalogue",       // software_name
+		"v1.12.0",                        // software_version
+		softwareURL,                      // software_url
+		notes,                            // notes
+		expiryDate,                       // expiry_date
+		issuerURL,                        // issuer_url
+		customConfig,                     // custom_config
+		lastReview,                       // last_review
+		coveredVersion,                   // covered_version
+		repositoryLink,                   // repository_link
+		publicNote,                       // public_note
+		internalNote,                     // internal_note
+		contactDetails,                   // contact_details
+		certificateName,                  // certificate_name
+		specialtyDomain,                  // specialty_domain
+		softwareSCID,                     // software_sc_id
 		softwareSCURL) // software_sc_url
 	if err != nil {
 		return fmt.Errorf("failed to insert test badge: %w", err)
