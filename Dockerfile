@@ -42,6 +42,9 @@ COPY --from=builder /app/badge-service .
 COPY --from=builder /app/templates ./templates
 COPY --from=builder /app/static ./static
 
+# Copy only the initial badges JSON (keep DB file out)
+COPY --from=builder --chown=appuser:appuser /app/db/initial_badges.json ./db/
+
 # Switch to non-root user
 USER appuser
 
