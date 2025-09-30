@@ -174,25 +174,30 @@ func (g *Generator) GenerateSVG(badge *database.Badge) ([]byte, error) {
 	}
 
 	// Prepare data for the template
+	// Prepare software name split for potential two-line display in big template
+	softwareNameLine1, softwareNameLine2 := splitSoftwareNameTwoLines(badge.SoftwareName, 16)
+
 	data := map[string]interface{}{
 		// For backward compatibility
-		"ColorBorder":     colorBorder,
-		"ColorBg":         colorBg,
-		"TextColor":       textColor,
-		"FontSize":        fontSize,
-		"Style":           style,
-		"LogoURL":         config.LogoURL,
-		"SoftwareName":    badge.SoftwareName,
-		"SoftwareVersion": badge.SoftwareVersion,
-		"Issuer":          badge.Issuer,
-		"IssueDate":       badge.IssueDate,
-		"CommitID":        badge.CommitID,
-		"HasShadow":       style == "3d",
-		"Width":           width,
-		"Height":          height,
-		"CertificateName": certificateName,
-		"CertNameWords":   certNameWords,
-		"SpecialtyDomain": specialtyDomain,
+		"ColorBorder":       colorBorder,
+		"ColorBg":           colorBg,
+		"TextColor":         textColor,
+		"FontSize":          fontSize,
+		"Style":             style,
+		"LogoURL":           config.LogoURL,
+		"SoftwareName":      badge.SoftwareName,
+		"SoftwareVersion":   badge.SoftwareVersion,
+		"Issuer":            badge.Issuer,
+		"IssueDate":         badge.IssueDate,
+		"CommitID":          badge.CommitID,
+		"HasShadow":         style == "3d",
+		"Width":             width,
+		"Height":            height,
+		"CertificateName":   certificateName,
+		"CertNameWords":     certNameWords,
+		"SpecialtyDomain":   specialtyDomain,
+		"SoftwareNameLine1": softwareNameLine1,
+		"SoftwareNameLine2": softwareNameLine2,
 
 		// New color parameters for big certificate template
 		"LogoColor":           logoColor,
@@ -268,6 +273,53 @@ func splitCertificateName(name string) []string {
 	}
 
 	return words
+}
+
+// splitSoftwareNameTwoLines splits the software name into up to two lines based on a max character threshold.
+// - If the name length is within the limit, line 1 contains the full name and line 2 is empty.
+// - Otherwise, it tries to break on word boundaries without exceeding maxPerLine on the first line.
+// - If there are no spaces, it splits at maxPerLine.
+func splitSoftwareNameTwoLines(name string, maxPerLine int) (string, string) {
+	if maxPerLine <= 0 {
+		maxPerLine = 26
+	}
+
+	trim := func(s string) string {
+		// simple trim without importing strings to keep dependencies minimal
+		start, end := 0, len(s)
+		for start < end && (s[start] == ' ' || s[start] == '\t' || s[start] == '\n') {
+			start++
+		}
+		for end > start && (s[end-1] == ' ' || s[end-1] == '\t' || s[end-1] == '\n') {
+			end--
+		}
+		return s[start:end]
+	}
+
+	name = trim(name)
+	if len(name) <= maxPerLine {
+		return name, ""
+	}
+
+	// Find last space within limit for the first line
+	breakPos := -1
+	for i := 0; i < len(name) && i <= maxPerLine; i++ {
+		if name[i] == ' ' {
+			breakPos = i
+		}
+	}
+
+	if breakPos == -1 {
+		// No space within limit; hard split
+		if len(name) > maxPerLine {
+			return name[:maxPerLine], trim(name[maxPerLine:])
+		}
+		return name, ""
+	}
+
+	line1 := trim(name[:breakPos])
+	line2 := trim(name[breakPos+1:])
+	return line1, line2
 }
 
 // SVG template for certificates

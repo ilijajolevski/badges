@@ -115,11 +115,19 @@
   <!-- Center label: Badge Service and version in white -->
   <!-- Center label: Badge Service name and version (white) -->
   <text class="cls-7" id="center_name" x="20" y="100">
-    <tspan x="14" y="92" id="tspan_center_name">{{.SoftwareName}}</tspan>
-      <tspan x="14" y="112" id="tspan_center_name">Catalogue</tspan>
+    {{if .SoftwareNameLine2}}
+    <tspan x="14" y="90" id="tspan_center_name_line1">{{.SoftwareNameLine1}}</tspan>
+    <tspan x="14" y="110" id="tspan_center_name_line2">{{.SoftwareNameLine2}}</tspan>
+    {{else}}
+    <tspan x="20" y="100" id="tspan_center_name">{{.SoftwareNameLine1}}</tspan>
+    {{end}}
   </text>
   <text class="cls-7" id="center_version" x="20" y="122">
-    <tspan x="14" y="132" id="tspan_center_version">{{.SoftwareVersion}}</tspan>
+      {{if .SoftwareNameLine2}}
+    <tspan x="16" y="130" id="tspan_center_version">{{.SoftwareVersion}}</tspan>
+      {{else}}
+    <tspan x="20" y="122" id="tspan_center_version">{{.SoftwareVersion}}</tspan>
+      {{end}}
   </text>
   <!-- Outer 1px non-scaling keyline to prevent white border blending into white pages -->
   <rect x="0.5" y="0.5" width="169" height="199" fill="none"

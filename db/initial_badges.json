@@ -80,7 +80,7 @@
     "software_name": "eduGAIN Reporting ecosystem",
     "software_version": "v1.0.0",
     "software_url": "https://sc.geant.org/ui/project/EDREP20",
-    "notes": "Vulnerability Disclosure certificate for EDREP20",
+    "notes": "Verified Dependencies certificate for EDREP20",
     "expiry_date": "2026-10-01",
     "issuer_url": "https://certificates.software.geant.org",
     "custom_config": "{\"color_left\":\"#003f5f\",\"color_right\":\"#FFFFFF\",\"style\":\"3d\",\"text_color_right\":\"#333\",\"border_color\":\"#ffffff\",\"horizontal_bars_color\":\"#bbb\",\"top_label_color\":\"#bbb\"}",
