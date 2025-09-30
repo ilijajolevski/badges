@@ -140,9 +140,9 @@ func initDB(db *sql.DB) error {
 	}
 
 	// Add a test badge if it doesn't exist
-	if err := addTestBadge(db); err != nil {
-		return fmt.Errorf("failed to add test badge: %w", err)
-	}
+	//if err := addTestBadge(db); err != nil {
+	//	return fmt.Errorf("failed to add test badge: %w", err)
+	//}
 
 	// Add initial test badges if they don't exist
 	if err := addInitialBadges(db); err != nil {
