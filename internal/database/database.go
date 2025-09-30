@@ -935,7 +935,7 @@ func (db *DB) UpdateAPIKeyLastUsed(apiKeyID string, lastUsed time.Time) error {
 // using full field data loaded from a JSON file at db/initial_badges.json.
 func addInitialBadges(db *sql.DB) error {
 	// IDs we must ensure exist
-	initialIDs := []string{"NMAAS_slSAD", "NMAAS_slVD", "EDREP20_slSAD", "EDREP20_slVD"}
+	initialIDs := []string{"NMAAS_slSAD", "NMAAS_slVD", "EDREP20_slSAD", "EDREP20_slVD", "SOFTCAT_slSAD"}
 
 	// Helper to build nullable strings
 	ns := func(s string) sql.NullString {

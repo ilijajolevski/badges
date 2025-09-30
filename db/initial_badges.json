@@ -1,4 +1,28 @@
 {
+  "SOFTCAT_slSAD": {
+    "commit_id": "SOFTCAT_slSAD",
+    "type": "badge",
+    "status": "valid",
+    "issuer": "GEANT WP9T2 Software Licencing",
+    "issue_date": "2025-09-30",
+    "software_name": "GÉANT Software Catalogue",
+    "software_version": "v1.12.0",
+    "software_url": "https://sc.geant.org/ui/project/NMAAS",
+    "notes": "Self-Assessed Dependencies certificate for SOFTCAT",
+    "expiry_date": "2026-09-30",
+    "issuer_url": "https://certificates.software.geant.org",
+    "custom_config": "{\"color_left\":\"#003f5f\",\"color_right\":\"#FFFFFF\",\"style\":\"3d\",\"text_color_right\":\"#333\",\"border_color\":\"#ffffff\",\"horizontal_bars_color\":\"#bbb\",\"top_label_color\":\"#bbb\"}",
+    "last_review": "2025-09-30",
+    "covered_version": "1.12.0",
+    "repository_link": "https://bitbucket.software.geant.org/scm/sc/softwarecataloguegit.git",
+    "public_note": "Direct dependencies are declared in NOTICE; also confirmed with a SCA tool.",
+    "internal_note": "Reviewed by WP9T2 team.",
+    "contact_details": "certificates.software.geant.org",
+    "certificate_name": "Self-Assessed Dependencies",
+    "specialty_domain": "Software Licencing",
+    "software_sc_id": "SOFTCAT",
+    "software_sc_url": "https://sc.geant.org/ui/project/SOFTCAT"
+  },
   "NMAAS_slSAD": {
     "commit_id": "NMAAS_slSAD",
     "type": "badge",
