@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Badge List</title>
+    <title>CertifyHub Certificates List</title>
     <link rel="stylesheet" href="/static/css/styles.css">
-    <meta name="description" content="List of all badges">
+    <meta name="description" content="List of all certificates">
 </head>
 <body>
     <div class="container">
         <header>
             <img src="/static/256px-Geant_logo_white.png" alt="GEANT Logo" class="header-logo">
-            <h1>Badge List</h1>
+            <h1>List of all certificates</h1>
         </header>
 
         <main>
@@ -20,6 +20,7 @@
                     <thead>
                         <tr>
                             <th>Software Name</th>
+                            <th>Certificate Name</th>
                             <th>Status</th>
                             <th>Issue Date</th>
                         </tr>
@@ -30,6 +31,7 @@
                             <td data-label="Software Name">
                                 <a href="/details/{{ .CommitID }}">{{ .SoftwareName }}</a>
                             </td>
+                            <td data-label="Certificate Name">{{ .CertificateName }}</td>
                             <td data-label="Status">
                                 <span class="status-badge status-{{ .Status }}">{{ .Status }}</span>
                                 {{ if .IsExpired }}

@@ -18,11 +18,12 @@ type TemplateData struct {
 
 // BadgeData represents the data for a single badge in the list
 type BadgeData struct {
-	CommitID     string
-	SoftwareName string
-	Status       string
-	IssueDate    string
-	IsExpired    bool
+	CommitID        string
+	SoftwareName    string
+	CertificateName string
+	Status          string
+	IssueDate       string
+	IsExpired       bool
 }
 
 // Handler handles badges list page requests
@@ -75,12 +76,17 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	// Convert database badges to template badge data
 	for _, badge := range badges {
+		certName := ""
+		if badge.CertificateName.Valid {
+			certName = badge.CertificateName.String
+		}
 		data.Badges = append(data.Badges, &BadgeData{
-			CommitID:     badge.CommitID,
-			SoftwareName: badge.SoftwareName,
-			Status:       badge.Status,
-			IssueDate:    badge.IssueDate,
-			IsExpired:    badge.IsExpired(),
+			CommitID:        badge.CommitID,
+			SoftwareName:    badge.SoftwareName,
+			CertificateName: certName,
+			Status:          badge.Status,
+			IssueDate:       badge.IssueDate,
+			IsExpired:       badge.IsExpired(),
 		})
 	}
 
