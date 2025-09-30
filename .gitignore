@@ -23,3 +23,10 @@ go.work.sum
 
 # env file
 .env
+.idea/copilot.data.migration.agent.xml
+.idea/copilot.data.migration.ask.xml
+.idea/copilot.data.migration.ask2agent.xml
+.idea/copilot.data.migration.edit.xml
+bin/badge-service
+db/badges_8.db
+db/badges_9.db
