@@ -106,12 +106,9 @@ func (g *Generator) GenerateSVG(badge *database.Badge) ([]byte, error) {
 
 	// Generate SVG using template
 	tmpl := template.New("badge").Funcs(template.FuncMap{
-		"div": func(a, b int) int {
-			return a / b
-		},
-		"add": func(a, b int) int {
-			return a + b
-		},
+		"div": func(a, b int) int { return a / b },
+		"add": func(a, b int) int { return a + b },
+		"sub": func(a, b int) int { return a - b },
 	})
 
 	tmpl, err = tmpl.Parse(badgeSVGTemplate)
@@ -199,8 +196,10 @@ const badgeSVGTemplate = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="h
     <rect x="{{.LeftWidth}}" width="{{.RightWidth}}" height="20" fill="{{.ColorRight}}"/>
     <!-- Change #e8e8e8 here for another color -->
 
-    <!-- Gradient overlay again -->
+    {{if .HasShadow}}
+    <!-- Gradient overlay for 3d style only -->
     <rect width="{{.Width}}" height="20" fill="url(#b)"/>
+    {{end}}
   </g>
   <!-- GEANT logo inserted here, scaled to fit 46x20. 
        All fills below are white ("#fff"). 
@@ -241,4 +240,8 @@ const badgeSVGTemplate = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="h
   {{if .HasShadow}}
   <rect width="{{.Width}}" height="20" rx="3" fill="transparent" filter="url(#shadow)"/>
   {{end}}
+  <!-- Outer 1px non-scaling keyline with rounded corners to prevent blending on white backgrounds -->
+  <rect x="0.5" y="0.5" width="{{sub .Width 1}}" height="19" rx="3" fill="none"
+        stroke="#E5E7EB" stroke-width="1" vector-effect="non-scaling-stroke"
+        shape-rendering="crispEdges" pointer-events="none"/>
 </svg>`

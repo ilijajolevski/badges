@@ -137,6 +137,11 @@ table th {
     color: var(--light-text);
 }
 
+/* Prevent label wrapping in details table */
+.details-info table th {
+    white-space: nowrap;
+}
+
 /* Status badges */
 .status-badge {
     display: inline-block;
@@ -316,4 +321,13 @@ footer a:hover {
     table th {
         width: 50%;
     }
+}
+
+
+/* Ensure values in details table can wrap across multiple lines */
+.details-info table td {
+    white-space: normal;         /* allow wrapping */
+    overflow-wrap: anywhere;     /* break long words/URLs if needed */
+    word-break: break-word;      /* legacy support for long tokens */
+    vertical-align: top;         /* align label and multi-line value nicely */
 }
