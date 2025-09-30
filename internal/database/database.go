@@ -2,6 +2,7 @@ package database
 
 import (
 	"database/sql"
+	"encoding/json"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -143,6 +144,11 @@ func initDB(db *sql.DB) error {
 		return fmt.Errorf("failed to add test badge: %w", err)
 	}
 
+	// Add initial test badges if they don't exist
+	if err := addInitialBadges(db); err != nil {
+		return fmt.Errorf("failed to add initial test badges: %w", err)
+	}
+
 	// Add default admin role if it doesn't exist
 	if err := addDefaultRole(db); err != nil {
 		return fmt.Errorf("failed to add default admin role: %w", err)
@@ -203,7 +209,7 @@ func addDefaultRole(db *sql.DB) error {
 		"Administrator with full access", // description
 		permissions,                      // permissions
 		time.Now(),                       // created_at
-		time.Now())                       // updated_at
+		time.Now()) // updated_at
 	if err != nil {
 		return fmt.Errorf("failed to insert admin role: %w", err)
 	}
@@ -261,7 +267,7 @@ func addDefaultAdminUser(db *sql.DB) error {
 		time.Now(),             // created_at
 		time.Now(),             // updated_at
 		"active",               // status
-		0)                      // failed_attempts
+		0) // failed_attempts
 	if err != nil {
 		return fmt.Errorf("failed to insert admin user: %w", err)
 	}
@@ -274,7 +280,7 @@ func addDefaultAdminUser(db *sql.DB) error {
 func addTestBadge(db *sql.DB) error {
 	// Check if the test badge already exists
 	var count int
-	err := db.QueryRow("SELECT COUNT(*) FROM badges WHERE commit_id = ?", "test123").Scan(&count)
+	err := db.QueryRow("SELECT COUNT(*) FROM badges WHERE commit_id = ?", "softcat").Scan(&count)
 	if err != nil {
 		return fmt.Errorf("failed to check for test badge: %w", err)
 	}
@@ -332,7 +338,7 @@ func addTestBadge(db *sql.DB) error {
 		certificateName,                  // certificate_name
 		specialtyDomain,                  // specialty_domain
 		softwareSCID,                     // software_sc_id
-		softwareSCURL)                    // software_sc_url
+		softwareSCURL) // software_sc_url
 	if err != nil {
 		return fmt.Errorf("failed to insert test badge: %w", err)
 	}
@@ -920,6 +926,134 @@ func (db *DB) UpdateAPIKeyLastUsed(apiKeyID string, lastUsed time.Time) error {
 	_, err := db.Exec("UPDATE api_keys SET last_used = ? WHERE api_key_id = ?", lastUsed, apiKeyID)
 	if err != nil {
 		return fmt.Errorf("failed to update API key last used: %w", err)
+	}
+
+	return nil
+}
+
+// addInitialBadges ensures that specific initial badges exist in the database; if not, it inserts them
+// using full field data loaded from a JSON file at db/initial_badges.json.
+func addInitialBadges(db *sql.DB) error {
+	// IDs we must ensure exist
+	initialIDs := []string{"NMAAS_slSAD", "NMAAS_slVD", "EDREP20_slSAD", "EDREP20_slVD"}
+
+	// Helper to build nullable strings
+	ns := func(s string) sql.NullString {
+		if s == "" {
+			return sql.NullString{Valid: false}
+		}
+		return sql.NullString{String: s, Valid: true}
+	}
+
+	// Load JSON data
+	type badgeJSON struct {
+		CommitID        string `json:"commit_id"`
+		Type            string `json:"type"`
+		Status          string `json:"status"`
+		Issuer          string `json:"issuer"`
+		IssueDate       string `json:"issue_date"`
+		SoftwareName    string `json:"software_name"`
+		SoftwareVersion string `json:"software_version"`
+		SoftwareURL     string `json:"software_url"`
+		Notes           string `json:"notes"`
+		ExpiryDate      string `json:"expiry_date"`
+		IssuerURL       string `json:"issuer_url"`
+		CustomConfig    string `json:"custom_config"`
+		LastReview      string `json:"last_review"`
+		CoveredVersion  string `json:"covered_version"`
+		RepositoryLink  string `json:"repository_link"`
+		PublicNote      string `json:"public_note"`
+		InternalNote    string `json:"internal_note"`
+		ContactDetails  string `json:"contact_details"`
+		CertificateName string `json:"certificate_name"`
+		SpecialtyDomain string `json:"specialty_domain"`
+		SoftwareSCID    string `json:"software_sc_id"`
+		SoftwareSCURL   string `json:"software_sc_url"`
+	}
+
+	// JSON is an object mapping commit_id -> badgeJSON
+	var badgeMap map[string]badgeJSON
+	jsonBytes, err := os.ReadFile("db/initial_badges.json")
+	if err == nil {
+		_ = json.Unmarshal(jsonBytes, &badgeMap)
+	}
+
+	for _, id := range initialIDs {
+		// Check if the badge already exists
+		var count int
+		if err := db.QueryRow("SELECT COUNT(*) FROM badges WHERE commit_id = ?", id).Scan(&count); err != nil {
+			return fmt.Errorf("failed to check for initial badge %s: %w", id, err)
+		}
+		if count > 0 {
+			continue
+		}
+
+		// Choose data source: JSON entry if present, otherwise sensible defaults
+		var bj badgeJSON
+		if badgeMap != nil {
+			if v, ok := badgeMap[id]; ok {
+				bj = v
+			}
+		}
+
+		if bj.CommitID == "" {
+			bj.CommitID = id
+		}
+		if bj.Type == "" {
+			bj.Type = "badge"
+		}
+		if bj.Status == "" {
+			bj.Status = "valid"
+		}
+		if bj.Issuer == "" {
+			bj.Issuer = "GEANT WP9T2 Software Licencing"
+		}
+		if bj.IssueDate == "" {
+			bj.IssueDate = time.Now().Format("2006-01-02")
+		}
+		if bj.SoftwareName == "" {
+			bj.SoftwareName = "GÉANT Software Catalogue"
+		}
+		if bj.SoftwareVersion == "" {
+			bj.SoftwareVersion = "v1.0.0"
+		}
+
+		// Insert all metadata fields (excluding media blobs which are generated elsewhere)
+		_, err := db.Exec(`
+			INSERT INTO badges (
+				commit_id, type, status, issuer, issue_date,
+				software_name, software_version, software_url, notes,
+				expiry_date, issuer_url, custom_config, last_review,
+				covered_version, repository_link, public_note, internal_note, contact_details,
+				certificate_name, specialty_domain, software_sc_id, software_sc_url
+			) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+		`,
+			bj.CommitID,
+			bj.Type,
+			bj.Status,
+			bj.Issuer,
+			bj.IssueDate,
+			bj.SoftwareName,
+			bj.SoftwareVersion,
+			ns(bj.SoftwareURL),
+			ns(bj.Notes),
+			ns(bj.ExpiryDate),
+			ns(bj.IssuerURL),
+			ns(bj.CustomConfig),
+			ns(bj.LastReview),
+			ns(bj.CoveredVersion),
+			ns(bj.RepositoryLink),
+			ns(bj.PublicNote),
+			ns(bj.InternalNote),
+			ns(bj.ContactDetails),
+			ns(bj.CertificateName),
+			ns(bj.SpecialtyDomain),
+			ns(bj.SoftwareSCID),
+			ns(bj.SoftwareSCURL),
+		)
+		if err != nil {
+			return fmt.Errorf("failed to insert initial badge %s: %w", id, err)
+		}
 	}
 
 	return nil
