@@ -69,7 +69,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	commitID := strings.Split(path, "/")[0]
 
 	if commitID == "" {
-		http.Error(w, "Missing commit ID", http.StatusBadRequest)
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
@@ -85,12 +85,12 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	badge, err := h.db.GetBadge(commitID)
 	if err != nil {
 		h.logger.Error("Failed to get badge", zap.Error(err), zap.String("commit_id", commitID))
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
 	if badge == nil {
-		http.Error(w, "Badge not found", http.StatusNotFound)
+		w.WriteHeader(http.StatusNotFound)
 		return
 	}
 
@@ -168,7 +168,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")
 	if err := h.template.Execute(w, data); err != nil {
 		h.logger.Error("Failed to render template", zap.Error(err))
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 }
