@@ -203,7 +203,7 @@ func addDefaultRole(db *sql.DB) error {
 		"Administrator with full access", // description
 		permissions,                      // permissions
 		time.Now(),                       // created_at
-		time.Now()) // updated_at
+		time.Now())                       // updated_at
 	if err != nil {
 		return fmt.Errorf("failed to insert admin role: %w", err)
 	}
@@ -261,7 +261,7 @@ func addDefaultAdminUser(db *sql.DB) error {
 		time.Now(),             // created_at
 		time.Now(),             // updated_at
 		"active",               // status
-		0) // failed_attempts
+		0)                      // failed_attempts
 	if err != nil {
 		return fmt.Errorf("failed to insert admin user: %w", err)
 	}
@@ -289,7 +289,7 @@ func addTestBadge(db *sql.DB) error {
 	expiryDate := sql.NullString{String: time.Now().AddDate(1, 0, 0).Format("2006-01-02"), Valid: true}
 	issuerURL := sql.NullString{String: "https://certificates.software.geant.org", Valid: true}
 	softwareURL := sql.NullString{String: "https://sc.geant.org/ui/project/SOFTCAT", Valid: true}
-	customConfig := sql.NullString{String: `{"color_left":"#003f5f","color_right":"#FFFFFF","style":"3d","text_color_right":"#333", "border_color":"#bbb", "horizontal_bars_color":"#bbb", "top_label_color":"#bbb"}`, Valid: true}
+	customConfig := sql.NullString{String: `{"color_left":"#003f5f","color_right":"#FFFFFF","style":"3d","text_color_right":"#333", "border_color":"#ffffff", "horizontal_bars_color":"#bbb", "top_label_color":"#bbb"}`, Valid: true}
 	lastReview := sql.NullString{String: time.Now().Format("2006-01-02"), Valid: true}
 	coveredVersion := sql.NullString{String: "1.12.0", Valid: true}
 	repositoryLink := sql.NullString{String: "https://bitbucket.software.geant.org/scm/sc/softwarecataloguegit.git", Valid: true}
@@ -332,7 +332,7 @@ func addTestBadge(db *sql.DB) error {
 		certificateName,                  // certificate_name
 		specialtyDomain,                  // specialty_domain
 		softwareSCID,                     // software_sc_id
-		softwareSCURL) // software_sc_url
+		softwareSCURL)                    // software_sc_url
 	if err != nil {
 		return fmt.Errorf("failed to insert test badge: %w", err)
 	}

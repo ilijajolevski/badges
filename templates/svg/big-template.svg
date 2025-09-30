@@ -121,4 +121,9 @@
   <text class="cls-7" id="center_version" x="20" y="122">
     <tspan x="14" y="132" id="tspan_center_version">{{.SoftwareVersion}}</tspan>
   </text>
+  <!-- Outer 1px non-scaling keyline to prevent white border blending into white pages -->
+  <rect x="0.5" y="0.5" width="169" height="199" fill="none"
+        stroke="#808080" stroke-width="1"
+        vector-effect="non-scaling-stroke" shape-rendering="crispEdges"
+        pointer-events="none"/>
 </svg>
