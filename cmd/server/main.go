@@ -18,6 +18,7 @@ import (
 	"github.com/finki/badges/internal/config"
 	"github.com/finki/badges/internal/database"
 	"github.com/finki/badges/internal/details"
+	"github.com/finki/badges/internal/home"
 	"github.com/finki/badges/internal/list"
 	"github.com/finki/badges/internal/middleware"
 	"go.uber.org/zap"
@@ -73,6 +74,12 @@ func main() {
 	if err != nil {
 		logger.Fatal("Failed to initialize list handler", zap.Error(err))
 	}
+
+	// Initialize home handler
+	homeHandler, err := home.NewHandler(db, logger, imageCache)
+	if err != nil {
+		logger.Fatal("Failed to initialize home handler", zap.Error(err))
+	}
 	
 	// Initialize API key handler
 	apiKeyHandler := apikey.NewHandler(db, logger)
@@ -84,7 +91,7 @@ func main() {
 	mux := http.NewServeMux()
 
 	// Register routes
-	registerRoutes(mux, badgeHandler, certificateHandler, detailsHandler, listHandler, apiKeyHandler, authHandler, errorHandler, sanitizer, rateLimiter, requestLogger)
+	registerRoutes(mux, badgeHandler, certificateHandler, detailsHandler, listHandler, homeHandler, apiKeyHandler, authHandler, errorHandler, sanitizer, rateLimiter, requestLogger)
 
 	// Create HTTP server
 	server := &http.Server{
@@ -156,6 +163,7 @@ func registerRoutes(
 	certificateHandler *certificate.Handler,
 	detailsHandler *details.Handler,
 	listHandler *list.Handler,
+	homeHandler *home.Handler,
 	apiKeyHandler *apikey.Handler,
 	authHandler *auth.Handler,
 	errorHandler *middleware.ErrorHandler,
@@ -192,6 +200,14 @@ func registerRoutes(
 		errorHandler.Middleware(
 			rateLimiter.Middleware(
 				sanitizer.Middleware(listHandler),
+			),
+		),
+	)
+
+	homeHandlerWithMiddleware := requestLogger.Middleware(
+		errorHandler.Middleware(
+			rateLimiter.Middleware(
+				sanitizer.Middleware(homeHandler),
 			),
 		),
 	)
@@ -240,6 +256,7 @@ func registerRoutes(
 	mux.Handle("/badges", listHandlerWithMiddleware)
 	mux.Handle("/api/keys", listAPIKeysHandlerWithMiddleware)
 	mux.Handle("/api/auth/login", loginHandlerWithMiddleware)
+	mux.Handle("/", homeHandlerWithMiddleware)
 
 	// Serve static files
 	fs := http.FileServer(http.Dir("./static"))
