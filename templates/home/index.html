@@ -30,6 +30,13 @@
       justify-content: center;
     }
 
+    .cofunded-logo {
+      max-width: 240px;
+      width: 240px;
+      height: auto;
+      display: block;
+      margin: 8px auto 0;
+    }
   </style>
 </head>
 <body>
@@ -41,11 +48,33 @@
 
     <main>
       <section class="hero-card">
-        <h2>Welcome</h2>
+        <h2>Explore Software Licensing Certificates</h2>
         <p>
-          Explore software licensing certificates issued by the GÉANT WP9T2 Software Licensing team.
-          Each certificate summarizes key compliance details, version coverage, and verification status for participating projects.
+            Browse software licensing certificates issued by the GÉANT Software Licensing team.
+            Each certificate provides key compliance information, version coverage, and verification status
+            for software projects participating in the
+            <a href="https://sc.geant.org/" target="_blank" rel="noopener noreferrer">GÉANT Software Catalogue</a>.
         </p>
+          <br>
+          <h2>About SoftwareCertHub</h2>
+          <p>
+              <a href="https://wiki.geant.org/spaces/GSD/pages/1060601963/Software+Licensing+Certificates"
+                 target="_blank" rel="noopener noreferrer">SoftwareCertHub</a>
+              is the GÉANT platform for managing software licensing certificates.
+              It serves as the central tool for issuing, verifying, displaying, and maintaining the certificate lifecycle.
+              Certificates are created and managed by the GÉANT licensing team, with automatic visibility in the
+              GÉANT Software Catalogue (coming soon).
+          </p>
+          <br>
+          <p>
+              The platform also provides dynamically generated compact and large badges that can be embedded
+              in software repositories, documentation (such as README files), and web pages to ensure transparent verification.
+          </p>
+          <br>
+          <p>
+              SoftwareCertHub is open source under the Apache-2.0 licence, with ongoing development focused on improving
+              usability, interoperability, and integration.
+          </p>
         <div class="hero-actions">
           <a class="cta-btn" href="/badges">Browse Certificates</a>
         </div>
@@ -53,6 +82,11 @@
     </main>
 
     <footer>
+        <div>
+            The GÉANT project is funded by the Horizon Europe research and innovation programme.
+
+        <img src="/static/co-Funded_logo_white.png" alt="Co-funded by the European Union" class="cofunded-logo">
+        </div>
     </footer>
   </div>
 </body>
