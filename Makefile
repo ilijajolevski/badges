@@ -3,6 +3,7 @@ APP_NAME := badge-service
 BINARY_NAME := $(APP_NAME)
 DOCKER_IMAGE := ilijajolevski/$(APP_NAME)
 DOCKER_TAG := latest
+PORT ?= 9000
 
 # Go related variables
 GOBASE := $(shell pwd)
@@ -30,8 +31,8 @@ clean:
 
 # Run the application locally
 run:
-	@echo "Running $(BINARY_NAME)..."
-	@go run ./cmd/server
+	@echo "Running $(BINARY_NAME) on port $(PORT)..."
+	@PORT=$(PORT) go run ./cmd/server
 
 # Run tests
 test:
@@ -50,8 +51,8 @@ push-image:
 
 # Run Docker image
 docker-run:
-	@echo "Running Docker image $(DOCKER_IMAGE):$(DOCKER_TAG)..."
-	@docker run -p 8080:8080 --name $(APP_NAME) -d $(DOCKER_IMAGE):$(DOCKER_TAG)
+	@echo "Running Docker image $(DOCKER_IMAGE):$(DOCKER_TAG) on port $(PORT)..."
+	@docker run -e PORT=$(PORT) -p $(PORT):$(PORT) --name $(APP_NAME) -d $(DOCKER_IMAGE):$(DOCKER_TAG)
 
 # Stop and remove Docker container
 docker-stop:

@@ -24,6 +24,8 @@ type BadgeData struct {
 	Status          string
 	IssueDate       string
 	IsExpired       bool
+	ColorRight      string
+	BorderColor     string
 }
 
 // Handler handles badges list page requests
@@ -80,6 +82,15 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if badge.CertificateName.Valid {
 			certName = badge.CertificateName.String
 		}
+
+		// Extract colors from custom config with safe defaults
+		colorRight := ""
+		borderColor := ""
+		if cfg, err := badge.GetCustomConfig(); err == nil && cfg != nil {
+			colorRight = cfg.ColorRight
+			borderColor = cfg.BorderColor
+		}
+
 		data.Badges = append(data.Badges, &BadgeData{
 			CommitID:        badge.CommitID,
 			SoftwareName:    badge.SoftwareName,
@@ -87,6 +98,8 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			Status:          badge.Status,
 			IssueDate:       badge.IssueDate,
 			IsExpired:       badge.IsExpired(),
+			ColorRight:      colorRight,
+			BorderColor:     borderColor,
 		})
 	}
 

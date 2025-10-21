@@ -31,7 +31,11 @@
                             <td data-label="Software Name">
                                 <a href="/details/{{ .CommitID }}">{{ .SoftwareName }}</a>
                             </td>
-                            <td data-label="Certificate Name">{{ .CertificateName }}</td>
+                            <td data-label="Certificate Name">
+                                <span class="certificate-label" style="display:inline-block;padding:2px 8px;background-color: {{.ColorRight}}; border: 1px solid {{.BorderColor}}; border-radius:4px;">
+                                    {{ .CertificateName }}
+                                </span>
+                            </td>
                             <td data-label="Status">
                                 <span class="status-badge status-{{ .Status }}">{{ .Status }}</span>
                                 {{ if .IsExpired }}
