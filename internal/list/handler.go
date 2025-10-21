@@ -60,6 +60,14 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	accept := r.Header.Get("Accept")
 	wantsJSON := strings.Contains(accept, "application/json")
 
+	// Query parameter override (?format=json or ?format=html)
+	format := strings.ToLower(r.URL.Query().Get("format"))
+	if format == "json" {
+		wantsJSON = true
+	} else if format == "html" {
+		wantsJSON = false
+	}
+
 	if wantsJSON {
 		// Return JSON representation of certificates
 		badges, err := h.db.ListBadges()
