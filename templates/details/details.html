@@ -106,7 +106,13 @@
                         {{ if .CertificateName }}
                         <tr>
                             <th>Certificate Name:</th>
-                            <td>{{ .CertificateName }}</td>
+                            <td>
+                                {{ if .CertificateGuideURL }}
+                                <a href="{{ .CertificateGuideURL }}" target="_blank" rel="noopener noreferrer">{{ .CertificateName }}</a>
+                                {{ else }}
+                                {{ .CertificateName }}
+                                {{ end }}
+                            </td>
                         </tr>
                         {{ end }}
                         {{ if .SpecialtyDomain }}

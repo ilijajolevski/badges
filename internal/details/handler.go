@@ -11,31 +11,40 @@ import (
 	"go.uber.org/zap"
 )
 
+// certificateGuideLinks maps certificate names to their corresponding detailed guide URLs.
+var certificateGuideLinks = map[string]string{
+	"Self-Assessed Dependencies": "https://wiki.geant.org/spaces/GSD/pages/1190199425/Detailed+Guide+Self-Assessed+Dependencies+Certificate",
+	"Verified Dependencies":      "https://wiki.geant.org/spaces/GSD/pages/1190199427/Quick+Guide+Verified+Dependencies+Certificate",
+	"Verified Software Licence":  "https://wiki.geant.org/spaces/GSD/pages/1190199433/Quick+Guide+Verified+Software+Licence+Certificate",
+	"Software Licence Assurance": "https://wiki.geant.org/spaces/GSD/pages/1190199436/Quick+Guide+Software+Licence+Assurance+Certificate",
+}
+
 // TemplateData represents the data passed to the details page template
 type TemplateData struct {
-	CommitID        string
-	Type            string
-	Status          string
-	Issuer          string
-	IssueDate       string
-	SoftwareName    string
-	SoftwareVersion string
-	SoftwareURL     string
-	Notes           string
-	ExpiryDate      string
-	IssuerURL       string
-	LastReview      string
-	IsExpired       bool
-	CurrentYear     int
-	CoveredVersion  string
-	RepositoryLink  string
-	PublicNote      string
-	InternalNote    string
-	ContactDetails  string
-	CertificateName string
-	SpecialtyDomain string
-	SoftwareSCID    string
-	SoftwareSCURL   string
+	CommitID            string
+	Type                string
+	Status              string
+	Issuer              string
+	IssueDate           string
+	SoftwareName        string
+	SoftwareVersion     string
+	SoftwareURL         string
+	Notes               string
+	ExpiryDate          string
+	IssuerURL           string
+	LastReview          string
+	IsExpired           bool
+	CurrentYear         int
+	CoveredVersion      string
+	RepositoryLink      string
+	PublicNote          string
+	InternalNote        string
+	ContactDetails      string
+	CertificateName     string
+	CertificateGuideURL string
+	SpecialtyDomain     string
+	SoftwareSCID        string
+	SoftwareSCURL       string
 }
 
 // Handler handles details page requests
@@ -150,6 +159,9 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 
 	if badge.CertificateName.Valid {
 		data.CertificateName = badge.CertificateName.String
+		if url, ok := certificateGuideLinks[data.CertificateName]; ok {
+			data.CertificateGuideURL = url
+		}
 	}
 
 	if badge.SpecialtyDomain.Valid {
