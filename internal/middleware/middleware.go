@@ -141,7 +141,7 @@ func NewSanitizer(logger *zap.Logger) *Sanitizer {
 func (s *Sanitizer) Middleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Validate commit ID
-		if r.URL.Path != "/" && r.URL.Path != "/badges" {
+		if r.URL.Path != "/" && r.URL.Path != "/certificates" {
 			// Extract commit ID from URL
 			var commitID string
 			pathLen := len(r.URL.Path)

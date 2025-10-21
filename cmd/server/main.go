@@ -253,7 +253,7 @@ func registerRoutes(
 	mux.Handle("/badge/", badgeHandlerWithMiddleware)
 	mux.Handle("/certificate/", certificateHandlerWithMiddleware)
 	mux.Handle("/details/", detailsHandlerWithMiddleware)
-	mux.Handle("/badges", listHandlerWithMiddleware)
+	mux.Handle("/certificates", listHandlerWithMiddleware)
 	mux.Handle("/api/keys", listAPIKeysHandlerWithMiddleware)
 	mux.Handle("/api/auth/login", loginHandlerWithMiddleware)
 	mux.Handle("/", homeHandlerWithMiddleware)
