@@ -1,8 +1,11 @@
 package list
 
 import (
+	"encoding/json"
+	"fmt"
 	"html/template"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/finki/badges/internal/cache"
@@ -54,7 +57,61 @@ func NewHandler(db *database.DB, logger *zap.Logger, cache *cache.Cache) (*Handl
 
 // ServeHTTP handles HTTP requests for the badges list page
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	// Try to get from cache first
+	accept := r.Header.Get("Accept")
+	wantsJSON := strings.Contains(accept, "application/json")
+
+	if wantsJSON {
+		// Return JSON representation of certificates
+		badges, err := h.db.ListBadges()
+		if err != nil {
+			h.logger.Error("Failed to list badges", zap.Error(err))
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+
+		// Define minimal JSON view model
+		type CertificateJSON struct {
+			CertID          string `json:"cert_id"`
+			SoftwareName    string `json:"software_name"`
+			CertificateName string `json:"certificate_name,omitempty"`
+			Status          string `json:"status"`
+			IssueDate       string `json:"issue_date"`
+			IsExpired       bool   `json:"is_expired"`
+			DetailsLink     string `json:"details_link"`
+		}
+
+		result := make([]CertificateJSON, 0, len(badges))
+		for _, b := range badges {
+			certName := ""
+			if b.CertificateName.Valid {
+				certName = b.CertificateName.String
+			}
+			result = append(result, CertificateJSON{
+				CertID:          b.CommitID,
+				SoftwareName:    b.SoftwareName,
+				CertificateName: certName,
+				Status:          b.Status,
+				IssueDate:       b.IssueDate,
+				IsExpired:       b.IsExpired(),
+				DetailsLink:     fmt.Sprintf("https://certificates.software.geant.org/details/%s", b.CommitID),
+			})
+		}
+
+		payload, err := json.Marshal(result)
+		if err != nil {
+			h.logger.Error("Failed to marshal certificates JSON", zap.Error(err))
+			http.Error(w, "Internal server error", http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		w.WriteHeader(http.StatusOK)
+		w.Write(payload)
+		return
+	}
+
+	// Default: Return existing HTML page
+	// Try to get from cache first (existing behavior)
 	cacheKey := "badges:list"
 	if cachedData, found := h.cache.Get(cacheKey); found {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")

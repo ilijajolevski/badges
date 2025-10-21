@@ -1,0 +1,15 @@
+meta {
+  name: list certificates
+  type: http
+  seq: 5
+}
+
+get {
+  url: http://localhost:9000/certificates
+  body: none
+  auth: inherit
+}
+
+settings {
+  encodeUrl: true
+}
