@@ -1,6 +1,7 @@
 package details
 
 import (
+	"encoding/json"
 	"html/template"
 	"net/http"
 	"strings"
@@ -82,6 +83,118 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Content negotiation: JSON vs HTML
+	accept := r.Header.Get("Accept")
+	wantsJSON := strings.Contains(accept, "application/json")
+
+	if wantsJSON {
+		// Get badge from database
+		badge, err := h.db.GetBadge(commitID)
+		if err != nil {
+			h.logger.Error("Failed to get badge", zap.Error(err), zap.String("commit_id", commitID))
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		if badge == nil {
+			w.WriteHeader(http.StatusNotFound)
+			return
+		}
+
+		// Build comprehensive JSON response
+		type CertificateDetailsJSON struct {
+			CertID              string `json:"cert_id"`
+			Type                string `json:"type"`
+			Status              string `json:"status"`
+			Issuer              string `json:"issuer"`
+			IssueDate           string `json:"issue_date"`
+			SoftwareName        string `json:"software_name"`
+			SoftwareVersion     string `json:"software_version"`
+			SoftwareURL         string `json:"software_url,omitempty"`
+			Notes               string `json:"notes,omitempty"`
+			ExpiryDate          string `json:"expiry_date,omitempty"`
+			IssuerURL           string `json:"issuer_url,omitempty"`
+			LastReview          string `json:"last_review,omitempty"`
+			IsExpired           bool   `json:"is_expired"`
+			CoveredVersion      string `json:"covered_version,omitempty"`
+			RepositoryLink      string `json:"repository_link,omitempty"`
+			PublicNote          string `json:"public_note,omitempty"`
+			ContactDetails      string `json:"contact_details,omitempty"`
+			CertificateName     string `json:"certificate_name,omitempty"`
+			CertificateGuideURL string `json:"certificate_guide_url,omitempty"`
+			SpecialtyDomain     string `json:"specialty_domain,omitempty"`
+			SoftwareSCID        string `json:"software_sc_id,omitempty"`
+			SoftwareSCURL       string `json:"software_sc_url,omitempty"`
+		}
+
+		resp := CertificateDetailsJSON{
+			CertID:          badge.CommitID,
+			Type:            badge.Type,
+			Status:          badge.Status,
+			Issuer:          badge.Issuer,
+			IssueDate:       badge.IssueDate,
+			SoftwareName:    badge.SoftwareName,
+			SoftwareVersion: badge.SoftwareVersion,
+			IsExpired:       badge.IsExpired(),
+		}
+
+		if badge.SoftwareURL.Valid {
+			resp.SoftwareURL = badge.SoftwareURL.String
+		}
+		if badge.Notes.Valid {
+			resp.Notes = badge.Notes.String
+		}
+		if badge.ExpiryDate.Valid {
+			resp.ExpiryDate = badge.ExpiryDate.String
+		}
+		if badge.IssuerURL.Valid {
+			resp.IssuerURL = badge.IssuerURL.String
+		}
+		if badge.LastReview.Valid {
+			resp.LastReview = badge.LastReview.String
+		}
+		if badge.CoveredVersion.Valid {
+			resp.CoveredVersion = badge.CoveredVersion.String
+		}
+		if badge.RepositoryLink.Valid {
+			resp.RepositoryLink = badge.RepositoryLink.String
+		}
+		if badge.PublicNote.Valid {
+			resp.PublicNote = badge.PublicNote.String
+		}
+		if badge.ContactDetails.Valid {
+			resp.ContactDetails = badge.ContactDetails.String
+		}
+		if badge.CertificateName.Valid {
+			resp.CertificateName = badge.CertificateName.String
+			if url, ok := certificateGuideLinks[resp.CertificateName]; ok {
+				resp.CertificateGuideURL = url
+			}
+		}
+		if badge.SpecialtyDomain.Valid {
+			resp.SpecialtyDomain = badge.SpecialtyDomain.String
+		}
+		if badge.SoftwareSCID.Valid {
+			resp.SoftwareSCID = badge.SoftwareSCID.String
+		}
+		if badge.SoftwareSCURL.Valid {
+			resp.SoftwareSCURL = badge.SoftwareSCURL.String
+		}
+
+		payload, err := json.Marshal(resp)
+		if err != nil {
+			h.logger.Error("Failed to marshal details JSON", zap.Error(err))
+			w.WriteHeader(http.StatusInternalServerError)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		w.WriteHeader(http.StatusOK)
+		w.Write(payload)
+		return
+	}
+
+	// HTML path (existing behavior)
 	// Try to get from cache first
 	cacheKey := "details:" + commitID
 	if cachedData, found := h.cache.Get(cacheKey); found {
