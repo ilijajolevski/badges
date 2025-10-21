@@ -85,12 +85,16 @@
                             <td>{{ .LastReview }}</td>
                         </tr>
                         {{ end }}
-                        {{ if .ExpiryDate }}
                         <tr>
                             <th>Expiry Date:</th>
-                            <td>{{ .ExpiryDate }}</td>
+                            <td>
+                                {{ if .ExpiryDate }}
+                                {{ .ExpiryDate }}
+                                {{ else }}
+                                Permanent
+                                {{ end }}
+                            </td>
                         </tr>
-                        {{ end }}
                         {{ if .Notes }}
                         <tr>
                             <th>Internal note:</th>
