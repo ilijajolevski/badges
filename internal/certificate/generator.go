@@ -159,17 +159,33 @@ func (g *Generator) GenerateSVG(badge *database.Badge) ([]byte, error) {
 		specialtyDomain = badge.SpecialtyDomain.String
 	}
 
-	// Read the template file
-	templateContent, err := os.ReadFile(g.templatePath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read template file: %w", err)
+	// Determine revoked state and override visuals if needed
+	isRevoked := badge.Status == "revoked"
+	if isRevoked {
+		// Force bright red background and high-contrast text/border regardless of provided template colors
+		colorBg = "#FF1A1A"
+		backgroundColor = "#FF1A1A"
+		textColor = "#FFFFFF"
+		logoColor = "#FFFFFF"
+		borderColor = "#B00020"
+		topLabelColor = "#FFFFFF"
 	}
 
-	// Remove XML declaration from the template content
-	templateContentStr := string(templateContent)
-	if len(templateContentStr) > 5 && templateContentStr[:5] == "<?xml" {
-		if xmlEndIndex := bytes.Index(templateContent, []byte("?>")); xmlEndIndex != -1 {
-			templateContent = templateContent[xmlEndIndex+2:]
+	// Read the template file (even when revoked we use the external template to allow name-only strike-through)
+	var templateContent []byte
+	{
+		var readErr error
+		templateContent, readErr = os.ReadFile(g.templatePath)
+		if readErr != nil {
+			return nil, fmt.Errorf("failed to read template file: %w", readErr)
+		}
+
+		// Remove XML declaration from the template content
+		templateContentStr := string(templateContent)
+		if len(templateContentStr) > 5 && templateContentStr[:5] == "<?xml" {
+			if xmlEndIndex := bytes.Index(templateContent, []byte("?>")); xmlEndIndex != -1 {
+				templateContent = templateContent[xmlEndIndex+2:]
+			}
 		}
 	}
 
@@ -198,6 +214,7 @@ func (g *Generator) GenerateSVG(badge *database.Badge) ([]byte, error) {
 		"SpecialtyDomain":   specialtyDomain,
 		"SoftwareNameLine1": softwareNameLine1,
 		"SoftwareNameLine2": softwareNameLine2,
+		"IsRevoked":         isRevoked,
 
 		// New color parameters for big certificate template
 		"LogoColor":           logoColor,
@@ -212,26 +229,20 @@ func (g *Generator) GenerateSVG(badge *database.Badge) ([]byte, error) {
 
 	// Generate SVG using template
 	tmpl := template.New("certificate").Funcs(template.FuncMap{
-		"divide": func(a, b int) int {
-			return a / b
-		},
-		"subtract": func(a, b int) int {
-			return a - b
-		},
+		"divide": func(a, b int) int { return a / b },
+		"subtract": func(a, b int) int { return a - b },
+		"add": func(a, b int) int { return a + b },
+		"mul": func(a, b int) int { return a * b },
 		"getWord": func(i int, a []string) string {
-			if i < len(a) {
-				return a[i]
-			}
+			if i < len(a) { return a[i] }
 			return ""
 		},
 	})
 
-	// Parse the template from the file content
-	tmpl, err = tmpl.Parse(string(templateContent))
-	if err != nil {
-		// Fallback to the hardcoded template if the file can't be parsed
-		tmpl, err = tmpl.Parse(certificateSVGTemplate)
-		if err != nil {
+	// Decide which template source to use: always prefer external template;
+	// fallback to built-in only if the external template fails to parse.
+	if _, err := tmpl.Parse(string(templateContent)); err != nil {
+		if _, err := tmpl.Parse(certificateSVGTemplate); err != nil {
 			return nil, fmt.Errorf("failed to parse template: %w", err)
 		}
 	}

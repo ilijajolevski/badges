@@ -88,6 +88,16 @@ func (g *Generator) GenerateSVG(badge *database.Badge) ([]byte, error) {
 	leftWidth = 46 // Fixed width for GEANT logo
 	rightWidth = totalWidth - leftWidth
 
+	// Override visuals if badge is revoked
+	isRevoked := badge.Status == "revoked"
+	if isRevoked {
+		// Bright red background on both sides, keep high-contrast text
+		colorLeft = "#FF1A1A"
+		colorRight = "#FF1A1A"
+		textColorLeft = "#FFFFFF"
+		textColorRight = "#FFFFFF"
+	}
+
 	data := map[string]interface{}{
 		"ColorLeft":      colorLeft,
 		"ColorRight":     colorRight,
@@ -102,6 +112,7 @@ func (g *Generator) GenerateSVG(badge *database.Badge) ([]byte, error) {
 		"LeftWidth":      leftWidth,
 		"RightWidth":     rightWidth,
 		"HasShadow":      style == "3d",
+		"IsRevoked":     isRevoked,
 	}
 
 	// Generate SVG using template
@@ -222,6 +233,11 @@ const badgeSVGTemplate = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="h
   <g text-anchor="middle" font-family="DejaVu Sans,Verdana,Geneva,sans-serif" font-size="{{.FontSize}}">
     <text x="{{add .LeftWidth (div .RightWidth 2)}}" y="15" fill="{{.TextColorRight}}">{{.Value}}</text>
   </g>
+
+  {{if .IsRevoked}}
+  <!-- Strikethrough line for revoked status -->
+  <line x1="2" y1="10" x2="{{sub .Width 2}}" y2="10" stroke="#FFFFFF" stroke-width="2" stroke-linecap="round" opacity="0.95"/>
+  {{end}}
 
   <!-- Outer keyline drawn last to avoid any background bleed at corners -->
   <use xlink:href="#badge-outer" fill="none" stroke="#E5E7EB" stroke-width="1" vector-effect="non-scaling-stroke" shape-rendering="crispEdges" pointer-events="none"/>
