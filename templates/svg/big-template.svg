@@ -104,22 +104,22 @@
           id="path918" />
   <!-- Top label: Certificate name in gray (from CertificateName words) -->
   <text class="cls-4" id="text_top1" x="20" y="31.94">
-    <tspan x="20" y="31.94" id="tspan_top1">{{getWord 0 .CertNameWords}}</tspan>
+    <tspan x="20" y="31.94" id="tspan_top1" {{if .IsRevoked}}text-decoration="line-through"{{end}}>{{getWord 0 .CertNameWords}}</tspan>
   </text>
   <text class="cls-4" id="text_top2" x="20" y="48.9">
-    <tspan x="20" y="48.9" id="tspan_top2">{{getWord 1 .CertNameWords}}</tspan>
+    <tspan x="20" y="48.9" id="tspan_top2" {{if .IsRevoked}}text-decoration="line-through"{{end}}>{{getWord 1 .CertNameWords}}</tspan>
   </text>
   <text class="cls-4" id="text_top3" x="20" y="61">
-    <tspan x="20" y="61" id="tspan_top3">{{getWord 2 .CertNameWords}}</tspan>
+    <tspan x="20" y="61" id="tspan_top3" {{if .IsRevoked}}text-decoration="line-through"{{end}}>{{getWord 2 .CertNameWords}}</tspan>
   </text>
   <!-- Center label: Badge Service and version in white -->
   <!-- Center label: Badge Service name and version (white) -->
   <text class="cls-7" id="center_name" x="20" y="100">
     {{if .SoftwareNameLine2}}
-    <tspan x="14" y="90" id="tspan_center_name_line1">{{.SoftwareNameLine1}}</tspan>
-    <tspan x="14" y="110" id="tspan_center_name_line2">{{.SoftwareNameLine2}}</tspan>
+    <tspan x="14" y="90" id="tspan_center_name_line1" {{if .IsRevoked}}text-decoration="line-through"{{end}}>{{.SoftwareNameLine1}}</tspan>
+    <tspan x="14" y="110" id="tspan_center_name_line2" {{if .IsRevoked}}text-decoration="line-through"{{end}}>{{.SoftwareNameLine2}}</tspan>
     {{else}}
-    <tspan x="20" y="100" id="tspan_center_name">{{.SoftwareNameLine1}}</tspan>
+    <tspan x="20" y="100" id="tspan_center_name" {{if .IsRevoked}}text-decoration="line-through"{{end}}>{{.SoftwareNameLine1}}</tspan>
     {{end}}
   </text>
   <text class="cls-7" id="center_version" x="20" y="122">
