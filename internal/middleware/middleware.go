@@ -1,12 +1,12 @@
 package middleware
 
 import (
-	"html/template"
-	"net/http"
-	"regexp"
-	"strings"
-	"sync"
-	"time"
+    "bytes"
+    "html/template"
+    "net/http"
+    "regexp"
+    "sync"
+    "time"
 
 	"go.uber.org/zap"
 )
@@ -41,18 +41,36 @@ func NewErrorHandler(logger *zap.Logger) (*ErrorHandler, error) {
 
 // Middleware returns a middleware function that handles errors
 func (h *ErrorHandler) Middleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Create a custom response writer to capture the status code
-		crw := &customResponseWriter{ResponseWriter: w, statusCode: http.StatusOK}
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        // Create a custom response writer to capture the status code and body without writing immediately
+        crw := newCustomResponseWriter(w)
 
-		// Call the next handler
-		next.ServeHTTP(crw, r)
+        // Call the next handler
+        next.ServeHTTP(crw, r)
 
-		// If the status code is an error, render the error page
-		if crw.statusCode >= 400 {
-			h.renderErrorPage(crw.ResponseWriter, crw.statusCode, r)
-		}
-	})
+        // If the status code is an error, render the error page
+        if crw.statusCode >= 400 {
+            // Discard any body written by downstream handlers and render our error page
+            h.renderErrorPage(w, crw.statusCode, r)
+            return
+        }
+
+        // Otherwise, flush the captured successful response to the real writer
+        // Copy headers first
+        for k, vv := range crw.header {
+            for _, v := range vv {
+                w.Header().Add(k, v)
+            }
+        }
+        // Ensure a status code is set
+        if !crw.wroteHeader {
+            crw.statusCode = http.StatusOK
+        }
+        w.WriteHeader(crw.statusCode)
+        if len(crw.body.Bytes()) > 0 {
+            _, _ = w.Write(crw.body.Bytes())
+        }
+    })
 }
 
 // renderErrorPage renders the error page
@@ -97,32 +115,44 @@ func getErrorDetails(statusCode int) (string, string) {
 
 // customResponseWriter is a custom response writer that captures the status code
 type customResponseWriter struct {
-	http.ResponseWriter
-	statusCode int
-	wroteHeader bool
+    // We keep the original writer only to satisfy interface needs; we do not write to it directly.
+    underlying http.ResponseWriter
+    header     http.Header
+    body       *bytes.Buffer
+    statusCode int
+    wroteHeader bool
 }
 
 // WriteHeader captures the status code
 func (crw *customResponseWriter) WriteHeader(statusCode int) {
-	crw.statusCode = statusCode
-	crw.wroteHeader = true
-	crw.ResponseWriter.WriteHeader(statusCode)
+    crw.statusCode = statusCode
+    crw.wroteHeader = true
 }
 
 // Write writes the data to the connection as part of an HTTP reply
 func (crw *customResponseWriter) Write(b []byte) (int, error) {
-	if !crw.wroteHeader {
-		crw.WriteHeader(http.StatusOK)
-	}
+    if !crw.wroteHeader {
+        crw.WriteHeader(http.StatusOK)
+    }
 
-	// Check if this is an SVG or other XML content
-	contentType := crw.ResponseWriter.Header().Get("Content-Type")
-	if contentType == "image/svg+xml" || strings.HasPrefix(contentType, "application/xml") || strings.HasPrefix(contentType, "text/xml") {
-		// For SVG/XML content, write directly without HTML escaping
-		return crw.ResponseWriter.Write(b)
-	}
+    // Buffer the body instead of writing immediately; it will be flushed later if status < 400
+    return crw.body.Write(b)
+}
 
-	return crw.ResponseWriter.Write(b)
+// Header returns the header map that will be sent by WriteHeader
+func (crw *customResponseWriter) Header() http.Header {
+    return crw.header
+}
+
+// newCustomResponseWriter constructs a buffering response writer
+func newCustomResponseWriter(w http.ResponseWriter) *customResponseWriter {
+    return &customResponseWriter{
+        underlying: w,
+        header:     make(http.Header),
+        body:       &bytes.Buffer{},
+        statusCode: http.StatusOK,
+        wroteHeader: false,
+    }
 }
 
 // Sanitizer is a middleware that sanitizes input
@@ -174,21 +204,21 @@ func (s *Sanitizer) Middleware(next http.Handler) http.Handler {
 
 // RateLimiter is a middleware that limits the rate of requests
 type RateLimiter struct {
-	logger    *zap.Logger
-	requests  map[string][]time.Time
-	mu        sync.Mutex
-	limit     int
-	window    time.Duration
+	logger          *zap.Logger
+	requests        map[string][]time.Time
+	mu              sync.Mutex
+	limit           int
+	window          time.Duration
 	cleanupInterval time.Duration
 }
 
 // NewRateLimiter creates a new rate limiter
 func NewRateLimiter(logger *zap.Logger, limit int, window time.Duration) *RateLimiter {
 	limiter := &RateLimiter{
-		logger:    logger,
-		requests:  make(map[string][]time.Time),
-		limit:     limit,
-		window:    window,
+		logger:          logger,
+		requests:        make(map[string][]time.Time),
+		limit:           limit,
+		window:          window,
 		cleanupInterval: time.Minute,
 	}
 
@@ -280,7 +310,7 @@ func (rl *RateLimiter) cleanup() {
 
 // RequestLogger is a middleware that logs HTTP requests
 type RequestLogger struct {
-	logger *zap.Logger
+    logger *zap.Logger
 }
 
 // NewRequestLogger creates a new request logger
@@ -292,28 +322,48 @@ func NewRequestLogger(logger *zap.Logger) *RequestLogger {
 
 // Middleware returns a middleware function that logs HTTP requests
 func (rl *RequestLogger) Middleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		// Create a custom response writer to capture the status code
-		crw := &customResponseWriter{ResponseWriter: w, statusCode: http.StatusOK}
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        // Wrap the writer to record the status while passing through writes
+        sr := &statusRecorder{ResponseWriter: w, statusCode: http.StatusOK}
 
-		// Get the start time
-		startTime := time.Now()
+        // Get the start time
+        startTime := time.Now()
 
-		// Call the next handler
-		next.ServeHTTP(crw, r)
+        // Call the next handler
+        next.ServeHTTP(sr, r)
 
-		// Calculate the request duration
-		duration := time.Since(startTime)
+        // Calculate the request duration
+        duration := time.Since(startTime)
 
-		// Log the request at trace level (using Debug)
-		rl.logger.Debug("HTTP request",
-			zap.String("method", r.Method),
-			zap.String("path", r.URL.Path),
-			zap.String("query", r.URL.RawQuery),
-			zap.String("client_ip", r.RemoteAddr),
-			zap.Int("status", crw.statusCode),
-			zap.Duration("duration", duration),
-			zap.String("user_agent", r.UserAgent()),
-		)
-	})
+        // Log the request at trace level (using Debug)
+        rl.logger.Debug("HTTP request",
+            zap.String("method", r.Method),
+            zap.String("path", r.URL.Path),
+            zap.String("query", r.URL.RawQuery),
+            zap.String("client_ip", r.RemoteAddr),
+            zap.Int("status", sr.statusCode),
+            zap.Duration("duration", duration),
+            zap.String("user_agent", r.UserAgent()),
+        )
+    })
+}
+
+// statusRecorder records status codes while delegating all writes to the underlying ResponseWriter
+type statusRecorder struct {
+    http.ResponseWriter
+    statusCode  int
+    wroteHeader bool
+}
+
+func (sr *statusRecorder) WriteHeader(code int) {
+    sr.statusCode = code
+    sr.wroteHeader = true
+    sr.ResponseWriter.WriteHeader(code)
+}
+
+func (sr *statusRecorder) Write(b []byte) (int, error) {
+    if !sr.wroteHeader {
+        sr.WriteHeader(http.StatusOK)
+    }
+    return sr.ResponseWriter.Write(b)
 }
