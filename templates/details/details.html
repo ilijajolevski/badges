@@ -38,7 +38,7 @@
             <div class="details-card">
                 <div class="badges-container">
                     <div class="badge-preview">
-                        <img src="/badge/{{ .CommitID }}" alt="{{ .SoftwareName }} {{ .SoftwareVersion }} Badge">
+                        <img src="/badge/{{ .CommitID }}" alt="{{ .SoftwareName }} {{ .SoftwareVersion }} Certificate">
                     </div>
 
                     <div class="certificate-preview">
@@ -167,17 +167,17 @@
                 <h2>Referencing Certificates</h2>
                 <p>Use one of the following snippets to embed this certificate in your website or documentation:</p>
 
-                <h3>HTML - Compact (Inline) Badge</h3>
+                <h3>HTML - Compact (Inline) Certificate</h3>
                 <div class="code-container">
                     <button class="copy-btn" data-code="&lt;a href=&quot;https://certificates.software.geant.org/details/{{ .CommitID }}&quot;&gt;
-    &lt;img src=&quot;https://certificates.software.geant.org/badge/{{ .CommitID }}&quot; alt=&quot;{{ .SoftwareName }} {{ .SoftwareVersion }} Badge&quot;&gt;
+    &lt;img src=&quot;https://certificates.software.geant.org/badge/{{ .CommitID }}&quot; alt=&quot;{{ .SoftwareName }} {{ .SoftwareVersion }} Certificate&quot;&gt;
 &lt;/a&gt;">copy</button>
                     <pre><code>&lt;a href="https://certificates.software.geant.org/details/{{ .CommitID }}"&gt;
-    &lt;img src="https://certificates.software.geant.org/badge/{{ .CommitID }}" alt="{{ .SoftwareName }} {{ .SoftwareVersion }} Badge"&gt;
+    &lt;img src="https://certificates.software.geant.org/badge/{{ .CommitID }}" alt="{{ .SoftwareName }} {{ .SoftwareVersion }} Certificate"&gt;
 &lt;/a&gt;</code></pre>
                 </div>
 
-                <h3>HTML - Large Badge</h3>
+                <h3>HTML - Large Certificate</h3>
                 <div class="code-container">
                     <button class="copy-btn" data-code="&lt;a href=&quot;https://certificates.software.geant.org/details/{{ .CommitID }}&quot;&gt;
     &lt;img src=&quot;https://certificates.software.geant.org/certificate/{{ .CommitID }}&quot; alt=&quot;{{ .SoftwareName }} {{ .SoftwareVersion }} Certificate&quot; width=&quot;400&quot; height=&quot;300&quot;&gt;
@@ -187,16 +187,16 @@
 &lt;/a&gt;</code></pre>
                 </div>
 
-                <h3>Markdown - Compact (Inline) Badge</h3>
+                <h3>Markdown - Compact (Inline) Certificate</h3>
                 <div class="code-container">
-                    <button class="copy-btn" data-code="[![{{ .SoftwareName }} {{ .SoftwareVersion }} Badge](https://certificates.software.geant.org/badge/{{ .CommitID }})](https://certificates.software.geant.org/details/{{ .CommitID }})">copy</button>
-                    <pre><code>[![{{ .SoftwareName }} {{ .SoftwareVersion }} Badge](https://certificates.software.geant.org/badge/{{ .CommitID }})](https://certificates.software.geant.org/details/{{ .CommitID }})</code></pre>
+                    <button class="copy-btn" data-code="[![{{ .SoftwareName }} {{ .SoftwareVersion }} Certificate](https://certificates.software.geant.org/badge/{{ .CommitID }})](https://certificates.software.geant.org/details/{{ .CommitID }})">copy</button>
+                    <pre><code>[![{{ .SoftwareName }} {{ .SoftwareVersion }} Certificate](https://certificates.software.geant.org/badge/{{ .CommitID }})](https://certificates.software.geant.org/details/{{ .CommitID }})</code></pre>
                 </div>
 
-                <h3>Markdown - Large Badge</h3>
+                <h3>Markdown - Large Certificate</h3>
                 <div class="code-container">
-                    <button class="copy-btn" data-code="[{{ .SoftwareName }} {{ .SoftwareVersion }} Certificate](https://certificates.software.geant.org/details/{{ .CommitID }})">copy</button>
-                    <pre><code>[{{ .SoftwareName }} {{ .SoftwareVersion }} Certificate](https://certificates.software.geant.org/details/{{ .CommitID }})</code></pre>
+                    <button class="copy-btn" data-code="[![{{ .SoftwareName }} {{ .SoftwareVersion }} Certificate](https://certificates.software.geant.org/certificate/{{ .CommitID }})](https://certificates.software.geant.org/details/{{ .CommitID }})">copy</button>
+                    <pre><code>[![{{ .SoftwareName }} {{ .SoftwareVersion }} Certificate](https://certificates.software.geant.org/certificate/{{ .CommitID }})](https://certificates.software.geant.org/details/{{ .CommitID }})</code></pre>
                 </div>
             </div>
         </main>
