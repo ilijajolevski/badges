@@ -97,7 +97,7 @@
                         </tr>
                         {{ if .Notes }}
                         <tr>
-                            <th>Internal note:</th>
+                            <th>Notes:</th>
                             <td>{{ .Notes }}</td>
                         </tr>
                         {{ end }}
@@ -147,6 +147,18 @@
                         <tr>
                             <th>Public Note:</th>
                             <td>{{ .PublicNote }}</td>
+                        </tr>
+                        {{ end }}
+                        {{ if and .ShowPrivateNote .InternalNote }}
+                        <tr>
+                            <th>Private Note:</th>
+                            <td>
+                                {{ .InternalNote }}
+                                <div style="color: #6b7280; font-size: 0.8rem; margin-top: 4px; display: flex; align-items: center; gap: 6px;">
+                                    <span aria-hidden="true" style="display: inline-block; width: 0.9em; height: 0.9em; background-color: #6b7280; -webkit-mask: url('/static/eye.svg') no-repeat center / contain; mask: url('/static/eye.svg') no-repeat center / contain;"></span>
+                                    Only you can see this
+                                </div>
+                            </td>
                         </tr>
                         {{ end }}
                         {{ if .ContactDetails }}

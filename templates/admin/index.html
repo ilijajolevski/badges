@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Login</title>
+  <link rel="stylesheet" href="/static/css/styles.css">
+  <style>
+    .card { background: var(--card-bg, #fff); border-radius: 10px; box-shadow: var(--shadow-elev-1, 0 2px 8px rgba(0,0,0,0.08)); padding: 24px; margin-top: 16px; max-width: 520px; margin-left: auto; margin-right: auto; }
+    .form-row { margin-bottom: 12px; }
+    .form-row label { display: block; font-weight: 600; margin-bottom: 6px; }
+    .form-row input { width: 100%; padding: 10px; border: 1px solid #d0d5dd; border-radius: 6px; }
+    .btn { display: inline-block; padding: 10px 16px; border-radius: 6px; text-decoration: none; font-weight: 600; border: 0; cursor: pointer; }
+    .btn-primary { background: var(--primary-color); color: #fff; }
+    .btn-primary:hover { background: var(--secondary-color); }
+    .btn-danger { background: #b42318; color: #fff; }
+    .error { color: #b42318; margin-top: 8px; }
+    .success { color: #027a48; margin-top: 8px; }
+    .actions { display: flex; gap: 8px; align-items: center; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <a href="/"><img src="/static/256px-Geant_logo_white.png" alt="GÉANT Logo" class="header-logo"></a>
+      <h1>Admin</h1>
+    </header>
+
+    <main>
+      <section class="card" id="login-card" hidden>
+        <h2>Log in</h2>
+        <div class="form-row">
+          <label for="username">Username or Email</label>
+          <input id="username" type="text" autocomplete="username" placeholder="admin or admin@example.com" />
+        </div>
+        <div class="form-row">
+          <label for="password">Password</label>
+          <input id="password" type="password" autocomplete="current-password" placeholder="••••••••" />
+        </div>
+        <div class="actions">
+          <button class="btn btn-primary" id="loginBtn">Log in</button>
+          <span id="loginMsg" class="error" aria-live="polite"></span>
+        </div>
+      </section>
+
+      <section class="card" id="session-card" hidden>
+        <h2>Welcome</h2>
+        <p id="whoami"></p>
+        <div class="actions">
+          <button class="btn btn-danger" id="logoutBtn">Log out</button>
+          <span id="logoutMsg" class="success" aria-live="polite"></span>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div>
+        The GÉANT project is funded by the Horizon Europe research and innovation programme.
+        <img src="/static/co-Funded_logo_white.png" alt="Co-funded by the European Union" class="cofunded-logo">
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    async function fetchSession() {
+      const res = await fetch('/api/auth/session', { credentials: 'same-origin' });
+      if (!res.ok) return { authenticated: false };
+      return res.json();
+    }
+
+    async function showState() {
+      const s = await fetchSession();
+      const loginCard = document.getElementById('login-card');
+      const sessionCard = document.getElementById('session-card');
+      if (s.authenticated) {
+        loginCard.hidden = true;
+        sessionCard.hidden = false;
+        const who = document.getElementById('whoami');
+        who.textContent = `Signed in as ${s.user.username} (${s.user.email}). Token expires at ${new Date(s.expires_at).toLocaleString()}.`;
+      } else {
+        loginCard.hidden = false;
+        sessionCard.hidden = true;
+      }
+    }
+
+    document.getElementById('loginBtn').addEventListener('click', async () => {
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+      const msg = document.getElementById('loginMsg');
+      msg.textContent = '';
+      try {
+        const res = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ username, password }),
+          credentials: 'same-origin'
+        });
+        if (!res.ok) {
+          let friendly = 'Login failed';
+          try {
+            const ct = res.headers.get('Content-Type') || '';
+            if (ct.includes('application/json')) {
+              const data = await res.json();
+              friendly = data.error || data.message || friendly;
+            } else if (res.status === 401) {
+              friendly = 'Invalid username or password';
+            } else if (res.status === 429) {
+              friendly = 'Too many attempts, please try again later';
+            } else {
+              // Consume body but do not display raw HTML/text
+              await res.text();
+            }
+          } catch (_) {
+            // Ignore parse errors and fall back to generic message
+          }
+          msg.textContent = friendly;
+          return;
+        }
+        await showState();
+      } catch (e) {
+        msg.textContent = 'Network error';
+      }
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      const msg = document.getElementById('logoutMsg');
+      msg.textContent = '';
+      try {
+        await fetch('/api/auth/logout', { method: 'POST', credentials: 'same-origin' });
+        msg.textContent = 'Logged out';
+        await showState();
+      } catch (e) {
+        msg.textContent = 'Network error';
+      }
+    });
+
+    showState();
+  </script>
+</body>
+</html>

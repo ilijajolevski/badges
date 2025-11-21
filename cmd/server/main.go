@@ -10,6 +10,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/finki/badges/internal/admin"
 	"github.com/finki/badges/internal/apikey"
 	"github.com/finki/badges/internal/auth"
 	"github.com/finki/badges/internal/badge"
@@ -80,6 +81,12 @@ func main() {
 	if err != nil {
 		logger.Fatal("Failed to initialize home handler", zap.Error(err))
 	}
+
+	// Initialize admin handler
+	adminHandler, err := admin.NewHandler(db, logger, imageCache)
+	if err != nil {
+		logger.Fatal("Failed to initialize admin handler", zap.Error(err))
+	}
 	
 	// Initialize API key handler
 	apiKeyHandler := apikey.NewHandler(db, logger)
@@ -90,8 +97,8 @@ func main() {
 	// Initialize HTTP server
 	mux := http.NewServeMux()
 
-	// Register routes
-	registerRoutes(mux, badgeHandler, certificateHandler, detailsHandler, listHandler, homeHandler, apiKeyHandler, authHandler, errorHandler, sanitizer, rateLimiter, requestLogger)
+ // Register routes
+ registerRoutes(mux, badgeHandler, certificateHandler, detailsHandler, listHandler, homeHandler, adminHandler, apiKeyHandler, authHandler, errorHandler, sanitizer, rateLimiter, requestLogger)
 
 	// Create HTTP server
 	server := &http.Server{
@@ -164,6 +171,7 @@ func registerRoutes(
 	detailsHandler *details.Handler,
 	listHandler *list.Handler,
 	homeHandler *home.Handler,
+	adminHandler *admin.Handler,
 	apiKeyHandler *apikey.Handler,
 	authHandler *auth.Handler,
 	errorHandler *middleware.ErrorHandler,
@@ -188,13 +196,15 @@ func registerRoutes(
 		),
 	)
 
-	detailsHandlerWithMiddleware := requestLogger.Middleware(
-		errorHandler.Middleware(
-			rateLimiter.Middleware(
-				sanitizer.Middleware(detailsHandler),
-			),
-		),
-	)
+ detailsHandlerWithMiddleware := requestLogger.Middleware(
+        errorHandler.Middleware(
+            rateLimiter.Middleware(
+                sanitizer.Middleware(
+                    auth.OptionalJWTFromCookie(detailsHandler),
+                ),
+            ),
+        ),
+    )
 
 	listHandlerWithMiddleware := requestLogger.Middleware(
 		errorHandler.Middleware(
@@ -239,6 +249,16 @@ func registerRoutes(
 	loginHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		authHandler.Login(w, r)
 	})
+
+	// Create a handler for logout
+	logoutHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		authHandler.Logout(w, r)
+	})
+
+	// Create a handler for session info
+	sessionHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		authHandler.Session(w, r)
+	})
 	
 	// Apply middleware to the login handler
 	loginHandlerWithMiddleware := requestLogger.Middleware(
@@ -249,13 +269,32 @@ func registerRoutes(
 		),
 	)
 
+	logoutHandlerWithMiddleware := requestLogger.Middleware(
+		errorHandler.Middleware(
+			rateLimiter.Middleware(
+				sanitizer.Middleware(logoutHandler),
+			),
+		),
+	)
+
+	sessionHandlerWithMiddleware := requestLogger.Middleware(
+		errorHandler.Middleware(
+			rateLimiter.Middleware(
+				sanitizer.Middleware(sessionHandler),
+			),
+		),
+	)
+
 	// Register routes
 	mux.Handle("/badge/", badgeHandlerWithMiddleware)
 	mux.Handle("/certificate/", certificateHandlerWithMiddleware)
 	mux.Handle("/details/", detailsHandlerWithMiddleware)
 	mux.Handle("/certificates", listHandlerWithMiddleware)
+	mux.Handle("/admin", requestLogger.Middleware(errorHandler.Middleware(rateLimiter.Middleware(sanitizer.Middleware(adminHandler)))))
 	mux.Handle("/api/keys", listAPIKeysHandlerWithMiddleware)
 	mux.Handle("/api/auth/login", loginHandlerWithMiddleware)
+	mux.Handle("/api/auth/logout", logoutHandlerWithMiddleware)
+	mux.Handle("/api/auth/session", sessionHandlerWithMiddleware)
 	mux.Handle("/", homeHandlerWithMiddleware)
 
 	// Serve static files

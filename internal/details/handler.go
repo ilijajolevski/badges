@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/finki/badges/internal/auth"
 	"github.com/finki/badges/internal/cache"
 	"github.com/finki/badges/internal/database"
 	"go.uber.org/zap"
@@ -22,30 +23,32 @@ var certificateGuideLinks = map[string]string{
 
 // TemplateData represents the data passed to the details page template
 type TemplateData struct {
-	CommitID            string
-	Type                string
-	Status              string
-	Issuer              string
-	IssueDate           string
-	SoftwareName        string
-	SoftwareVersion     string
-	SoftwareURL         string
-	Notes               string
-	ExpiryDate          string
-	IssuerURL           string
-	LastReview          string
-	IsExpired           bool
-	CurrentYear         int
-	CoveredVersion      string
-	RepositoryLink      string
-	PublicNote          string
-	InternalNote        string
-	ContactDetails      string
-	CertificateName     string
-	CertificateGuideURL string
-	SpecialtyDomain     string
-	SoftwareSCID        string
-	SoftwareSCURL       string
+    CommitID            string
+    Type                string
+    Status              string
+    Issuer              string
+    IssueDate           string
+    SoftwareName        string
+    SoftwareVersion     string
+    SoftwareURL         string
+    Notes               string
+    ExpiryDate          string
+    IssuerURL           string
+    LastReview          string
+    IsExpired           bool
+    CurrentYear         int
+    CoveredVersion      string
+    RepositoryLink      string
+    PublicNote          string
+    InternalNote        string
+    ContactDetails      string
+    CertificateName     string
+    CertificateGuideURL string
+    SpecialtyDomain     string
+    SoftwareSCID        string
+    SoftwareSCURL       string
+    // ShowPrivateNote controls whether the InternalNote should be visible to the current viewer
+    ShowPrivateNote     bool
 }
 
 // Handler handles details page requests
@@ -95,7 +98,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		wantsJSON = false
 	}
 
-	if wantsJSON {
+ if wantsJSON {
 		// Get badge from database
 		badge, err := h.db.GetBadge(commitID)
 		if err != nil {
@@ -200,16 +203,24 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 		w.Write(payload)
 		return
-	}
+ }
 
-	// HTML path (existing behavior)
+ // HTML path (existing behavior)
+ // Determine if the current user is authenticated and has ANY badge permission
+ // Private notes are shown to users with badges: read OR write OR delete permissions
+ showPrivate := false
+ if claims := auth.GetClaimsFromContext(r.Context()); claims != nil {
+     if claims.Permissions.Badges.Read || claims.Permissions.Badges.Write || claims.Permissions.Badges.Delete {
+         showPrivate = true
+     }
+ }
 	// Try to get from cache first
 	cacheKey := "details:" + commitID
-	if cachedData, found := h.cache.Get(cacheKey); found {
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		w.Write(cachedData)
-		return
-	}
+ if cachedData, found := h.cache.Get(cacheKey); found && !showPrivate {
+        w.Header().Set("Content-Type", "text/html; charset=utf-8")
+        w.Write(cachedData)
+        return
+    }
 
 	// Get badge from database
 	badge, err := h.db.GetBadge(commitID)
@@ -224,18 +235,19 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Prepare template data
-	data := TemplateData{
-		CommitID:        badge.CommitID,
-		Type:            badge.Type,
-		Status:          badge.Status,
-		Issuer:          badge.Issuer,
-		IssueDate:       badge.IssueDate,
-		SoftwareName:    badge.SoftwareName,
-		SoftwareVersion: badge.SoftwareVersion,
-		CurrentYear:     time.Now().Year(),
-		IsExpired:       badge.IsExpired(),
-	}
+ // Prepare template data
+ data := TemplateData{
+     CommitID:        badge.CommitID,
+     Type:            badge.Type,
+     Status:          badge.Status,
+     Issuer:          badge.Issuer,
+     IssueDate:       badge.IssueDate,
+     SoftwareName:    badge.SoftwareName,
+     SoftwareVersion: badge.SoftwareVersion,
+     CurrentYear:     time.Now().Year(),
+     IsExpired:       badge.IsExpired(),
+     ShowPrivateNote: showPrivate,
+ }
 
 	// Add optional fields if they exist
 	if badge.Notes.Valid {
@@ -270,9 +282,9 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		data.PublicNote = badge.PublicNote.String
 	}
 
-	if badge.InternalNote.Valid {
-		data.InternalNote = badge.InternalNote.String
-	}
+ if showPrivate && badge.InternalNote.Valid {
+        data.InternalNote = badge.InternalNote.String
+    }
 
 	if badge.ContactDetails.Valid {
 		data.ContactDetails = badge.ContactDetails.String

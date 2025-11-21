@@ -12,7 +12,8 @@ import (
 var jwtSecret = []byte("your-secret-key-here")
 
 // TokenExpiration is the duration for which a token is valid
-const TokenExpiration = time.Hour
+// Adjusted to 15 minutes per requirements
+const TokenExpiration = 15 * time.Minute
 
 // Claims represents the JWT claims
 type Claims struct {

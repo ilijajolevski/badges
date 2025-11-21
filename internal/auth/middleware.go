@@ -86,7 +86,7 @@ func (rl *RateLimiter) RateLimitMiddleware(limit int, next http.Handler) http.Ha
 
 // JWTAuthMiddleware authenticates requests using JWT tokens
 func JWTAuthMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		// Get Authorization header
 		authHeader := r.Header.Get("Authorization")
 		if authHeader == "" {
@@ -121,7 +121,38 @@ func JWTAuthMiddleware(next http.Handler) http.Handler {
 
 		// Call next handler
 		next.ServeHTTP(w, r)
-	})
+    })
+}
+
+// OptionalJWTFromCookie injects JWT claims into the request context when a valid
+// "jwt" cookie is present. If the cookie is missing or invalid, the request is
+// NOT rejected; the handler simply proceeds without claims (public view).
+func OptionalJWTFromCookie(next http.Handler) http.Handler {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        // Read JWT from HttpOnly cookie if available
+        c, err := r.Cookie("jwt")
+        if err == nil && c.Value != "" {
+            if claims, err := ValidateToken(c.Value); err == nil {
+                // Attach claims to context for downstream handlers
+                ctx := AddClaimsToContext(r.Context(), claims)
+                r = r.WithContext(ctx)
+            } else {
+                // Token invalid or expired — optionally clear cookie; do not block the request
+                http.SetCookie(w, &http.Cookie{
+                    Name:     "jwt",
+                    Value:    "",
+                    Path:     "/",
+                    Expires:  time.Unix(0, 0),
+                    MaxAge:   -1,
+                    HttpOnly: true,
+                    SameSite: http.SameSiteLaxMode,
+                    // Secure: true, // enable when using HTTPS
+                })
+            }
+        }
+
+        next.ServeHTTP(w, r)
+    })
 }
 
 // APIKeyInfo represents the minimal information needed for API key authentication

@@ -561,6 +561,29 @@ func (db *DB) GetUserByUsername(username string) (*User, error) {
 	return &user, nil
 }
 
+// GetUserByEmail retrieves a user from the database by email
+func (db *DB) GetUserByEmail(email string) (*User, error) {
+    var user User
+    err := db.QueryRow(`
+        SELECT 
+            user_id, username, email, password_hash, first_name, last_name,
+            role_id, created_at, updated_at, last_login, status, failed_attempts
+        FROM users
+        WHERE email = ?
+    `, email).Scan(
+        &user.UserID, &user.Username, &user.Email, &user.PasswordHash, &user.FirstName, &user.LastName,
+        &user.RoleID, &user.CreatedAt, &user.UpdatedAt, &user.LastLogin, &user.Status, &user.FailedAttempts,
+    )
+    if err != nil {
+        if err == sql.ErrNoRows {
+            return nil, nil // User not found
+        }
+        return nil, fmt.Errorf("failed to get user by email: %w", err)
+    }
+
+    return &user, nil
+}
+
 // UpdateUser updates an existing user in the database
 func (db *DB) UpdateUser(user *User) error {
 	_, err := db.Exec(`
