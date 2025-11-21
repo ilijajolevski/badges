@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Certificate: {{ .Badge.CommitID }}</title>
+    <link rel="stylesheet" href="/static/css/styles.css">
+    <style>
+        .form-grid { display: grid; grid-template-columns: 1fr 2fr; gap: 10px 16px; align-items: center; }
+        .form-grid label { font-weight: 600; }
+        .form-actions { margin-top: 20px; display: flex; gap: 10px; }
+        input[type="text"], textarea { width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; }
+        textarea { min-height: 80px; }
+        .danger { background: #b91c1c; color: #fff; }
+        .secondary { background: #6b7280; color: #fff; }
+        .btn { padding: 8px 14px; border: 0; border-radius: 4px; cursor: pointer; }
+    </style>
+    <script>
+        function confirmDelete(formId) {
+            if (confirm('Are you sure you want to delete this certificate? This action cannot be undone.')) {
+                document.getElementById(formId).submit();
+            }
+        }
+        function cancelEdit(commitID) {
+            window.location.href = '/details/' + commitID;
+        }
+    </script>
+</head>
+<body>
+<div class="container">
+    <header>
+        <a href="/"><img src="/static/256px-Geant_logo_white.png" alt="GEANT Logo" class="header-logo"></a>
+        <h1>Edit Certificate</h1>
+    </header>
+
+    <main>
+        <form method="post" action="/edit/{{ .Badge.CommitID }}">
+            <div class="form-grid">
+                <label>Commit ID</label>
+                <div>{{ .Badge.CommitID }}</div>
+
+                <label for="status">Status</label>
+                <input id="status" name="status" type="text" value="{{ .Badge.Status }}" />
+
+                <label for="issuer">Issuer</label>
+                <input id="issuer" name="issuer" type="text" value="{{ .Badge.Issuer }}" />
+
+                <label for="issue_date">Issue Date</label>
+                <input id="issue_date" name="issue_date" type="text" value="{{ .Badge.IssueDate }}" />
+
+                <label for="software_name">Software Name</label>
+                <input id="software_name" name="software_name" type="text" value="{{ .Badge.SoftwareName }}" />
+
+                <label for="software_version">Software Version</label>
+                <input id="software_version" name="software_version" type="text" value="{{ .Badge.SoftwareVersion }}" />
+
+                <label for="software_url">Software URL</label>
+                <input id="software_url" name="software_url" type="text" value="{{ if .Badge.SoftwareURL.Valid }}{{ .Badge.SoftwareURL.String }}{{ end }}" />
+
+                <label for="issuer_url">Issuer URL</label>
+                <input id="issuer_url" name="issuer_url" type="text" value="{{ if .Badge.IssuerURL.Valid }}{{ .Badge.IssuerURL.String }}{{ end }}" />
+
+                <label for="expiry_date">Expiry Date</label>
+                <input id="expiry_date" name="expiry_date" type="text" value="{{ if .Badge.ExpiryDate.Valid }}{{ .Badge.ExpiryDate.String }}{{ end }}" />
+
+                <label for="last_review">Last Review</label>
+                <input id="last_review" name="last_review" type="text" value="{{ if .Badge.LastReview.Valid }}{{ .Badge.LastReview.String }}{{ end }}" />
+
+                <label for="covered_version">Covered Version</label>
+                <input id="covered_version" name="covered_version" type="text" value="{{ if .Badge.CoveredVersion.Valid }}{{ .Badge.CoveredVersion.String }}{{ end }}" />
+
+                <label for="repository_link">Repository Link</label>
+                <input id="repository_link" name="repository_link" type="text" value="{{ if .Badge.RepositoryLink.Valid }}{{ .Badge.RepositoryLink.String }}{{ end }}" />
+
+                <label for="software_sc_id">SC Name</label>
+                <input id="software_sc_id" name="software_sc_id" type="text" value="{{ if .Badge.SoftwareSCID.Valid }}{{ .Badge.SoftwareSCID.String }}{{ end }}" />
+
+                <label for="software_sc_url">SC Link</label>
+                <input id="software_sc_url" name="software_sc_url" type="text" value="{{ if .Badge.SoftwareSCURL.Valid }}{{ .Badge.SoftwareSCURL.String }}{{ end }}" />
+
+                <label for="certificate_name">Certificate Name</label>
+                <input id="certificate_name" name="certificate_name" type="text" value="{{ if .Badge.CertificateName.Valid }}{{ .Badge.CertificateName.String }}{{ end }}" />
+
+                <label for="specialty_domain">Compliance Domain</label>
+                <input id="specialty_domain" name="specialty_domain" type="text" value="{{ if .Badge.SpecialtyDomain.Valid }}{{ .Badge.SpecialtyDomain.String }}{{ end }}" />
+
+                <label for="public_note">Public Note</label>
+                <textarea id="public_note" name="public_note">{{ if .Badge.PublicNote.Valid }}{{ .Badge.PublicNote.String }}{{ end }}</textarea>
+
+                <label for="internal_note">Private Note</label>
+                <textarea id="internal_note" name="internal_note">{{ if .Badge.InternalNote.Valid }}{{ .Badge.InternalNote.String }}{{ end }}</textarea>
+
+                <label for="contact_details">Contact Details</label>
+                <textarea id="contact_details" name="contact_details">{{ if .Badge.ContactDetails.Valid }}{{ .Badge.ContactDetails.String }}{{ end }}</textarea>
+
+                <label for="notes">Notes</label>
+                <textarea id="notes" name="notes">{{ if .Badge.Notes.Valid }}{{ .Badge.Notes.String }}{{ end }}</textarea>
+            </div>
+
+            <div class="form-actions">
+                <button class="btn" type="submit" name="action" value="save">Save / Update</button>
+                <button class="btn secondary" type="button" onclick="cancelEdit('{{ .Badge.CommitID }}')">Cancel</button>
+                {{ if .CanDelete }}
+                    <button class="btn danger" type="button" onclick="confirmDelete('delete-form')">Delete</button>
+                {{ end }}
+            </div>
+        </form>
+
+        {{ if .CanDelete }}
+        <form id="delete-form" method="post" action="/edit/{{ .Badge.CommitID }}" style="display:none;">
+            <input type="hidden" name="action" value="delete" />
+        </form>
+        {{ end }}
+    </main>
+
+    <footer>
+        <p>&copy; {{ .CurrentYear }} GÉANT</p>
+    </footer>
+</div>
+</body>
+</html>

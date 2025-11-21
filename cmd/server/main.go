@@ -19,6 +19,7 @@ import (
 	"github.com/finki/badges/internal/config"
 	"github.com/finki/badges/internal/database"
 	"github.com/finki/badges/internal/details"
+	"github.com/finki/badges/internal/edit"
 	"github.com/finki/badges/internal/home"
 	"github.com/finki/badges/internal/list"
 	"github.com/finki/badges/internal/middleware"
@@ -87,6 +88,12 @@ func main() {
 	if err != nil {
 		logger.Fatal("Failed to initialize admin handler", zap.Error(err))
 	}
+
+	// Initialize edit handler
+	editHandler, err := edit.NewHandler(db, logger, imageCache)
+	if err != nil {
+		logger.Fatal("Failed to initialize edit handler", zap.Error(err))
+	}
 	
 	// Initialize API key handler
 	apiKeyHandler := apikey.NewHandler(db, logger)
@@ -97,8 +104,8 @@ func main() {
 	// Initialize HTTP server
 	mux := http.NewServeMux()
 
- // Register routes
- registerRoutes(mux, badgeHandler, certificateHandler, detailsHandler, listHandler, homeHandler, adminHandler, apiKeyHandler, authHandler, errorHandler, sanitizer, rateLimiter, requestLogger)
+	// Register routes
+	registerRoutes(mux, badgeHandler, certificateHandler, detailsHandler, listHandler, homeHandler, adminHandler, editHandler, apiKeyHandler, authHandler, errorHandler, sanitizer, rateLimiter, requestLogger)
 
 	// Create HTTP server
 	server := &http.Server{
@@ -165,19 +172,20 @@ func initLogger(level string) (*zap.Logger, error) {
 }
 
 func registerRoutes(
-	mux *http.ServeMux,
-	badgeHandler *badge.Handler,
-	certificateHandler *certificate.Handler,
-	detailsHandler *details.Handler,
-	listHandler *list.Handler,
-	homeHandler *home.Handler,
-	adminHandler *admin.Handler,
-	apiKeyHandler *apikey.Handler,
-	authHandler *auth.Handler,
-	errorHandler *middleware.ErrorHandler,
-	sanitizer *middleware.Sanitizer,
-	rateLimiter *middleware.RateLimiter,
-	requestLogger *middleware.RequestLogger,
+    mux *http.ServeMux,
+    badgeHandler *badge.Handler,
+    certificateHandler *certificate.Handler,
+    detailsHandler *details.Handler,
+    listHandler *list.Handler,
+    homeHandler *home.Handler,
+    adminHandler *admin.Handler,
+    editHandler *edit.Handler,
+    apiKeyHandler *apikey.Handler,
+    authHandler *auth.Handler,
+    errorHandler *middleware.ErrorHandler,
+    sanitizer *middleware.Sanitizer,
+    rateLimiter *middleware.RateLimiter,
+    requestLogger *middleware.RequestLogger,
 ) {
 	// Apply middleware to handlers
 	badgeHandlerWithMiddleware := requestLogger.Middleware(
@@ -214,13 +222,24 @@ func registerRoutes(
 		),
 	)
 
-	homeHandlerWithMiddleware := requestLogger.Middleware(
-		errorHandler.Middleware(
-			rateLimiter.Middleware(
-				sanitizer.Middleware(homeHandler),
-			),
-		),
-	)
+ homeHandlerWithMiddleware := requestLogger.Middleware(
+        errorHandler.Middleware(
+            rateLimiter.Middleware(
+                sanitizer.Middleware(homeHandler),
+            ),
+        ),
+    )
+
+    // Edit handler: must inject optional JWT (handler enforces permissions and renders empty page for unauthorized)
+    editHandlerWithMiddleware := requestLogger.Middleware(
+        errorHandler.Middleware(
+            rateLimiter.Middleware(
+                sanitizer.Middleware(
+                    auth.OptionalJWTFromCookie(editHandler),
+                ),
+            ),
+        ),
+    )
 
 	// Create a handler function for the ListAPIKeys endpoint
 	listAPIKeysHandler := http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -288,14 +307,15 @@ func registerRoutes(
 	// Register routes
 	mux.Handle("/badge/", badgeHandlerWithMiddleware)
 	mux.Handle("/certificate/", certificateHandlerWithMiddleware)
-	mux.Handle("/details/", detailsHandlerWithMiddleware)
-	mux.Handle("/certificates", listHandlerWithMiddleware)
-	mux.Handle("/admin", requestLogger.Middleware(errorHandler.Middleware(rateLimiter.Middleware(sanitizer.Middleware(adminHandler)))))
-	mux.Handle("/api/keys", listAPIKeysHandlerWithMiddleware)
-	mux.Handle("/api/auth/login", loginHandlerWithMiddleware)
-	mux.Handle("/api/auth/logout", logoutHandlerWithMiddleware)
-	mux.Handle("/api/auth/session", sessionHandlerWithMiddleware)
-	mux.Handle("/", homeHandlerWithMiddleware)
+ mux.Handle("/details/", detailsHandlerWithMiddleware)
+ mux.Handle("/certificates", listHandlerWithMiddleware)
+ mux.Handle("/admin", requestLogger.Middleware(errorHandler.Middleware(rateLimiter.Middleware(sanitizer.Middleware(adminHandler)))))
+ mux.Handle("/edit/", editHandlerWithMiddleware)
+ mux.Handle("/api/keys", listAPIKeysHandlerWithMiddleware)
+ mux.Handle("/api/auth/login", loginHandlerWithMiddleware)
+ mux.Handle("/api/auth/logout", logoutHandlerWithMiddleware)
+ mux.Handle("/api/auth/session", sessionHandlerWithMiddleware)
+ mux.Handle("/", homeHandlerWithMiddleware)
 
 	// Serve static files
 	fs := http.FileServer(http.Dir("./static"))
