@@ -49,6 +49,8 @@ type TemplateData struct {
     SoftwareSCURL       string
     // ShowPrivateNote controls whether the InternalNote should be visible to the current viewer
     ShowPrivateNote     bool
+    // CanEdit controls whether the Edit button should be rendered (badges:write permission)
+    CanEdit             bool
 }
 
 // Handler handles details page requests
@@ -208,10 +210,15 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
  // HTML path (existing behavior)
  // Determine if the current user is authenticated and has ANY badge permission
  // Private notes are shown to users with badges: read OR write OR delete permissions
+ // Additionally compute CanEdit flag (badges:write)
  showPrivate := false
+ canEdit := false
  if claims := auth.GetClaimsFromContext(r.Context()); claims != nil {
      if claims.Permissions.Badges.Read || claims.Permissions.Badges.Write || claims.Permissions.Badges.Delete {
          showPrivate = true
+     }
+     if claims.Permissions.Badges.Write {
+         canEdit = true
      }
  }
 	// Try to get from cache first
@@ -247,6 +254,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
      CurrentYear:     time.Now().Year(),
      IsExpired:       badge.IsExpired(),
      ShowPrivateNote: showPrivate,
+     CanEdit:         canEdit,
  }
 
 	// Add optional fields if they exist

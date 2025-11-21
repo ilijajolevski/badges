@@ -173,6 +173,11 @@
                         </tr>
                     </table>
                 </div>
+                {{ if .CanEdit }}
+                <div style="margin-top: 16px; display:flex; justify-content:flex-end;">
+                    <a href="/edit/{{ .CommitID }}" class="btn" style="background: var(--primary-color); color: #fff; padding: 8px 14px; border-radius: 4px; text-decoration: none;">Edit</a>
+                </div>
+                {{ end }}
             </div>
 
             <div class="integration-info">
