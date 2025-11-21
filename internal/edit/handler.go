@@ -132,6 +132,8 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
         badge.Notes = toNull(r.FormValue("notes"))
         badge.ExpiryDate = toNull(r.FormValue("expiry_date"))
         badge.IssuerURL = toNull(r.FormValue("issuer_url"))
+        // Custom configuration JSON (optional)
+        badge.CustomConfig = toNull(r.FormValue("custom_config"))
         badge.LastReview = toNull(r.FormValue("last_review"))
         badge.CoveredVersion = toNull(r.FormValue("covered_version"))
         badge.RepositoryLink = toNull(r.FormValue("repository_link"))

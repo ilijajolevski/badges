@@ -60,6 +60,9 @@
                 <label for="issuer_url">Issuer URL</label>
                 <input id="issuer_url" name="issuer_url" type="text" value="{{ if .Badge.IssuerURL.Valid }}{{ .Badge.IssuerURL.String }}{{ end }}" />
 
+                <label for="custom_config">Custom Config (JSON)</label>
+                <textarea id="custom_config" name="custom_config" placeholder='{"color_right":"#34d399","border_color":"#065f46"}'>{{ if .Badge.CustomConfig.Valid }}{{ .Badge.CustomConfig.String }}{{ end }}</textarea>
+
                 <label for="expiry_date">Expiry Date</label>
                 <input id="expiry_date" name="expiry_date" type="text" value="{{ if .Badge.ExpiryDate.Valid }}{{ .Badge.ExpiryDate.String }}{{ end }}" />
 
