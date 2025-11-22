@@ -335,10 +335,19 @@ func registerRoutes(
  mux.Handle("/api/keys", listAPIKeysHandlerWithMiddleware)
  mux.Handle("/api/auth/login", loginHandlerWithMiddleware)
  mux.Handle("/api/auth/logout", logoutHandlerWithMiddleware)
- mux.Handle("/api/auth/session", sessionHandlerWithMiddleware)
- mux.Handle("/", homeHandlerWithMiddleware)
+	mux.Handle("/api/auth/session", sessionHandlerWithMiddleware)
+	mux.Handle("/", homeHandlerWithMiddleware)
 
 	// Serve static files
+	// Serve favicon(s) from the static directory for standard browser requests
+	mux.HandleFunc("/favicon.ico", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "./static/favicon.ico")
+	})
+	mux.HandleFunc("/favicon.svg", func(w http.ResponseWriter, r *http.Request) {
+		http.ServeFile(w, r, "./static/favicon.svg")
+	})
+
+	// Generic static assets
 	fs := http.FileServer(http.Dir("./static"))
 	mux.Handle("/static/", http.StripPrefix("/static/", fs))
 }
