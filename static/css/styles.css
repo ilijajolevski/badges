@@ -165,6 +165,13 @@ table th {
     background-color: var(--status-revoked);
 }
 
+/* Draft status pill: light gray background, dark gray text, outlined */
+.status-draft {
+    background-color: #E5E7EB; /* light gray */
+    color: #374151;            /* dark gray text */
+    border: 1px solid #374151; /* outlined style */
+}
+
 /* Integration section */
 .integration-info {
     background-color: #f9f9f9;
