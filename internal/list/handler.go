@@ -1,22 +1,25 @@
 package list
 
 import (
-	"encoding/json"
-	"fmt"
-	"html/template"
-	"net/http"
-	"strings"
-	"time"
+    "encoding/json"
+    "fmt"
+    "html/template"
+    "net/http"
+    "strings"
+    "time"
 
-	"github.com/finki/badges/internal/cache"
-	"github.com/finki/badges/internal/database"
-	"go.uber.org/zap"
+    "github.com/finki/badges/internal/auth"
+    "github.com/finki/badges/internal/cache"
+    "github.com/finki/badges/internal/database"
+    "go.uber.org/zap"
 )
 
 // TemplateData represents the data passed to the badges list page template
 type TemplateData struct {
-	Badges      []*BadgeData
-	CurrentYear int
+    Badges      []*BadgeData
+    CurrentYear int
+    // Permissions
+    CanCreate   bool
 }
 
 // BadgeData represents the data for a single badge in the list
@@ -57,8 +60,8 @@ func NewHandler(db *database.DB, logger *zap.Logger, cache *cache.Cache) (*Handl
 
 // ServeHTTP handles HTTP requests for the badges list page
 func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
-	accept := r.Header.Get("Accept")
-	wantsJSON := strings.Contains(accept, "application/json")
+    accept := r.Header.Get("Accept")
+    wantsJSON := strings.Contains(accept, "application/json")
 
 	// Query parameter override (?format=json or ?format=html)
 	format := strings.ToLower(r.URL.Query().Get("format"))
@@ -68,14 +71,21 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		wantsJSON = false
 	}
 
-	if wantsJSON {
-		// Return JSON representation of certificates
-		badges, err := h.db.ListBadges()
-		if err != nil {
-			h.logger.Error("Failed to list badges", zap.Error(err))
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
-			return
-		}
+ // Determine permissions from JWT claims (if any)
+    // We consider users with Badges.Write permission as trusted to view drafts
+    canSeeDrafts := false
+    if claims := auth.GetClaimsFromContext(r.Context()); claims != nil {
+        canSeeDrafts = claims.Permissions.Badges.Write
+    }
+
+    if wantsJSON {
+        // Return JSON representation of certificates
+        badges, err := h.db.ListBadges()
+        if err != nil {
+            h.logger.Error("Failed to list badges", zap.Error(err))
+            http.Error(w, "Internal server error", http.StatusInternalServerError)
+            return
+        }
 
 		// Define minimal JSON view model
 		type CertificateJSON struct {
@@ -88,13 +98,17 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			DetailsLink     string `json:"details_link"`
 		}
 
-		result := make([]CertificateJSON, 0, len(badges))
-		for _, b := range badges {
-			certName := ""
-			if b.CertificateName.Valid {
-				certName = b.CertificateName.String
-			}
-			result = append(result, CertificateJSON{
+  result := make([]CertificateJSON, 0, len(badges))
+  for _, b := range badges {
+      // Hide drafts for unauthenticated/unauthorized users
+      if !canSeeDrafts && strings.EqualFold(b.Status, "draft") {
+          continue
+      }
+      certName := ""
+      if b.CertificateName.Valid {
+          certName = b.CertificateName.String
+      }
+      result = append(result, CertificateJSON{
 				CertID:          b.CommitID,
 				SoftwareName:    b.SoftwareName,
 				CertificateName: certName,
@@ -118,14 +132,18 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Default: Return existing HTML page
-	// Try to get from cache first (existing behavior)
-	cacheKey := "badges:list"
-	if cachedData, found := h.cache.Get(cacheKey); found {
-		w.Header().Set("Content-Type", "text/html; charset=utf-8")
-		w.Write(cachedData)
-		return
-	}
+ // Default: Return existing HTML page
+ // Try to get from cache first (existing behavior)
+ // Make cache key depend on visibility to avoid leaking drafts
+ cacheKey := "badges:list:public"
+ if canSeeDrafts {
+     cacheKey = "badges:list:priv"
+ }
+ if cachedData, found := h.cache.Get(cacheKey); found {
+     w.Header().Set("Content-Type", "text/html; charset=utf-8")
+     w.Write(cachedData)
+     return
+ }
 
 	// Get all badges from database
 	badges, err := h.db.ListBadges()
@@ -135,18 +153,23 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Prepare template data
-	data := TemplateData{
-		Badges:      make([]*BadgeData, 0, len(badges)),
-		CurrentYear: time.Now().Year(),
-	}
+    // Prepare template data
+    data := TemplateData{
+        Badges:      make([]*BadgeData, 0, len(badges)),
+        CurrentYear: time.Now().Year(),
+        CanCreate:   canSeeDrafts,
+    }
 
 	// Convert database badges to template badge data
-	for _, badge := range badges {
-		certName := ""
-		if badge.CertificateName.Valid {
-			certName = badge.CertificateName.String
-		}
+ for _, badge := range badges {
+        // Hide drafts for unauthenticated/unauthorized users
+        if !canSeeDrafts && strings.EqualFold(badge.Status, "draft") {
+            continue
+        }
+        certName := ""
+        if badge.CertificateName.Valid {
+            certName = badge.CertificateName.String
+        }
 
 		// Extract colors from custom config with safe defaults
 		colorRight := ""
@@ -168,11 +191,11 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		})
 	}
 
-	// Render the template
-	w.Header().Set("Content-Type", "text/html; charset=utf-8")
-	if err := h.template.Execute(w, data); err != nil {
-		h.logger.Error("Failed to render template", zap.Error(err))
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return
-	}
+ // Render the template
+ w.Header().Set("Content-Type", "text/html; charset=utf-8")
+ if err := h.template.Execute(w, data); err != nil {
+     h.logger.Error("Failed to render template", zap.Error(err))
+     http.Error(w, "Internal server error", http.StatusInternalServerError)
+     return
+ }
 }

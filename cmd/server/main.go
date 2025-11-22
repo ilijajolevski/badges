@@ -17,13 +17,14 @@ import (
 	"github.com/finki/badges/internal/cache"
 	"github.com/finki/badges/internal/certificate"
 	"github.com/finki/badges/internal/config"
-	"github.com/finki/badges/internal/database"
-	"github.com/finki/badges/internal/details"
-	"github.com/finki/badges/internal/edit"
-	"github.com/finki/badges/internal/home"
-	"github.com/finki/badges/internal/list"
-	"github.com/finki/badges/internal/middleware"
-	"go.uber.org/zap"
+ "github.com/finki/badges/internal/database"
+ "github.com/finki/badges/internal/details"
+ "github.com/finki/badges/internal/create"
+ "github.com/finki/badges/internal/edit"
+ "github.com/finki/badges/internal/home"
+ "github.com/finki/badges/internal/list"
+ "github.com/finki/badges/internal/middleware"
+ "go.uber.org/zap"
 )
 
 func main() {
@@ -105,7 +106,10 @@ func main() {
 	mux := http.NewServeMux()
 
 	// Register routes
-	registerRoutes(mux, badgeHandler, certificateHandler, detailsHandler, listHandler, homeHandler, adminHandler, editHandler, apiKeyHandler, authHandler, errorHandler, sanitizer, rateLimiter, requestLogger)
+ // Initialize create handler
+ createHandler := create.NewHandler(db, logger, imageCache)
+
+ registerRoutes(mux, badgeHandler, certificateHandler, detailsHandler, listHandler, homeHandler, adminHandler, editHandler, createHandler, apiKeyHandler, authHandler, errorHandler, sanitizer, rateLimiter, requestLogger)
 
 	// Create HTTP server
 	server := &http.Server{
@@ -180,6 +184,7 @@ func registerRoutes(
     homeHandler *home.Handler,
     adminHandler *admin.Handler,
     editHandler *edit.Handler,
+    createHandler *create.Handler,
     apiKeyHandler *apikey.Handler,
     authHandler *auth.Handler,
     errorHandler *middleware.ErrorHandler,
@@ -214,13 +219,15 @@ func registerRoutes(
         ),
     )
 
-	listHandlerWithMiddleware := requestLogger.Middleware(
-		errorHandler.Middleware(
-			rateLimiter.Middleware(
-				sanitizer.Middleware(listHandler),
-			),
-		),
-	)
+ listHandlerWithMiddleware := requestLogger.Middleware(
+        errorHandler.Middleware(
+            rateLimiter.Middleware(
+                sanitizer.Middleware(
+                    auth.OptionalJWTFromCookie(listHandler),
+                ),
+            ),
+        ),
+    )
 
  homeHandlerWithMiddleware := requestLogger.Middleware(
         errorHandler.Middleware(
@@ -309,6 +316,20 @@ func registerRoutes(
 	mux.Handle("/certificate/", certificateHandlerWithMiddleware)
  mux.Handle("/details/", detailsHandlerWithMiddleware)
  mux.Handle("/certificates", listHandlerWithMiddleware)
+ // Create new certificate endpoint: authenticated + write permission required
+ createHandlerWithMiddleware := requestLogger.Middleware(
+     errorHandler.Middleware(
+         rateLimiter.Middleware(
+             sanitizer.Middleware(
+                // For browser flows we authenticate via JWT cookie, then enforce permissions
+                auth.OptionalJWTFromCookie(
+                    auth.RequirePermissionMiddleware("badges", "write", createHandler),
+                ),
+             ),
+         ),
+     ),
+ )
+ mux.Handle("/certificates/new", createHandlerWithMiddleware)
  mux.Handle("/admin", requestLogger.Middleware(errorHandler.Middleware(rateLimiter.Middleware(sanitizer.Middleware(adminHandler)))))
  mux.Handle("/edit/", editHandlerWithMiddleware)
  mux.Handle("/api/keys", listAPIKeysHandlerWithMiddleware)
