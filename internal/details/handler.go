@@ -101,18 +101,29 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	}
 
  if wantsJSON {
-		// Get badge from database
-		badge, err := h.db.GetBadge(commitID)
-		if err != nil {
-			h.logger.Error("Failed to get badge", zap.Error(err), zap.String("commit_id", commitID))
-			w.WriteHeader(http.StatusInternalServerError)
-			return
-		}
+        // Get badge from database
+        badge, err := h.db.GetBadge(commitID)
+        if err != nil {
+            h.logger.Error("Failed to get badge", zap.Error(err), zap.String("commit_id", commitID))
+            w.WriteHeader(http.StatusInternalServerError)
+            return
+        }
 
-		if badge == nil {
-			w.WriteHeader(http.StatusNotFound)
-			return
-		}
+        if badge == nil {
+            w.WriteHeader(http.StatusNotFound)
+            return
+        }
+
+        // Protect drafts: only users with badges:write can view drafts
+        canSeeDrafts := false
+        if claims := auth.GetClaimsFromContext(r.Context()); claims != nil {
+            canSeeDrafts = claims.Permissions.Badges.Write
+        }
+        if strings.EqualFold(badge.Status, "draft") && !canSeeDrafts {
+            // Hide existence of drafts from unauthorized users
+            w.WriteHeader(http.StatusNotFound)
+            return
+        }
 
 		// Build comprehensive JSON response
 		type CertificateDetailsJSON struct {
@@ -208,39 +219,49 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
  }
 
  // HTML path (existing behavior)
- // Determine if the current user is authenticated and has ANY badge permission
- // Private notes are shown to users with badges: read OR write OR delete permissions
- // Additionally compute CanEdit flag (badges:write)
- showPrivate := false
- canEdit := false
- if claims := auth.GetClaimsFromContext(r.Context()); claims != nil {
-     if claims.Permissions.Badges.Read || claims.Permissions.Badges.Write || claims.Permissions.Badges.Delete {
-         showPrivate = true
-     }
-     if claims.Permissions.Badges.Write {
-         canEdit = true
-     }
- }
-	// Try to get from cache first
-	cacheKey := "details:" + commitID
- if cachedData, found := h.cache.Get(cacheKey); found && !showPrivate {
+    // Get badge from database first (needed to know if it is a draft before using cache)
+    badge, err := h.db.GetBadge(commitID)
+    if err != nil {
+        h.logger.Error("Failed to get badge", zap.Error(err), zap.String("commit_id", commitID))
+        w.WriteHeader(http.StatusInternalServerError)
+        return
+    }
+
+ if badge == nil {
+        w.WriteHeader(http.StatusNotFound)
+        return
+    }
+
+    // Determine viewer permissions
+    // Private notes are shown to users with badges: read OR write OR delete permissions
+    // CanEdit flag requires badges:write. Draft visibility requires badges:write.
+    showPrivate := false
+    canEdit := false
+    canSeeDrafts := false
+    if claims := auth.GetClaimsFromContext(r.Context()); claims != nil {
+        if claims.Permissions.Badges.Read || claims.Permissions.Badges.Write || claims.Permissions.Badges.Delete {
+            showPrivate = true
+        }
+        if claims.Permissions.Badges.Write {
+            canEdit = true
+            canSeeDrafts = true
+        }
+    }
+
+    // Block access to drafts for unauthorized/unauthenticated viewers
+    if strings.EqualFold(badge.Status, "draft") && !canSeeDrafts {
+        // Return 404 to avoid leaking the existence of the draft certificate
+        w.WriteHeader(http.StatusNotFound)
+        return
+    }
+
+    // Try to get from cache only for public, non-draft views
+    cacheKey := "details:" + commitID
+    if cachedData, found := h.cache.Get(cacheKey); found && !showPrivate && !strings.EqualFold(badge.Status, "draft") {
         w.Header().Set("Content-Type", "text/html; charset=utf-8")
         w.Write(cachedData)
         return
     }
-
-	// Get badge from database
-	badge, err := h.db.GetBadge(commitID)
-	if err != nil {
-		h.logger.Error("Failed to get badge", zap.Error(err), zap.String("commit_id", commitID))
-		w.WriteHeader(http.StatusInternalServerError)
-		return
-	}
-
-	if badge == nil {
-		w.WriteHeader(http.StatusNotFound)
-		return
-	}
 
  // Prepare template data
  data := TemplateData{
