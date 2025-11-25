@@ -24,14 +24,15 @@ type TemplateData struct {
 
 // BadgeData represents the data for a single badge in the list
 type BadgeData struct {
-	CommitID        string
-	SoftwareName    string
-	CertificateName string
-	Status          string
-	IssueDate       string
-	IsExpired       bool
-	ColorRight      string
-	BorderColor     string
+	    	CommitID        string
+	    	SoftwareName    string
+	    	CertificateName string
+	    	Status          string
+	    	IssueDate       string
+	    	IsExpired       bool
+	    	ColorRight      string
+	    	BorderColor     string
+	    	LabelStyle      template.CSS
 }
 
 // Handler handles badges list page requests
@@ -171,24 +172,62 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
             certName = badge.CertificateName.String
         }
 
-		// Extract colors from custom config with safe defaults
-		colorRight := ""
-		borderColor := ""
-		if cfg, err := badge.GetCustomConfig(); err == nil && cfg != nil {
-			colorRight = cfg.ColorRight
-			borderColor = cfg.BorderColor
-		}
+  // Extract colors from custom config with list-specific fallback chain
+  colorRight := ""
+  borderColor := ""
+  textColor := ""
+  if cfg, err := badge.GetCustomConfig(); err == nil && cfg != nil {
+      // Background
+      if cfg.ListColorRight != "" {
+          colorRight = cfg.ListColorRight
+      } else {
+          colorRight = cfg.ColorRight
+      }
+      // Border
+      if cfg.ListBorderColor != "" {
+          borderColor = cfg.ListBorderColor
+      } else {
+          borderColor = cfg.BorderColor
+      }
+      // Text color
+      if cfg.ListTextColor != "" {
+          textColor = cfg.ListTextColor
+      } else {
+          textColor = cfg.TextColorRight
+      }
+  }
 
-		data.Badges = append(data.Badges, &BadgeData{
-			CommitID:        badge.CommitID,
-			SoftwareName:    badge.SoftwareName,
-			CertificateName: certName,
-			Status:          badge.Status,
-			IssueDate:       badge.IssueDate,
-			IsExpired:       badge.IsExpired(),
-			ColorRight:      colorRight,
-			BorderColor:     borderColor,
-		})
+  // Special styling rule: If Certificate Name is "Verified Software Licence",
+  // force the silver background, similar to bronze used for "Verified Dependencies".
+  if strings.EqualFold(certName, "Verified Software Licence") {
+      colorRight = "#E8E8E8"   // silver background
+      // Provide a subtle silver border if not already set or to match the style
+      borderColor = "#C0C0C0"
+  }
+
+  // Build full style string for the label to avoid template concatenation issues
+        labelStyle := "display:inline-block;padding:2px 8px;border-radius:4px;"
+        if colorRight != "" {
+            labelStyle += "background-color: " + colorRight + ";"
+        }
+        if borderColor != "" {
+            labelStyle += " border: 1px solid " + borderColor + ";"
+        }
+        if textColor != "" {
+            labelStyle += " color: " + textColor + ";"
+        }
+
+        data.Badges = append(data.Badges, &BadgeData{
+            CommitID:        badge.CommitID,
+            SoftwareName:    badge.SoftwareName,
+            CertificateName: certName,
+            Status:          badge.Status,
+            IssueDate:       badge.IssueDate,
+            IsExpired:       badge.IsExpired(),
+            ColorRight:      colorRight,
+            BorderColor:     borderColor,
+            LabelStyle:      template.CSS(labelStyle),
+        })
 	}
 
  // Render the template

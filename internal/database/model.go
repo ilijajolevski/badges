@@ -206,24 +206,29 @@ type Badge struct {
 
 // CustomConfig represents the custom configuration for a badge
 type CustomConfig struct {
-	ColorLeft     string `json:"color_left,omitempty"`
-	ColorRight    string `json:"color_right,omitempty"`
-	TextColor     string `json:"text_color,omitempty"`
-	TextColorLeft string `json:"text_color_left,omitempty"`
-	TextColorRight string `json:"text_color_right,omitempty"`
-	LogoURL       string `json:"logo,omitempty"`
-	FontSize      int    `json:"font_size,omitempty"`
-	Style         string `json:"style,omitempty"`
+    ColorLeft     string `json:"color_left,omitempty"`
+    ColorRight    string `json:"color_right,omitempty"`
+    TextColor     string `json:"text_color,omitempty"`
+    TextColorLeft string `json:"text_color_left,omitempty"`
+    TextColorRight string `json:"text_color_right,omitempty"`
+    LogoURL       string `json:"logo,omitempty"`
+    FontSize      int    `json:"font_size,omitempty"`
+    Style         string `json:"style,omitempty"`
 
-	// New color parameters for big certificate template
-	LogoColor          string `json:"logo_color,omitempty"`
-	BackgroundColor    string `json:"background_color,omitempty"`
-	HorizontalBarsColor string `json:"horizontal_bars_color,omitempty"`
-	TopLabelColor      string `json:"top_label_color,omitempty"`
-	GradientStartColor string `json:"gradient_start_color,omitempty"`
-	GradientEndColor   string `json:"gradient_end_color,omitempty"`
-	BorderColor        string `json:"border_color,omitempty"`
-	CertNameColor      string `json:"cert_name_color,omitempty"`
+    // New color parameters for big certificate template
+    LogoColor          string `json:"logo_color,omitempty"`
+    BackgroundColor    string `json:"background_color,omitempty"`
+    HorizontalBarsColor string `json:"horizontal_bars_color,omitempty"`
+    TopLabelColor      string `json:"top_label_color,omitempty"`
+    GradientStartColor string `json:"gradient_start_color,omitempty"`
+    GradientEndColor   string `json:"gradient_end_color,omitempty"`
+    BorderColor        string `json:"border_color,omitempty"`
+    CertNameColor      string `json:"cert_name_color,omitempty"`
+
+    // List view specific overrides (optional). If present, used only on the list page.
+    ListColorRight  string `json:"list_color_right,omitempty"`
+    ListBorderColor string `json:"list_border_color,omitempty"`
+    ListTextColor   string `json:"list_text_color,omitempty"`
 }
 
 // GetCustomConfig parses the custom configuration JSON
