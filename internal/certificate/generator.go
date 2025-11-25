@@ -177,7 +177,19 @@ func (g *Generator) GenerateSVG(badge *database.Badge) ([]byte, error) {
 	// Prepare software name split for potential two-line display in big template
 	softwareNameLine1, softwareNameLine2 := splitSoftwareNameTwoLines(badge.SoftwareName, 16)
 
-	data := map[string]interface{}{
+ // Calculate status flags/label for overlay rendering
+ status := badge.Status
+ isRevoked := status == "revoked"
+ // Treat either explicit status or computed expiry as expired
+ isExpired := status == "expired" || badge.IsExpired()
+ statusLabel := ""
+ if isRevoked {
+     statusLabel = "REVOKED"
+ } else if isExpired {
+     statusLabel = "EXPIRED"
+ }
+
+ data := map[string]interface{}{
 		// For backward compatibility
 		"ColorBorder":       colorBorder,
 		"ColorBg":           colorBg,
@@ -207,8 +219,13 @@ func (g *Generator) GenerateSVG(badge *database.Badge) ([]byte, error) {
 		"GradientStartColor":  gradientStartColor,
 		"GradientEndColor":    gradientEndColor,
 		"BorderColor":         borderColor,
-		"CertNameColor":       certNameColor,
-	}
+        "CertNameColor":       certNameColor,
+        // Status meta used by template to draw overlays
+        "Status":              status,
+        "IsExpired":           isExpired,
+        "IsRevoked":           isRevoked,
+        "StatusLabel":         statusLabel,
+    }
 
 	// Generate SVG using template
 	tmpl := template.New("certificate").Funcs(template.FuncMap{
@@ -236,12 +253,30 @@ func (g *Generator) GenerateSVG(badge *database.Badge) ([]byte, error) {
 		}
 	}
 
-	var buf bytes.Buffer
-	if err := tmpl.Execute(&buf, data); err != nil {
-		return nil, fmt.Errorf("failed to execute template: %w", err)
-	}
+    var buf bytes.Buffer
+    if err := tmpl.Execute(&buf, data); err != nil {
+        return nil, fmt.Errorf("failed to execute template: %w", err)
+    }
 
-	return buf.Bytes(), nil
+    // Post-process: if template file doesn't include overlay logic, ensure overlay is added.
+    if isExpired || isRevoked {
+        svg := buf.Bytes()
+        closing := []byte("</svg>")
+        idx := bytes.LastIndex(svg, closing)
+        if idx > -1 {
+            // Inject overlay group before closing tag
+            overlay := []byte(`
+  <g id="status-overlay-auto">
+    <rect x="0" y="0" width="` + fmt.Sprintf("%d", width) + `" height="` + fmt.Sprintf("%d", height) + `" fill="#FFFFFF" opacity="0.5"/>
+    <text x="` + fmt.Sprintf("%d", width/2) + `" y="` + fmt.Sprintf("%d", height/2) + `" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="28" font-weight="900" fill="#666666" transform="rotate(-18 ` + fmt.Sprintf("%d", width/2) + ` ` + fmt.Sprintf("%d", height/2) + `)">` + statusLabel + `</text>
+  </g>
+`)
+            svg = append(svg[:idx], append(overlay, svg[idx:]...)...)
+        }
+        return svg, nil
+    }
+
+    return buf.Bytes(), nil
 }
 
 // splitCertificateName splits a certificate name into words for multi-line display
@@ -398,4 +433,19 @@ const certificateSVGTemplate = `<svg width="{{.Width}}" height="{{.Height}}" vie
         fill="{{.TextColor}}">
     Networks • Services • People
   </text>
+
+  {{/* White overlay and status label for expired or revoked */}}
+  {{if or .IsExpired .IsRevoked}}
+    <g id="status-overlay">
+      <rect x="0" y="0" width="{{.Width}}" height="{{.Height}}" fill="#FFFFFF" opacity="0.5"/>
+      <text x="{{.Width | divide 2}}" y="{{.Height | divide 2}}" text-anchor="middle"
+            font-family="Arial, Helvetica, sans-serif"
+            font-size="28"
+            font-weight="900"
+            fill="#666666"
+            transform="rotate(-18 {{.Width | divide 2}} {{.Height | divide 2}})">
+        {{.StatusLabel}}
+      </text>
+    </g>
+  {{end}}
 </svg>`
