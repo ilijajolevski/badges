@@ -88,21 +88,38 @@ func (g *Generator) GenerateSVG(badge *database.Badge) ([]byte, error) {
 	leftWidth = 46 // Fixed width for GEANT logo
 	rightWidth = totalWidth - leftWidth
 
-	data := map[string]interface{}{
-		"ColorLeft":      colorLeft,
-		"ColorRight":     colorRight,
-		"TextColor":      textColor,
-		"TextColorLeft":  textColorLeft,
-		"TextColorRight": textColorRight,
-		"FontSize":       fontSize,
-		"Style":          style,
-		// Label field removed as we no longer render the software name
-		"Value":          displayValue,
-		"Width":          totalWidth,
-		"LeftWidth":      leftWidth,
-		"RightWidth":     rightWidth,
-		"HasShadow":      style == "3d",
-	}
+ // Calculate status flags/label for overlay rendering
+    status := badge.Status
+    isRevoked := status == "revoked"
+    // Treat either explicit status or computed expiry as expired
+    isExpired := status == "expired" || badge.IsExpired()
+    statusLabel := ""
+    if isRevoked {
+        statusLabel = "REVOKED"
+    } else if isExpired {
+        statusLabel = "EXPIRED"
+    }
+
+    data := map[string]interface{}{
+        "ColorLeft":      colorLeft,
+        "ColorRight":     colorRight,
+        "TextColor":      textColor,
+        "TextColorLeft":  textColorLeft,
+        "TextColorRight": textColorRight,
+        "FontSize":       fontSize,
+        "Style":          style,
+        // Label field removed as we no longer render the software name
+        "Value":          displayValue,
+        "Width":          totalWidth,
+        "LeftWidth":      leftWidth,
+        "RightWidth":     rightWidth,
+        "HasShadow":      style == "3d",
+        // Status meta for overlay in the small badge
+        "Status":         status,
+        "IsExpired":      isExpired,
+        "IsRevoked":      isRevoked,
+        "StatusLabel":    statusLabel,
+    }
 
 	// Generate SVG using template
 	tmpl := template.New("badge").Funcs(template.FuncMap{
@@ -222,6 +239,19 @@ const badgeSVGTemplate = `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="h
   <g text-anchor="middle" font-family="DejaVu Sans,Verdana,Geneva,sans-serif" font-size="{{.FontSize}}">
     <text x="{{add .LeftWidth (div .RightWidth 2)}}" y="15" fill="{{.TextColorRight}}">{{.Value}}</text>
   </g>
+
+  {{/* White overlay and status label for expired or revoked (small badge) */}}
+  {{if or .IsExpired .IsRevoked}}
+  <g id="status-overlay-badge" clip-path="url(#badge-clip)">
+    <rect x="0" y="0" width="{{.Width}}" height="20" fill="#FFFFFF" opacity="0.5"/>
+    <text x="{{div .Width 2}}" y="12" text-anchor="middle"
+          font-family="Arial, Helvetica, sans-serif"
+          font-size="9"
+          font-weight="900"
+          fill="#666666"
+          transform="rotate(-18 {{div .Width 2}} 10)">{{.StatusLabel}}</text>
+  </g>
+  {{end}}
 
   <!-- Outer keyline drawn last to avoid any background bleed at corners -->
   <use xlink:href="#badge-outer" fill="none" stroke="#E5E7EB" stroke-width="1" vector-effect="non-scaling-stroke" shape-rendering="crispEdges" pointer-events="none"/>
