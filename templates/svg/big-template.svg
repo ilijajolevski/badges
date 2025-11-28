@@ -106,8 +106,8 @@
   <text class="cls-4" id="text_top1" x="20" y="31.94">
     <tspan x="20" y="31.94" id="tspan_top1">{{getWord 0 .CertNameWords}}</tspan>
   </text>
-  <text class="cls-4" id="text_top2" x="20" y="48.9">
-    <tspan x="20" y="48.9" id="tspan_top2">{{getWord 1 .CertNameWords}}</tspan>
+  <text class="cls-4" id="text_top2" x="20" y="46.47">
+    <tspan x="20" y="46.47" id="tspan_top2">{{getWord 1 .CertNameWords}}</tspan>
   </text>
   <text class="cls-4" id="text_top3" x="20" y="61">
     <tspan x="20" y="61" id="tspan_top3">{{getWord 2 .CertNameWords}}</tspan>
