@@ -38,7 +38,7 @@ type TemplateData struct {
     IsExpired           bool
     CurrentYear         int
     CoveredVersion      string
-    RepositoryLink      string
+    Repositories        []database.Repository
     PublicNote          string
     InternalNote        string
     ContactDetails      string
@@ -140,9 +140,9 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 			IssuerURL           string `json:"issuer_url,omitempty"`
 			LastReview          string `json:"last_review,omitempty"`
 			IsExpired           bool   `json:"is_expired"`
-			CoveredVersion      string `json:"covered_version,omitempty"`
-			RepositoryLink      string `json:"repository_link,omitempty"`
-			PublicNote          string `json:"public_note,omitempty"`
+			CoveredVersion      string                `json:"covered_version,omitempty"`
+			Repositories        []database.Repository `json:"repositories,omitempty"`
+			PublicNote          string                `json:"public_note,omitempty"`
 			ContactDetails      string `json:"contact_details,omitempty"`
 			CertificateName     string `json:"certificate_name,omitempty"`
 			CertificateGuideURL string `json:"certificate_guide_url,omitempty"`
@@ -180,9 +180,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		if badge.CoveredVersion.Valid {
 			resp.CoveredVersion = badge.CoveredVersion.String
 		}
-		if badge.RepositoryLink.Valid {
-			resp.RepositoryLink = badge.RepositoryLink.String
-		}
+		resp.Repositories = badge.GetRepositories()
 		if badge.PublicNote.Valid {
 			resp.PublicNote = badge.PublicNote.String
 		}
@@ -303,9 +301,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		data.CoveredVersion = badge.CoveredVersion.String
 	}
 
-	if badge.RepositoryLink.Valid {
-		data.RepositoryLink = badge.RepositoryLink.String
-	}
+	data.Repositories = badge.GetRepositories()
 
 	if badge.PublicNote.Valid {
 		data.PublicNote = badge.PublicNote.String

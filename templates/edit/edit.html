@@ -24,6 +24,15 @@
         function cancelEdit(commitID) {
             window.location.href = '/details/' + commitID;
         }
+        function addRepoRow() {
+            var row = document.createElement('div');
+            row.className = 'repo-row';
+            row.style.cssText = 'display:flex;gap:8px;margin-bottom:6px;align-items:center;';
+            row.innerHTML = '<input name="repo_name" type="text" placeholder="Label" style="flex:1;" />'
+                + '<input name="repo_url" type="text" placeholder="URL" style="flex:2;" />'
+                + '<button type="button" class="btn danger" style="padding:4px 8px;" onclick="this.parentElement.remove()">Remove</button>';
+            document.getElementById('repo-list').appendChild(row);
+        }
     </script>
 </head>
 <body>
@@ -72,8 +81,19 @@
                 <label for="covered_version">Covered Version</label>
                 <input id="covered_version" name="covered_version" type="text" value="{{ if .Badge.CoveredVersion.Valid }}{{ .Badge.CoveredVersion.String }}{{ end }}" />
 
-                <label for="repository_link">Repository Link</label>
-                <input id="repository_link" name="repository_link" type="text" value="{{ if .Badge.RepositoryLink.Valid }}{{ .Badge.RepositoryLink.String }}{{ end }}" />
+                <label style="grid-column: 1 / -1; margin-top: 8px; font-weight: 600;">Repositories</label>
+                <div id="repo-list" style="grid-column: 1 / -1;">
+                    {{ range .Repositories }}
+                    <div class="repo-row" style="display: flex; gap: 8px; margin-bottom: 6px; align-items: center;">
+                        <input name="repo_name" type="text" placeholder="Label" value="{{ .Name }}" style="flex: 1;" />
+                        <input name="repo_url" type="text" placeholder="URL" value="{{ .URL }}" style="flex: 2;" />
+                        <button type="button" class="btn danger" style="padding: 4px 8px;" onclick="this.parentElement.remove()">Remove</button>
+                    </div>
+                    {{ end }}
+                </div>
+                <div style="grid-column: 1 / -1;">
+                    <button type="button" class="btn secondary" style="padding: 4px 10px;" onclick="addRepoRow()">+ Add Repository</button>
+                </div>
 
                 <label for="software_sc_id">SC Name</label>
                 <input id="software_sc_id" name="software_sc_id" type="text" value="{{ if .Badge.SoftwareSCID.Valid }}{{ .Badge.SoftwareSCID.String }}{{ end }}" />

@@ -15,8 +15,9 @@ import (
 
 // TemplateData holds the data shown on the edit page
 type TemplateData struct {
-    CurrentYear int
-    Badge       *database.Badge
+    CurrentYear  int
+    Badge        *database.Badge
+    Repositories []database.Repository
     // Permissions
     CanDelete bool
 }
@@ -88,7 +89,8 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
             w.WriteHeader(http.StatusOK)
             return
         }
-        data := TemplateData{CurrentYear: time.Now().Year(), Badge: badge, CanDelete: canDelete}
+        repos := badge.GetRepositories()
+        data := TemplateData{CurrentYear: time.Now().Year(), Badge: badge, Repositories: repos, CanDelete: canDelete}
         w.Header().Set("Content-Type", "text/html; charset=utf-8")
         if err := h.template.Execute(w, data); err != nil {
             h.logger.Error("failed to render edit template", zap.Error(err))
@@ -136,7 +138,28 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
         badge.CustomConfig = toNull(r.FormValue("custom_config"))
         badge.LastReview = toNull(r.FormValue("last_review"))
         badge.CoveredVersion = toNull(r.FormValue("covered_version"))
-        badge.RepositoryLink = toNull(r.FormValue("repository_link"))
+
+        // Build repositories from parallel form arrays
+        _ = r.ParseForm()
+        repoNames := r.Form["repo_name"]
+        repoURLs := r.Form["repo_url"]
+        var repos []database.Repository
+        for i := 0; i < len(repoURLs); i++ {
+            u := strings.TrimSpace(repoURLs[i])
+            if u == "" {
+                continue
+            }
+            name := ""
+            if i < len(repoNames) {
+                name = strings.TrimSpace(repoNames[i])
+            }
+            if name == "" {
+                name = u
+            }
+            repos = append(repos, database.Repository{Name: name, URL: u})
+        }
+        _ = badge.SetRepositories(repos)
+
         badge.PublicNote = toNull(r.FormValue("public_note"))
         badge.InternalNote = toNull(r.FormValue("internal_note"))
         badge.ContactDetails = toNull(r.FormValue("contact_details"))

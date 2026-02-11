@@ -3,6 +3,7 @@ package database
 import (
 	"database/sql"
 	"encoding/json"
+	"strings"
 	"time"
 )
 
@@ -259,6 +260,50 @@ func (b *Badge) SetCustomConfig(config *CustomConfig) error {
 	}
 
 	b.CustomConfig = sql.NullString{String: string(data), Valid: true}
+	return nil
+}
+
+// Repository represents a single repository link with a label and URL
+type Repository struct {
+	Name string `json:"name"`
+	URL  string `json:"url"`
+}
+
+// GetRepositories parses the repository links JSON from RepositoryLink.
+// For backward compatibility, if the stored value is a plain URL string
+// (not a JSON array), it wraps it as a single-element Repository slice.
+func (b *Badge) GetRepositories() []Repository {
+	if !b.RepositoryLink.Valid || strings.TrimSpace(b.RepositoryLink.String) == "" {
+		return nil
+	}
+
+	s := strings.TrimSpace(b.RepositoryLink.String)
+
+	// New format: JSON array
+	if strings.HasPrefix(s, "[") {
+		var repos []Repository
+		if err := json.Unmarshal([]byte(s), &repos); err == nil {
+			return repos
+		}
+	}
+
+	// Backward compat: plain URL string
+	return []Repository{{Name: s, URL: s}}
+}
+
+// SetRepositories marshals a slice of Repository into JSON and stores it in RepositoryLink.
+func (b *Badge) SetRepositories(repos []Repository) error {
+	if len(repos) == 0 {
+		b.RepositoryLink = sql.NullString{Valid: false}
+		return nil
+	}
+
+	data, err := json.Marshal(repos)
+	if err != nil {
+		return err
+	}
+
+	b.RepositoryLink = sql.NullString{String: string(data), Valid: true}
 	return nil
 }
 
