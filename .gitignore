@@ -31,3 +31,4 @@ bin/badge-service
 db/badges_8.db
 db/badges_9.db
 /output_images
+db/badges.db
