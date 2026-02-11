@@ -120,12 +120,12 @@ To embed a bigger certificate in your HTML:
 ```
 Small (inline) Badge look of the certificate:
 
-[![Badge Service v1.0.0 Badge](https://certificates.software.geant.org/badge/test123)](https://certificates.software.geant.org/details/test123)
+[![Badge Service v1.0.0 Badge](https://certificates.software.geant.org/badge/SOFTCAT_slSAD)](https://certificates.software.geant.org/details/SOFTCAT_slSAD)
 
 
 Big Certificate Look:
 
-[![Badge Service v1.0.0 Badge](https://certificates.software.geant.org/certificate/test123)](https://certificates.software.geant.org/details/test123)
+[![Badge Service v1.0.0 Badge](https://certificates.software.geant.org/certificate/SOFTCAT_slSAD)](https://certificates.software.geant.org/details/SOFTCAT_slSAD)
 
 ## Licence
 
