@@ -968,6 +968,24 @@ func addInitialBadges(db *sql.DB) error {
 		return sql.NullString{String: s, Valid: true}
 	}
 
+	// Helper to build nullable strings from json.RawMessage
+	// Handles both quoted strings (old format) and JSON arrays (new format)
+	nsRaw := func(raw json.RawMessage) sql.NullString {
+		if len(raw) == 0 || string(raw) == "null" {
+			return sql.NullString{Valid: false}
+		}
+		// If it's a quoted string, unquote it
+		var s string
+		if err := json.Unmarshal(raw, &s); err == nil {
+			if s == "" {
+				return sql.NullString{Valid: false}
+			}
+			return sql.NullString{String: s, Valid: true}
+		}
+		// Otherwise store as-is (JSON array)
+		return sql.NullString{String: string(raw), Valid: true}
+	}
+
 	// Load JSON data
 	type badgeJSON struct {
 		CommitID        string `json:"commit_id"`
@@ -984,7 +1002,7 @@ func addInitialBadges(db *sql.DB) error {
 		CustomConfig    string `json:"custom_config"`
 		LastReview      string `json:"last_review"`
 		CoveredVersion  string `json:"covered_version"`
-		RepositoryLink  string `json:"repository_link"`
+		RepositoryLink  json.RawMessage `json:"repository_link"`
 		PublicNote      string `json:"public_note"`
 		InternalNote    string `json:"internal_note"`
 		ContactDetails  string `json:"contact_details"`
@@ -1065,7 +1083,7 @@ func addInitialBadges(db *sql.DB) error {
 			ns(bj.CustomConfig),
 			ns(bj.LastReview),
 			ns(bj.CoveredVersion),
-			ns(bj.RepositoryLink),
+			nsRaw(bj.RepositoryLink),
 			ns(bj.PublicNote),
 			ns(bj.InternalNote),
 			ns(bj.ContactDetails),

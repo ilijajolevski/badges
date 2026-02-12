@@ -125,10 +125,14 @@
                             <td>{{ .SpecialtyDomain }}</td>
                         </tr>
                         {{ end }}
-                        {{ if .RepositoryLink }}
+                        {{ if .Repositories }}
                         <tr>
-                            <th>Repository:</th>
-                            <td><a href="{{ .RepositoryLink }}" target="_blank" rel="noopener noreferrer">{{ .RepositoryLink }}</a></td>
+                            <th>{{ if eq (len .Repositories) 1 }}Repository:{{ else }}Repositories:{{ end }}</th>
+                            <td>
+                                {{ range .Repositories }}
+                                <div><a href="{{ .URL }}" target="_blank" rel="noopener noreferrer">{{ .Name }}</a></div>
+                                {{ end }}
+                            </td>
                         </tr>
                         {{ end }}
                         {{ if .SoftwareSCID }}
