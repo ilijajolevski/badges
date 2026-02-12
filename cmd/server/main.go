@@ -14,6 +14,7 @@ import (
 	"github.com/finki/badges/internal/apikey"
 	"github.com/finki/badges/internal/auth"
 	"github.com/finki/badges/internal/badge"
+	"github.com/finki/badges/internal/backup"
 	"github.com/finki/badges/internal/cache"
 	"github.com/finki/badges/internal/certificate"
 	"github.com/finki/badges/internal/config"
@@ -102,6 +103,9 @@ func main() {
 	// Initialize auth handler
 	authHandler := auth.NewHandler(db, logger)
 
+	// Initialize backup handler
+	backupHandler := backup.NewHandler(db, logger, imageCache)
+
 	// Initialize HTTP server
 	mux := http.NewServeMux()
 
@@ -109,7 +113,7 @@ func main() {
  // Initialize create handler
  createHandler := create.NewHandler(db, logger, imageCache)
 
- registerRoutes(mux, badgeHandler, certificateHandler, detailsHandler, listHandler, homeHandler, adminHandler, editHandler, createHandler, apiKeyHandler, authHandler, errorHandler, sanitizer, rateLimiter, requestLogger)
+ registerRoutes(mux, badgeHandler, certificateHandler, detailsHandler, listHandler, homeHandler, adminHandler, editHandler, createHandler, apiKeyHandler, authHandler, backupHandler, errorHandler, sanitizer, rateLimiter, requestLogger)
 
 	// Create HTTP server
 	server := &http.Server{
@@ -187,6 +191,7 @@ func registerRoutes(
     createHandler *create.Handler,
     apiKeyHandler *apikey.Handler,
     authHandler *auth.Handler,
+    backupHandler *backup.Handler,
     errorHandler *middleware.ErrorHandler,
     sanitizer *middleware.Sanitizer,
     rateLimiter *middleware.RateLimiter,
@@ -336,6 +341,33 @@ func registerRoutes(
  mux.Handle("/api/auth/login", loginHandlerWithMiddleware)
  mux.Handle("/api/auth/logout", logoutHandlerWithMiddleware)
 	mux.Handle("/api/auth/session", sessionHandlerWithMiddleware)
+
+	// Backup & restore endpoints (admin only: users:write permission + role check in handler)
+	mux.Handle("/api/backup", requestLogger.Middleware(
+		errorHandler.Middleware(
+			rateLimiter.Middleware(
+				sanitizer.Middleware(
+					auth.OptionalJWTFromCookie(
+						auth.RequirePermissionMiddleware("users", "write",
+							http.HandlerFunc(backupHandler.Backup)),
+					),
+				),
+			),
+		),
+	))
+	mux.Handle("/api/restore", requestLogger.Middleware(
+		errorHandler.Middleware(
+			rateLimiter.Middleware(
+				sanitizer.Middleware(
+					auth.OptionalJWTFromCookie(
+						auth.RequirePermissionMiddleware("users", "write",
+							http.HandlerFunc(backupHandler.Restore)),
+					),
+				),
+			),
+		),
+	))
+
 	mux.Handle("/", homeHandlerWithMiddleware)
 
 	// Serve static files

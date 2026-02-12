@@ -1099,3 +1099,94 @@ func addInitialBadges(db *sql.DB) error {
 
 	return nil
 }
+
+// RestoreAll replaces all data in the database within a single transaction.
+// Tables are deleted in FK-safe order, then re-inserted in FK-safe order.
+// Binary image columns (jpg/png) are set to NULL since they can be regenerated.
+func (db *DB) RestoreAll(roles []*Role, users []*User, apiKeys []*APIKey, badges []*Badge) error {
+	tx, err := db.Begin()
+	if err != nil {
+		return fmt.Errorf("failed to begin transaction: %w", err)
+	}
+	defer tx.Rollback()
+
+	// Delete in FK-safe order
+	for _, stmt := range []string{
+		"DELETE FROM api_keys",
+		"DELETE FROM users",
+		"DELETE FROM roles",
+		"DELETE FROM badges",
+	} {
+		if _, err := tx.Exec(stmt); err != nil {
+			return fmt.Errorf("failed to execute %q: %w", stmt, err)
+		}
+	}
+
+	// Insert roles
+	for _, r := range roles {
+		_, err := tx.Exec(`
+			INSERT INTO roles (role_id, name, description, permissions, created_at, updated_at)
+			VALUES (?, ?, ?, ?, ?, ?)`,
+			r.RoleID, r.Name, r.Description, r.Permissions, r.CreatedAt, r.UpdatedAt,
+		)
+		if err != nil {
+			return fmt.Errorf("failed to insert role %s: %w", r.RoleID, err)
+		}
+	}
+
+	// Insert users
+	for _, u := range users {
+		_, err := tx.Exec(`
+			INSERT INTO users (user_id, username, email, password_hash, first_name, last_name,
+				role_id, created_at, updated_at, last_login, status, failed_attempts)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+			u.UserID, u.Username, u.Email, u.PasswordHash, u.FirstName, u.LastName,
+			u.RoleID, u.CreatedAt, u.UpdatedAt, u.LastLogin, u.Status, u.FailedAttempts,
+		)
+		if err != nil {
+			return fmt.Errorf("failed to insert user %s: %w", u.UserID, err)
+		}
+	}
+
+	// Insert API keys
+	for _, k := range apiKeys {
+		_, err := tx.Exec(`
+			INSERT INTO api_keys (api_key_id, user_id, api_key, name, permissions,
+				created_at, expires_at, last_used, status, ip_restrictions)
+			VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+			k.APIKeyID, k.UserID, k.APIKey, k.Name, k.Permissions,
+			k.CreatedAt, k.ExpiresAt, k.LastUsed, k.Status, k.IPRestrictions,
+		)
+		if err != nil {
+			return fmt.Errorf("failed to insert API key %s: %w", k.APIKeyID, err)
+		}
+	}
+
+	// Insert badges — binary columns (jpg_content, png_content) set to NULL
+	for _, b := range badges {
+		_, err := tx.Exec(`
+			INSERT INTO badges (
+				commit_id, type, status, issuer, issue_date,
+				software_name, software_version, software_url, notes, svg_content,
+				expiry_date, issuer_url, custom_config, last_review,
+				jpg_content, png_content,
+				covered_version, repository_link, public_note, internal_note, contact_details,
+				certificate_name, specialty_domain, software_sc_id, software_sc_url
+			) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NULL, NULL, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+			b.CommitID, b.Type, b.Status, b.Issuer, b.IssueDate,
+			b.SoftwareName, b.SoftwareVersion, b.SoftwareURL, b.Notes, b.SVGContent,
+			b.ExpiryDate, b.IssuerURL, b.CustomConfig, b.LastReview,
+			b.CoveredVersion, b.RepositoryLink, b.PublicNote, b.InternalNote, b.ContactDetails,
+			b.CertificateName, b.SpecialtyDomain, b.SoftwareSCID, b.SoftwareSCURL,
+		)
+		if err != nil {
+			return fmt.Errorf("failed to insert badge %s: %w", b.CommitID, err)
+		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("failed to commit transaction: %w", err)
+	}
+
+	return nil
+}

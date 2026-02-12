@@ -51,6 +51,30 @@
           <span id="logoutMsg" class="success" aria-live="polite"></span>
         </div>
       </section>
+
+      <section class="card" id="backup-card" hidden>
+        <h2>Backup &amp; Restore</h2>
+
+        <div style="margin-bottom: 16px;">
+          <h3 style="margin-bottom: 8px;">Download Backup</h3>
+          <p style="margin-bottom: 8px; color: #667085;">Export the entire database (roles, users, API keys, badges) as a JSON file.</p>
+          <button class="btn btn-primary" id="backupBtn">Download Backup</button>
+        </div>
+
+        <hr style="border: none; border-top: 1px solid #e4e7ec; margin: 16px 0;">
+
+        <div>
+          <h3 style="margin-bottom: 8px;">Restore from Backup</h3>
+          <p style="margin-bottom: 8px; color: #667085;">Upload a previously downloaded backup file. <strong>This will replace all existing data.</strong></p>
+          <div class="form-row">
+            <input type="file" id="restoreFile" accept=".json" />
+          </div>
+          <div class="actions">
+            <button class="btn btn-danger" id="restoreBtn">Restore from Backup</button>
+            <span id="restoreMsg" aria-live="polite"></span>
+          </div>
+        </div>
+      </section>
     </main>
 
     <footer>
@@ -72,14 +96,17 @@
       const s = await fetchSession();
       const loginCard = document.getElementById('login-card');
       const sessionCard = document.getElementById('session-card');
+      const backupCard = document.getElementById('backup-card');
       if (s.authenticated) {
         loginCard.hidden = true;
         sessionCard.hidden = false;
+        backupCard.hidden = false;
         const who = document.getElementById('whoami');
         who.textContent = `Signed in as ${s.user.username} (${s.user.email}). Token expires at ${new Date(s.expires_at).toLocaleString()}.`;
       } else {
         loginCard.hidden = false;
         sessionCard.hidden = true;
+        backupCard.hidden = true;
       }
     }
 
@@ -131,6 +158,65 @@
         await showState();
       } catch (e) {
         msg.textContent = 'Network error';
+      }
+    });
+
+    document.getElementById('backupBtn').addEventListener('click', () => {
+      window.location.href = '/api/backup';
+    });
+
+    document.getElementById('restoreBtn').addEventListener('click', async () => {
+      const fileInput = document.getElementById('restoreFile');
+      const msg = document.getElementById('restoreMsg');
+      msg.textContent = '';
+      msg.className = '';
+
+      if (!fileInput.files || fileInput.files.length === 0) {
+        msg.textContent = 'Please select a backup file first.';
+        msg.className = 'error';
+        return;
+      }
+
+      if (!confirm('WARNING: This will replace ALL existing data (roles, users, API keys, badges) with the contents of the backup file. This action cannot be undone.\n\nAre you sure you want to proceed?')) {
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('backup_file', fileInput.files[0]);
+
+      try {
+        const res = await fetch('/api/restore', {
+          method: 'POST',
+          body: formData,
+          credentials: 'same-origin'
+        });
+
+        const ct = res.headers.get('Content-Type') || '';
+        if (res.ok && ct.includes('application/json')) {
+          const data = await res.json();
+          const c = data.counts || {};
+          msg.textContent = `Restore successful! Roles: ${c.roles}, Users: ${c.users}, API Keys: ${c.api_keys}, Badges: ${c.badges}`;
+          msg.className = 'success';
+        } else {
+          let friendly = 'Restore failed';
+          if (ct.includes('application/json')) {
+            try {
+              const data = await res.json();
+              friendly = data.error || data.message || friendly;
+            } catch (_) {}
+          } else if (res.status === 403) {
+            friendly = 'Permission denied — admin access required';
+          } else if (res.status === 400) {
+            friendly = 'Invalid backup file';
+          } else {
+            await res.text();
+          }
+          msg.textContent = friendly;
+          msg.className = 'error';
+        }
+      } catch (e) {
+        msg.textContent = 'Network error';
+        msg.className = 'error';
       }
     });
 
