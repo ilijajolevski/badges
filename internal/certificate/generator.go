@@ -175,7 +175,21 @@ func (g *Generator) GenerateSVG(badge *database.Badge) ([]byte, error) {
 
 	// Prepare data for the template
 	// Prepare software name split for potential two-line display in big template
-	softwareNameLine1, softwareNameLine2 := splitSoftwareNameTwoLines(badge.SoftwareName, 16)
+	softwareNameLines := splitSoftwareNameLines(badge.SoftwareName, 16, 3)
+	softwareNameLine1 := softwareNameLines[0]
+	softwareNameLine2 := ""
+	softwareNameLine3 := ""
+	if len(softwareNameLines) > 1 {
+		softwareNameLine2 = softwareNameLines[1]
+	}
+	if len(softwareNameLines) > 2 {
+		softwareNameLine3 = softwareNameLines[2]
+	}
+
+	// Calculate font size based on longest line to prevent clipping.
+	// Available width ~132px. At 16px Verdana bold, ~14 chars fit.
+	// For 3-line base font is 14px where ~16 chars fit.
+	softwareNameFontSize := calcSoftwareNameFontSize(softwareNameLines, softwareNameLine3 != "")
 
  // Calculate status flags/label for overlay rendering
  status := badge.Status
@@ -210,6 +224,8 @@ func (g *Generator) GenerateSVG(badge *database.Badge) ([]byte, error) {
 		"SpecialtyDomain":   specialtyDomain,
 		"SoftwareNameLine1": softwareNameLine1,
 		"SoftwareNameLine2": softwareNameLine2,
+		"SoftwareNameLine3":    softwareNameLine3,
+		"SoftwareNameFontSize": softwareNameFontSize,
 
 		// New color parameters for big certificate template
 		"LogoColor":           logoColor,
@@ -310,17 +326,17 @@ func splitCertificateName(name string) []string {
 	return words
 }
 
-// splitSoftwareNameTwoLines splits the software name into up to two lines based on a max character threshold.
-// - If the name length is within the limit, line 1 contains the full name and line 2 is empty.
-// - Otherwise, it tries to break on word boundaries without exceeding maxPerLine on the first line.
-// - If there are no spaces, it splits at maxPerLine.
-func splitSoftwareNameTwoLines(name string, maxPerLine int) (string, string) {
+// splitSoftwareNameLines splits the software name into up to maxLines lines,
+// each at most maxPerLine characters, breaking at word boundaries.
+func splitSoftwareNameLines(name string, maxPerLine int, maxLines int) []string {
 	if maxPerLine <= 0 {
 		maxPerLine = 26
 	}
+	if maxLines <= 0 {
+		maxLines = 3
+	}
 
 	trim := func(s string) string {
-		// simple trim without importing strings to keep dependencies minimal
 		start, end := 0, len(s)
 		for start < end && (s[start] == ' ' || s[start] == '\t' || s[start] == '\n') {
 			start++
@@ -332,29 +348,83 @@ func splitSoftwareNameTwoLines(name string, maxPerLine int) (string, string) {
 	}
 
 	name = trim(name)
-	if len(name) <= maxPerLine {
-		return name, ""
+	if name == "" {
+		return []string{""}
 	}
 
-	// Find last space within limit for the first line
-	breakPos := -1
-	for i := 0; i < len(name) && i <= maxPerLine; i++ {
-		if name[i] == ' ' {
-			breakPos = i
+	// Split into words
+	var words []string
+	current := ""
+	for _, ch := range name {
+		if ch == ' ' {
+			if current != "" {
+				words = append(words, current)
+				current = ""
+			}
+		} else {
+			current += string(ch)
+		}
+	}
+	if current != "" {
+		words = append(words, current)
+	}
+
+	// Greedily fill lines up to maxLines
+	var lines []string
+	wordIdx := 0
+	for wordIdx < len(words) && len(lines) < maxLines {
+		line := words[wordIdx]
+		wordIdx++
+		for wordIdx < len(words) {
+			// On the last allowed line, append everything remaining
+			if len(lines) == maxLines-1 {
+				line += " " + words[wordIdx]
+				wordIdx++
+				continue
+			}
+			// Otherwise, only append if it fits
+			if len(line)+1+len(words[wordIdx]) <= maxPerLine {
+				line += " " + words[wordIdx]
+				wordIdx++
+			} else {
+				break
+			}
+		}
+		lines = append(lines, line)
+	}
+
+	return lines
+}
+
+// calcSoftwareNameFontSize returns a font size (in px) that ensures the longest
+// line fits within the available width (~132px). Base size is 16px for 1-2 line
+// layouts and 14px for 3-line layouts. At 16px Verdana bold, ~14 chars fit; at
+// 14px, ~16 chars fit. If any line is longer, the font is scaled down.
+func calcSoftwareNameFontSize(lines []string, threeLines bool) int {
+	baseSize := 16
+	maxChars := 14
+	if threeLines {
+		baseSize = 14
+		maxChars = 16
+	}
+
+	longest := 0
+	for _, l := range lines {
+		if len(l) > longest {
+			longest = len(l)
 		}
 	}
 
-	if breakPos == -1 {
-		// No space within limit; hard split
-		if len(name) > maxPerLine {
-			return name[:maxPerLine], trim(name[maxPerLine:])
-		}
-		return name, ""
+	if longest <= maxChars {
+		return baseSize
 	}
 
-	line1 := trim(name[:breakPos])
-	line2 := trim(name[breakPos+1:])
-	return line1, line2
+	// Scale down proportionally
+	fs := baseSize * maxChars / longest
+	if fs < 8 {
+		fs = 8
+	}
+	return fs
 }
 
 // SVG template for certificates
