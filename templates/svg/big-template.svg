@@ -114,21 +114,31 @@
   </text>
   <!-- Center label: Badge Service and version in white -->
   <!-- Center label: Badge Service name and version (white) -->
-  <text class="cls-7" id="center_name" x="20" y="100">
-    {{if .SoftwareNameLine2}}
-    <tspan x="14" y="90" id="tspan_center_name_line1">{{.SoftwareNameLine1}}</tspan>
-    <tspan x="14" y="110" id="tspan_center_name_line2">{{.SoftwareNameLine2}}</tspan>
-    {{else}}
-    <tspan x="20" y="100" id="tspan_center_name">{{.SoftwareNameLine1}}</tspan>
-    {{end}}
+  {{if .SoftwareNameLine3}}
+  <text class="cls-7" id="center_name" style="font-size:{{.SoftwareNameFontSize}}px;">
+    <tspan x="21" y="88" id="tspan_center_name_line1">{{.SoftwareNameLine1}}</tspan>
+    <tspan x="21" y="103" id="tspan_center_name_line2">{{.SoftwareNameLine2}}</tspan>
+    <tspan x="21" y="118" id="tspan_center_name_line3">{{.SoftwareNameLine3}}</tspan>
   </text>
-  <text class="cls-7" id="center_version" x="20" y="122">
-      {{if .SoftwareNameLine2}}
-    <tspan x="16" y="130" id="tspan_center_version">{{.SoftwareVersion}}</tspan>
-      {{else}}
-    <tspan x="20" y="122" id="tspan_center_version">{{.SoftwareVersion}}</tspan>
-      {{end}}
+  <text class="cls-7" id="center_version" style="font-size:{{.SoftwareNameFontSize}}px;">
+    <tspan x="21" y="133" id="tspan_center_version">{{.SoftwareVersion}}</tspan>
   </text>
+  {{else if .SoftwareNameLine2}}
+  <text class="cls-7" id="center_name" style="font-size:{{.SoftwareNameFontSize}}px;">
+    <tspan x="21" y="92" id="tspan_center_name_line1">{{.SoftwareNameLine1}}</tspan>
+    <tspan x="21" y="110" id="tspan_center_name_line2">{{.SoftwareNameLine2}}</tspan>
+  </text>
+  <text class="cls-7" id="center_version" style="font-size:{{.SoftwareNameFontSize}}px;">
+    <tspan x="21" y="128" id="tspan_center_version">{{.SoftwareVersion}}</tspan>
+  </text>
+  {{else}}
+  <text class="cls-7" id="center_name" style="font-size:{{.SoftwareNameFontSize}}px;">
+    <tspan x="21" y="100" id="tspan_center_name">{{.SoftwareNameLine1}}</tspan>
+  </text>
+  <text class="cls-7" id="center_version" style="font-size:{{.SoftwareNameFontSize}}px;">
+    <tspan x="21" y="120" id="tspan_center_version">{{.SoftwareVersion}}</tspan>
+  </text>
+  {{end}}
   <!-- Outer 1px non-scaling keyline to prevent white border blending into white pages -->
   <rect x="0.5" y="0.5" width="169" height="199" fill="none"
         stroke="#808080" stroke-width="1"
