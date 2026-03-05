@@ -11,6 +11,7 @@ import (
     "github.com/finki/badges/internal/auth"
     "github.com/finki/badges/internal/cache"
     "github.com/finki/badges/internal/database"
+    "github.com/finki/badges/internal/version"
     "go.uber.org/zap"
 )
 
@@ -20,6 +21,8 @@ type TemplateData struct {
     CurrentYear int
     // Permissions
     CanCreate   bool
+    Version     string
+    Commit      string
 }
 
 // BadgeData represents the data for a single badge in the list
@@ -159,6 +162,8 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
         Badges:      make([]*BadgeData, 0, len(badges)),
         CurrentYear: time.Now().Year(),
         CanCreate:   canSeeDrafts,
+        Version:     version.Version,
+        Commit:      version.Commit,
     }
 
 	// Convert database badges to template badge data

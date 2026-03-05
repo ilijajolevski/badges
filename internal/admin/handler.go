@@ -7,12 +7,15 @@ import (
 
     "github.com/finki/badges/internal/cache"
     "github.com/finki/badges/internal/database"
+    "github.com/finki/badges/internal/version"
     "go.uber.org/zap"
 )
 
 // TemplateData represents the data passed to the admin page template
 type TemplateData struct {
     CurrentYear int
+    Version     string
+    Commit      string
 }
 
 // Handler serves the /admin page
@@ -45,7 +48,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
         return
     }
 
-    data := TemplateData{CurrentYear: time.Now().Year()}
+    data := TemplateData{CurrentYear: time.Now().Year(), Version: version.Version, Commit: version.Commit}
 
     w.Header().Set("Content-Type", "text/html; charset=utf-8")
     if err := h.template.Execute(w, data); err != nil {

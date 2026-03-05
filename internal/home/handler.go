@@ -7,12 +7,15 @@ import (
 
 	"github.com/finki/badges/internal/cache"
 	"github.com/finki/badges/internal/database"
+	"github.com/finki/badges/internal/version"
 	"go.uber.org/zap"
 )
 
 // TemplateData represents the data passed to the home page template
 type TemplateData struct {
 	CurrentYear int
+	Version     string
+	Commit      string
 }
 
 // Handler handles home page requests
@@ -58,6 +61,8 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	// Prepare template data
 	data := TemplateData{
 		CurrentYear: time.Now().Year(),
+		Version:     version.Version,
+		Commit:      version.Commit,
 	}
 
 	w.Header().Set("Content-Type", "text/html; charset=utf-8")

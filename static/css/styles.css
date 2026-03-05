@@ -331,6 +331,15 @@ footer a:hover {
 }
 
 
+/* Version label */
+.version-label {
+    display: block;
+    margin-top: 8px;
+    font-size: 0.75rem;
+    color: #999;
+    font-family: monospace;
+}
+
 /* Ensure values in details table can wrap across multiple lines */
 .details-info table td {
     white-space: normal;         /* allow wrapping */
