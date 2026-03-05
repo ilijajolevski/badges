@@ -10,6 +10,8 @@ import (
 	"syscall"
 	"time"
 
+	"encoding/json"
+
 	"github.com/finki/badges/internal/admin"
 	"github.com/finki/badges/internal/apikey"
 	"github.com/finki/badges/internal/auth"
@@ -25,6 +27,7 @@ import (
  "github.com/finki/badges/internal/home"
  "github.com/finki/badges/internal/list"
  "github.com/finki/badges/internal/middleware"
+ "github.com/finki/badges/internal/version"
  "go.uber.org/zap"
 )
 
@@ -44,6 +47,14 @@ func main() {
 
 	// Replace the global logger
 	zap.ReplaceGlobals(logger)
+
+	// Log version info
+	info := version.Info()
+	logger.Info("Starting CertifyHub",
+		zap.String("version", info.Version),
+		zap.String("commit", info.Commit),
+		zap.String("build_date", info.BuildDate),
+	)
 
 	// Initialize database
 	db, err := database.New(cfg.DatabasePath, logger)
@@ -114,6 +125,16 @@ func main() {
  createHandler := create.NewHandler(db, logger, imageCache)
 
  registerRoutes(mux, badgeHandler, certificateHandler, detailsHandler, listHandler, homeHandler, adminHandler, editHandler, createHandler, apiKeyHandler, authHandler, backupHandler, errorHandler, sanitizer, rateLimiter, requestLogger)
+
+	// Health endpoint (minimal middleware)
+	mux.Handle("/health", requestLogger.Middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json; charset=utf-8")
+		json.NewEncoder(w).Encode(map[string]string{
+			"status":  "ok",
+			"version": version.Version,
+			"commit":  version.Commit,
+		})
+	})))
 
 	// Create HTTP server
 	server := &http.Server{

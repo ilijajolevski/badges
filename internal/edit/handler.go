@@ -10,6 +10,7 @@ import (
     "github.com/finki/badges/internal/auth"
     "github.com/finki/badges/internal/cache"
     "github.com/finki/badges/internal/database"
+    "github.com/finki/badges/internal/version"
     "go.uber.org/zap"
 )
 
@@ -20,6 +21,8 @@ type TemplateData struct {
     Repositories []database.Repository
     // Permissions
     CanDelete bool
+    Version   string
+    Commit    string
 }
 
 // Handler serves the /edit/{id} page and processes updates/deletes
@@ -90,7 +93,7 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
             return
         }
         repos := badge.GetRepositories()
-        data := TemplateData{CurrentYear: time.Now().Year(), Badge: badge, Repositories: repos, CanDelete: canDelete}
+        data := TemplateData{CurrentYear: time.Now().Year(), Badge: badge, Repositories: repos, CanDelete: canDelete, Version: version.Version, Commit: version.Commit}
         w.Header().Set("Content-Type", "text/html; charset=utf-8")
         if err := h.template.Execute(w, data); err != nil {
             h.logger.Error("failed to render edit template", zap.Error(err))

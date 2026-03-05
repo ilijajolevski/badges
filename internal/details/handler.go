@@ -10,6 +10,7 @@ import (
 	"github.com/finki/badges/internal/auth"
 	"github.com/finki/badges/internal/cache"
 	"github.com/finki/badges/internal/database"
+	"github.com/finki/badges/internal/version"
 	"go.uber.org/zap"
 )
 
@@ -51,6 +52,8 @@ type TemplateData struct {
     ShowPrivateNote     bool
     // CanEdit controls whether the Edit button should be rendered (badges:write permission)
     CanEdit             bool
+    Version             string
+    Commit              string
 }
 
 // Handler handles details page requests
@@ -274,6 +277,8 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
      IsExpired:       badge.IsExpired(),
      ShowPrivateNote: showPrivate,
      CanEdit:         canEdit,
+     Version:         version.Version,
+     Commit:          version.Commit,
  }
 
 	// Add optional fields if they exist
