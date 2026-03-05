@@ -11,7 +11,7 @@ GOBIN := $(GOBASE)/bin
 GOFILES := $(wildcard *.go)
 
 # Version variables
-VERSION := $(shell git describe --tags --always 2>/dev/null || echo "dev")
+VERSION := $(shell git describe --tags --always 2>/dev/null | sed 's/^v//' || echo "dev")
 COMMIT := $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 BUILD_DATE := $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 
