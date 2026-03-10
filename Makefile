@@ -84,7 +84,11 @@ bump-major:
 # Build Docker image
 build-image:
 	@echo "Building Docker image $(DOCKER_IMAGE):$(DOCKER_TAG)..."
-	@docker build -t $(DOCKER_IMAGE):$(DOCKER_TAG) .
+	@docker build \
+		--build-arg VERSION=$(VERSION) \
+		--build-arg COMMIT=$(COMMIT) \
+		--build-arg BUILD_DATE=$(BUILD_DATE) \
+		-t $(DOCKER_IMAGE):$(DOCKER_TAG) .
 
 # Push Docker image to registry
 push-image:

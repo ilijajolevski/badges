@@ -17,7 +17,15 @@ RUN go mod download
 COPY . .
 
 # Build the application
-RUN CGO_ENABLED=1 GOOS=linux go build -a -ldflags '-extldflags "-static"' -o badge-service ./cmd/server
+ARG VERSION=dev
+ARG COMMIT=unknown
+ARG BUILD_DATE=unknown
+
+RUN CGO_ENABLED=1 GOOS=linux go build -a -ldflags "-s -w -extldflags '-static' \
+    -X github.com/finki/badges/internal/version.Version=${VERSION} \
+    -X github.com/finki/badges/internal/version.Commit=${COMMIT} \
+    -X github.com/finki/badges/internal/version.BuildDate=${BUILD_DATE}" \
+    -o badge-service ./cmd/server
 
 # Stage 2: Create the final image
 FROM alpine:3.18
