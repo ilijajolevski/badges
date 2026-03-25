@@ -1,7 +1,7 @@
 # Variables
 APP_NAME := badge-service
 BINARY_NAME := $(APP_NAME)
-DOCKER_IMAGE := ilijajolevski/$(APP_NAME)
+DOCKER_IMAGE := registry.gitlab.software.geant.org/software-licensing/softwarecerthub
 DOCKER_TAG := latest
 PORT ?= 9000
 
