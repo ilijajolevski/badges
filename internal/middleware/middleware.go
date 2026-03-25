@@ -190,7 +190,7 @@ func (s *Sanitizer) Middleware(next http.Handler) http.Handler {
 			}
 
 			// Validate commit ID format (alphanumeric and underscore, 6-40 chars)
-			if commitID != "" && !regexp.MustCompile(`^[a-zA-Z0-9_]{6,40}$`).MatchString(commitID) {
+			if commitID != "" && !regexp.MustCompile(`^[a-zA-Z0-9_-]{6,40}$`).MatchString(commitID) {
 				s.logger.Warn("Invalid commit ID format", zap.String("commit_id", commitID))
 				w.WriteHeader(http.StatusBadRequest)
 				return
