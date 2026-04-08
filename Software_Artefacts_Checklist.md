@@ -1,0 +1,92 @@
+Software Artefacts Checklist
+
+Checklist for Preparing and Validating Project Files
+This checklist provides key steps for preparing and validating project files, based on prior instructions and common issues:
+
+README file present (mandatory)
+  - Project name (mandatory)
+  - Copyright – short one-liner (mandatory)
+  - Project status – software lifecycle stage (Development, Beta, Stable, Retired etc.) (highly recommended)
+  - Tags – relevant tags and categories (optional)
+  - Latest stable version indicated (highly recommended)
+  - Licence – short one-liner with link, optionally stating "or later" (mandatory)
+  - Badges (optional)
+    - Badges: Project metadata and release status (optional)
+    - Badges: Package downloads and versions (optional)
+    - Badges: Community engagement, contribution guidelines and project status (optional)
+    - Badges: Continuous integration and build workflows (optional)
+    - Badges: Code quality and maintainability (optional)
+    - Badges: Test coverage and validation (optional)
+    - Badges: Dependency and security vulnerabilities (optional)
+    - Badges: Documentation and documentation coverage (optional)
+    - Badges: Community support and communication channels (optional)
+  - Description – clear and concise overview (mandatory)
+  - Features – key functionalities and capabilities (highly recommended)
+  - Scope – applicable contexts, use cases, requirements, constraints or limitations (highly recommended)
+  - Supported tools, environments, services or clients with confirmed compatibility and integration (  - optional)
+  - Components and/or project structure – with types or purposes (optional)
+  - System requirements – per supported platform or per-feature requirements or matrix if applicable (  - highly recommended)
+  - Installation – instructions or link: OS/platform requirements, prerequisites, dependencies, setup and   - configuration (mandatory)
+  - Usage – examples, screenshots, output samples, command-line, API or UI usage, demos, link to   - documentation (mandatory)
+  - Documentation – location, key documents (Installation, Usage) in docs/ or external, supplementary   - documents (mandatory)
+  - Version control – repository location, branch structure, tagging conventions (highly recommended)
+  - Troubleshooting & FAQ – common issues and solutions, Q&A (optional)
+  - Support – contact or helpdesk, public issue tracker, reporting procedure, security contact (optional)
+  - Privacy policy – link, summary of (personal) data processing or user data handling (if applicable) (  - mandatory if PD processed)
+  - Roadmap – planned features, known issues, resolution plans, public timeline or release goals (optional)
+  - Authors – main authors and contributors or link to AUTHORS, community or organisational contributions (  - optional)
+  - Contributing – guidelines or link to CONTRIBUTING, contribution steps and contact (highly recommended)
+  - Funding – sources, grant agreement number, project or programme, funder badge or logo (mandatory)
+  - Other acknowledgements – third-party support or partnerships (optional)
+  - Dependencies – main items with links, purposes, licences; tools for deployment/build/runtime; link to   - NOTICE (mandatory if not in NOTICE)
+  - Tools used – development and build tools (optional)
+  - Licence – one-paragraph summary, link to full text or LICENSE, options, dual-licensing or exceptions (  - optional)
+  - Copyright – additional details with years, holder(s) and link to COPYRIGHT (optional)
+
+
+LICENSE file present (mandatory)
+  - Licence confirmed with the GÉANT IPR Coordinator (mandatory)
+  - Full official licence text or link to the original licence (mandatory)
+
+
+COPYRIGHT file present (mandatory)
+  - Placed in the project root folder or the component’s root folder if it differs from the rest of the   - project
+  - Copyright statement by GÉANT with project phase and other holders with years (mandatory)
+  - Copyright statements of other organisations or individuals (GÉANT developers to AUTHORS!), possibly   - scoped (optional)
+  - Copyright statement and disclaimers are in line with the GÉANT IPR Policy (mandatory)
+  - Copyright and IPR details are confirmed with the GÉANT IPR Coordinator (mandatory)
+  - EU logo (hosted under GÉANT or team control) (mandatory)
+  - GÉANT project phase text with the logo, if required (mandatory, check with IPR Coordinator)
+
+
+AUTHORS file present (optional)
+  - Project name (mandatory)
+  - GÉANT phase with work package, task or activity (mandatory)
+  - Developers, optionally with contacts, IDs, roles and affiliations (mandatory)
+  - Other contributors, optionally with contacts, IDs, roles and affiliations (optional)
+  - Funding information (mandatory, check with IPR Coordinator)
+
+
+NOTICE file present (mandatory, if required by licence)
+  - Project name (mandatory)
+  - Copyright – short one-liner (mandatory)
+  - Licence – declaration, link to full text, options, secondary licences, permissions, constraints,   - exceptions, disclaimers (mandatory)
+  - Authors and contributors – software origin or link to AUTHORS (optional)
+  - Third-party components – name, link, version, copyright and licence (mandatory if not in README)
+  - Tools used – name, link and purpose (optional)
+  - Trademark disclaimer (optional)
+  - Patents and patent-related statements (optional)
+  - Special acknowledgements or attributions – if licence- or contributor-required or desired (optional)
+  - Prior notices and mandatory notices for third-party components when required (mandatory when existing)
+
+
+CHANGELOG file present (recommended)
+  - Project name (mandatory)
+  - Entries in reverse chronological order (latest first) (mandatory)
+  - Version numbers, dates and summaries or labels such as "First release" or "Unreleased" (mandatory)
+  - Added – features or items (mandatory)
+  - Changed – features or items (recommended)
+  - Deprecated – features or items (recommended)
+  - Removed – features or items (recommended)
+  - Fixed – bugs or issues (recommended)
+  - Security – updates or patches (recommended)  - 

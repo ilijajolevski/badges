@@ -1,5 +1,10 @@
 # CertifyHub Service
 
+**Status:** Development &nbsp;|&nbsp; **Latest stable:** v0.1.2
+
+Copyright (c) 2024-2026 GÉANT Association &nbsp;|&nbsp;
+Licensed under the [Apache-2.0 License](LICENSE)
+
 A service for serving pre-issued certificates as SVG images, identified by a unique short certificate ID.
 
 ## Features
@@ -127,6 +132,33 @@ Big Certificate Look:
 
 [![Badge Service v1.0.0 Badge](https://certificates.software.geant.org/certificate/SOFTCAT_slSAD)](https://certificates.software.geant.org/details/SOFTCAT_slSAD)
 
+## Version Control
+
+Repository: https://github.com/finki/badges  
+Main branch: `main`  
+Releases: tagged as `vMAJOR.MINOR.PATCH` following [Semantic Versioning](https://semver.org/)  
+Changelog: see [CHANGELOG.md](CHANGELOG.md)
+
+## Authors
+
+See [AUTHORS](AUTHORS) for the list of developers and contributors.
+
+## Contributing
+
+Contributions are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) for guidelines on reporting issues and submitting changes.
+
+## Support
+
+- Issue tracker: https://github.com/finki/badges/issues
+
+## Funding
+
+This software was developed as part of the GÉANT project (GN5-1), co-funded by the European Union's Horizon Europe research and innovation programme under Grant Agreement No. 101100680. The work is carried out by the GÉANT Association on behalf of the GN5-1 project.
+
+## Dependencies
+
+Third-party dependencies and their licences are listed in the [NOTICE](NOTICE) file.
+
 ## Licence
 
-This project is licenced under the Apache-2.0 Licence - see the LICENCE file for details.
+This project is licenced under the Apache-2.0 Licence — see the [LICENSE](LICENSE) file for details.

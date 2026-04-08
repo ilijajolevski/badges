@@ -1,0 +1,70 @@
+CertifyHub Service
+
+Copyright (c) 2024-2026 GÉANT Association
+
+This product is licensed under the Apache License, Version 2.0.
+You may obtain a copy of the License at:
+
+    https://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software distributed
+under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR
+CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+
+Authors and contributors are listed in the AUTHORS file.
+
+-------------------------------------------------------------------------------
+
+THIRD-PARTY COMPONENTS
+
+This product includes software developed by third parties. Each component is
+used under the terms of its respective licence, as listed below.
+
+-------------------------------------------------------------------------------
+
+mattn/go-sqlite3 v1.14.28
+  Source:   https://github.com/mattn/go-sqlite3
+  Licence:  MIT License
+  Copyright (c) Yasuhiro Matsumoto
+
+golang-jwt/jwt v5.2.3
+  Source:   https://github.com/golang-jwt/jwt
+  Licence:  MIT License
+  Copyright (c) 2021 golang-jwt/jwt contributors
+
+go.uber.org/zap v1.27.0
+  Source:   https://github.com/uber-go/zap
+  Licence:  MIT License
+  Copyright (c) 2016-2022 Uber Technologies, Inc.
+
+go.uber.org/multierr v1.10.0
+  Source:   https://github.com/uber-go/multierr
+  Licence:  MIT License
+  Copyright (c) 2016-2022 Uber Technologies, Inc.
+
+disintegration/imaging v1.6.2
+  Source:   https://github.com/disintegration/imaging
+  Licence:  MIT License
+  Copyright (c) 2012 Grigory Dryapak
+
+golang.org/x/crypto v0.40.0
+  Source:   https://pkg.go.dev/golang.org/x/crypto
+  Licence:  BSD 3-Clause License
+  Copyright (c) The Go Authors. All rights reserved.
+
+golang.org/x/image v0.0.0-20191009234506-e7c1f5e7dbb8
+  Source:   https://pkg.go.dev/golang.org/x/image
+  Licence:  BSD 3-Clause License
+  Copyright (c) The Go Authors. All rights reserved.
+
+-------------------------------------------------------------------------------
+
+TOOLS
+
+This product uses the following external tools at runtime:
+
+librsvg / rsvg-convert
+  Source:   https://wiki.gnome.org/Projects/LibRsvg
+  Licence:  GNU Lesser General Public License, version 2.1 or later
+  Purpose:  SVG to PNG/JPG rasterisation
