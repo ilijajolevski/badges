@@ -7,7 +7,7 @@ This document explains how the Badge/Certificate service works and how to use it
 - Identity model:
   - Users and Roles are stored in the database (`users`, `roles` tables).
   - A default `admin` role with full permissions is created on first run.
-  - A default admin user is created if there are no users: username `admin`, password `Admin@123`, email `admin@example.com`.
+  - A default admin user is created if there are no users: username `admin`, email `admin@example.com`, and password taken from the `ADMIN_PASSWORD` environment variable (defaulting to `Admin@123` when unset). `ADMIN_PASSWORD` only applies at this initial creation; change the password later via the admin interface.
 - Permissions:
   - Role permissions are stored as JSON in `roles.permissions` and embedded into JWT claims on login.
   - Permissions are grouped by resource: `badges`, `users`, `api_keys` with `read/write/delete` flags.

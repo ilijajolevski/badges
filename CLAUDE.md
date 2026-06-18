@@ -31,6 +31,7 @@ The service requires **CGO** (sqlite3 driver) and **librsvg** (`rsvg-convert`) f
 | `PORT` | `80` | Server port |
 | `LOG_LEVEL` | `development` | `development` or `production` (zap) |
 | `DB_PATH` | `./db/badges.db` | SQLite database path |
+| `ADMIN_PASSWORD` | `Admin@123` | Password for the default `admin` user, applied only when that user is first created on an empty database |
 
 ## Architecture
 
@@ -78,7 +79,7 @@ The service requires **CGO** (sqlite3 driver) and **librsvg** (`rsvg-convert`) f
 - **Browser auth:** JWT stored in HTTP-only cookie (15-min expiry). `OptionalJWTFromCookie` injects claims into context; `RequirePermissionMiddleware` enforces access.
 - **API auth:** API keys with per-key permissions (badges read/write).
 - **RBAC:** Roles with JSON permissions covering badges, users, and api_keys (read/write/delete each).
-- Default admin user created on first startup (username: `admin`, password: `Admin@123`).
+- Default admin user created on first startup (username: `admin`, password from `ADMIN_PASSWORD` env var, defaulting to `Admin@123`).
 
 ### Routes
 

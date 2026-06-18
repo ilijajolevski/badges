@@ -13,6 +13,10 @@ import (
 	"golang.org/x/crypto/bcrypt"
 )
 
+// defaultAdminPassword is used for the seeded admin user when the
+// ADMIN_PASSWORD environment variable is not set.
+const defaultAdminPassword = "Admin@123"
+
 // DB represents a database connection
 type DB struct {
 	*sql.DB
@@ -241,8 +245,12 @@ func addDefaultAdminUser(db *sql.DB) error {
 	// Generate a unique user ID
 	userID := fmt.Sprintf("user_%x", time.Now().UnixNano())
 
-	// Create a secure password
-	password := "Admin@123" // Default password
+	// Determine the admin password: use ADMIN_PASSWORD env var if set,
+	// otherwise fall back to the predefined default.
+	password := defaultAdminPassword
+	if envPassword := os.Getenv("ADMIN_PASSWORD"); envPassword != "" {
+		password = envPassword
+	}
 
 	// Hash the password using bcrypt
 	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), 12) // Cost factor of 12
@@ -272,7 +280,11 @@ func addDefaultAdminUser(db *sql.DB) error {
 		return fmt.Errorf("failed to insert admin user: %w", err)
 	}
 
-	fmt.Println("Created default admin user with username 'admin' and password 'Admin@123'")
+	if password == defaultAdminPassword {
+		fmt.Printf("Created default admin user with username 'admin' and password '%s'\n", defaultAdminPassword)
+	} else {
+		fmt.Println("Created default admin user with username 'admin' and password from ADMIN_PASSWORD environment variable")
+	}
 	return nil
 }
 

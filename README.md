@@ -103,6 +103,13 @@ The service can be configured using environment variables:
 - `PORT`: The port to listen on (default: 8080)
 - `LOG_LEVEL`: The log level (default: development)
 - `DB_PATH`: The path to the SQLite database (default: ./db/badges.db)
+- `ADMIN_PASSWORD`: Password for the default `admin` user, created on first
+  startup when no users exist (default: `Admin@123`)
+
+> **Note:** `ADMIN_PASSWORD` only takes effect when the default admin user is
+> first created (i.e. on an empty database). Changing it later has no effect on
+> an existing admin account — update the password through the admin interface
+> instead. Set this in production to avoid using the well-known default.
 
 ## Integration
 
