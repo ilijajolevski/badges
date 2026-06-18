@@ -1,7 +1,10 @@
 /* Base styles */
+@import url('https://fonts.googleapis.com/css2?family=Nunito:ital,wght@0,400;0,600;0,700;1,400&display=swap');
+
 :root {
-    --primary-color: #4d798f;
-    --secondary-color: #003f5f;
+    /* GÉANT brand colours */
+    --primary-color: #2e2d7d;
+    --secondary-color: #535ca8;
     --accent-color: #4CAF50;
     --text-color: #333;
     --light-text: #666;
@@ -20,7 +23,7 @@
 }
 
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    font-family: 'Nunito', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     line-height: 1.6;
     color: var(--text-color);
     background-color: var(--background-color);
@@ -36,11 +39,11 @@ body {
     overflow: hidden;
 }
 
-/* Header styles */
+/* Header styles — GÉANT banner */
 header {
     background: linear-gradient(to right, var(--primary-color), var(--secondary-color));
     color: white;
-    padding: 30px;
+    padding: 48px 30px 32px;
     text-align: center;
     display: flex;
     flex-direction: column;
@@ -49,13 +52,17 @@ header {
 }
 
 .header-logo {
-    max-width: 200px;
+    width: 120px;
+    max-width: 100%;
     height: auto;
-    margin-bottom: 20px;
+    margin-bottom: 18px;
 }
 
 header h1 {
-    margin-bottom: 10px;
+    margin-bottom: 0;
+    font-weight: 400;
+    font-size: 2.25rem;
+    letter-spacing: 0.01em;
 }
 
 .commit-id {
