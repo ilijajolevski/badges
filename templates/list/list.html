@@ -86,6 +86,10 @@
             if(modal){
                 modal.addEventListener('click', function(e){ if(e.target === modal){ modal.style.display = 'none'; }});
             }
+            // Auto-open when arriving from the admin menu's "Add Certificate" link
+            if(modal && window.location.hash === '#new'){
+                modal.style.display = 'flex';
+            }
         })();
         </script>
         {{ end }}
@@ -94,5 +98,6 @@
             <span class="version-label">v{{.Version}} ({{.Commit}})</span>
         </footer>
     </div>
+    <script src="/static/js/admin-nav.js" defer></script>
 </body>
 </html>

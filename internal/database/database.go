@@ -615,6 +615,19 @@ func (db *DB) UpdateUser(user *User) error {
 	return nil
 }
 
+// UpdateUserPassword updates only the password hash (and updated_at) for a user
+func (db *DB) UpdateUserPassword(userID, passwordHash string) error {
+	_, err := db.Exec(
+		"UPDATE users SET password_hash = ?, updated_at = ? WHERE user_id = ?",
+		passwordHash, time.Now(), userID,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to update user password: %w", err)
+	}
+
+	return nil
+}
+
 // DeleteUser deletes a user from the database
 func (db *DB) DeleteUser(userID string) error {
 	_, err := db.Exec("DELETE FROM users WHERE user_id = ?", userID)

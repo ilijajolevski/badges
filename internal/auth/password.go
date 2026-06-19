@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"regexp"
-	"strings"
 
 	"golang.org/x/crypto/bcrypt"
 )
@@ -23,7 +22,6 @@ var (
 	ErrPasswordNoLower      = errors.New("password must contain at least one lowercase letter")
 	ErrPasswordNoNumber     = errors.New("password must contain at least one number")
 	ErrPasswordNoSpecial    = errors.New("password must contain at least one special character")
-	ErrPasswordCommonPhrase = errors.New("password contains common phrases or patterns")
 )
 
 // HashPassword hashes a password using bcrypt
@@ -83,47 +81,7 @@ func ValidatePassword(password string) error {
 		return ErrPasswordNoSpecial
 	}
 
-	// Check for common patterns or phrases
-	if containsCommonPatterns(password) {
-		return ErrPasswordCommonPhrase
-	}
-
 	return nil
-}
-
-// containsCommonPatterns checks if a password contains common patterns or phrases
-func containsCommonPatterns(password string) bool {
-	// Convert to lowercase for pattern matching
-	lowerPass := strings.ToLower(password)
-
-	// List of common patterns or phrases to check
-	commonPatterns := []string{
-		"password", "123456", "qwerty", "admin", "welcome",
-		"letmein", "monkey", "abc123", "111111", "12345678",
-	}
-
-	// Check if password contains any common patterns
-	for _, pattern := range commonPatterns {
-		if strings.Contains(lowerPass, pattern) {
-			return true
-		}
-	}
-
-	// Check for sequential characters
-	for i := 0; i < len(lowerPass)-2; i++ {
-		if lowerPass[i+1] == lowerPass[i]+1 && lowerPass[i+2] == lowerPass[i]+2 {
-			return true
-		}
-	}
-
-	// Check for repeated characters
-	for i := 0; i < len(lowerPass)-2; i++ {
-		if lowerPass[i] == lowerPass[i+1] && lowerPass[i] == lowerPass[i+2] {
-			return true
-		}
-	}
-
-	return false
 }
 
 // GenerateRandomPassword generates a random password that meets the security requirements

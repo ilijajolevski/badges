@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Backup</title>
+  <link rel="stylesheet" href="/static/css/styles.css">
+  <style>
+    .card { background: var(--card-bg, #fff); border-radius: 10px; box-shadow: var(--shadow-elev-1, 0 2px 8px rgba(0,0,0,0.08)); padding: 24px; margin-top: 16px; max-width: 520px; margin-left: auto; margin-right: auto; }
+    .btn { display: inline-block; padding: 10px 16px; border-radius: 6px; text-decoration: none; font-weight: 600; border: 0; cursor: pointer; }
+    .btn-primary { background: var(--primary-color); color: #fff; }
+    .btn-primary:hover { background: var(--secondary-color); }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <a href="/"><img src="/static/geant-logo-stacked.svg?v=2" alt="GÉANT Logo" class="header-logo"></a>
+      <h1>Backup</h1>
+    </header>
+
+    <main>
+      <section class="card">
+        <h2>Download Backup</h2>
+        <p style="margin-bottom: 16px; color: #667085;">Export the entire database (roles, users, API keys, badges) as a JSON file.</p>
+        <button class="btn btn-primary" id="backupBtn">Download Backup</button>
+      </section>
+    </main>
+
+    <footer>
+      <div>
+        The GÉANT project is funded by the Horizon Europe research and innovation programme.
+        <img src="/static/co-Funded_logo_white.png" alt="Co-funded by the European Union" class="cofunded-logo">
+      </div>
+      <span class="version-label">v{{.Version}} ({{.Commit}})</span>
+    </footer>
+  </div>
+
+  <script>
+    document.getElementById('backupBtn').addEventListener('click', () => {
+      window.location.href = '/api/backup';
+    });
+  </script>
+  <script src="/static/js/admin-nav.js" defer></script>
+</body>
+</html>

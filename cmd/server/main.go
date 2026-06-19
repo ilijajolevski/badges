@@ -13,6 +13,7 @@ import (
 	"encoding/json"
 
 	"github.com/finki/badges/internal/admin"
+	"github.com/finki/badges/internal/adminpages"
 	"github.com/finki/badges/internal/apikey"
 	"github.com/finki/badges/internal/auth"
 	"github.com/finki/badges/internal/badge"
@@ -117,6 +118,20 @@ func main() {
 	// Initialize backup handler
 	backupHandler := backup.NewHandler(db, logger, imageCache)
 
+	// Initialize the authenticated-only admin pages (backup, restore, change password)
+	backupPageHandler, err := adminpages.NewHandler(logger, "/backup", "templates/backup/index.html")
+	if err != nil {
+		logger.Fatal("Failed to initialize backup page handler", zap.Error(err))
+	}
+	restorePageHandler, err := adminpages.NewHandler(logger, "/restore", "templates/restore/index.html")
+	if err != nil {
+		logger.Fatal("Failed to initialize restore page handler", zap.Error(err))
+	}
+	passwordPageHandler, err := adminpages.NewHandler(logger, "/password", "templates/password/index.html")
+	if err != nil {
+		logger.Fatal("Failed to initialize password page handler", zap.Error(err))
+	}
+
 	// Initialize HTTP server
 	mux := http.NewServeMux()
 
@@ -124,7 +139,7 @@ func main() {
  // Initialize create handler
  createHandler := create.NewHandler(db, logger, imageCache)
 
- registerRoutes(mux, badgeHandler, certificateHandler, detailsHandler, listHandler, homeHandler, adminHandler, editHandler, createHandler, apiKeyHandler, authHandler, backupHandler, errorHandler, sanitizer, rateLimiter, requestLogger)
+ registerRoutes(mux, badgeHandler, certificateHandler, detailsHandler, listHandler, homeHandler, adminHandler, editHandler, createHandler, apiKeyHandler, authHandler, backupHandler, backupPageHandler, restorePageHandler, passwordPageHandler, errorHandler, sanitizer, rateLimiter, requestLogger)
 
 	// Health endpoint (minimal middleware)
 	mux.Handle("/health", requestLogger.Middleware(http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
@@ -213,6 +228,9 @@ func registerRoutes(
     apiKeyHandler *apikey.Handler,
     authHandler *auth.Handler,
     backupHandler *backup.Handler,
+    backupPageHandler *adminpages.Handler,
+    restorePageHandler *adminpages.Handler,
+    passwordPageHandler *adminpages.Handler,
     errorHandler *middleware.ErrorHandler,
     sanitizer *middleware.Sanitizer,
     rateLimiter *middleware.RateLimiter,
@@ -337,6 +355,17 @@ func registerRoutes(
 		),
 	)
 
+	// Change-password endpoint: authenticated session required (enforced in the handler)
+	changePasswordHandlerWithMiddleware := requestLogger.Middleware(
+		errorHandler.Middleware(
+			rateLimiter.Middleware(
+				sanitizer.Middleware(
+					auth.OptionalJWTFromCookie(http.HandlerFunc(authHandler.ChangePassword)),
+				),
+			),
+		),
+	)
+
 	// Register routes
 	mux.Handle("/badge/", badgeHandlerWithMiddleware)
 	mux.Handle("/certificate/", certificateHandlerWithMiddleware)
@@ -357,11 +386,27 @@ func registerRoutes(
  )
  mux.Handle("/certificates/new", createHandlerWithMiddleware)
  mux.Handle("/admin", requestLogger.Middleware(errorHandler.Middleware(rateLimiter.Middleware(sanitizer.Middleware(adminHandler)))))
+ // Authenticated-only admin pages: inject optional JWT; handlers redirect to /admin if unauthenticated
+ adminPageMiddleware := func(h http.Handler) http.Handler {
+     return requestLogger.Middleware(
+         errorHandler.Middleware(
+             rateLimiter.Middleware(
+                 sanitizer.Middleware(
+                     auth.OptionalJWTFromCookie(h),
+                 ),
+             ),
+         ),
+     )
+ }
+ mux.Handle("/backup", adminPageMiddleware(backupPageHandler))
+ mux.Handle("/restore", adminPageMiddleware(restorePageHandler))
+ mux.Handle("/password", adminPageMiddleware(passwordPageHandler))
  mux.Handle("/edit/", editHandlerWithMiddleware)
  mux.Handle("/api/keys", listAPIKeysHandlerWithMiddleware)
  mux.Handle("/api/auth/login", loginHandlerWithMiddleware)
  mux.Handle("/api/auth/logout", logoutHandlerWithMiddleware)
 	mux.Handle("/api/auth/session", sessionHandlerWithMiddleware)
+	mux.Handle("/api/auth/password", changePasswordHandlerWithMiddleware)
 
 	// Backup & restore endpoints (admin only: users:write permission + role check in handler)
 	mux.Handle("/api/backup", requestLogger.Middleware(

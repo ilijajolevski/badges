@@ -5,6 +5,7 @@ import (
     "html/template"
     "net/http"
     "regexp"
+    "strings"
     "sync"
     "time"
 
@@ -48,14 +49,17 @@ func (h *ErrorHandler) Middleware(next http.Handler) http.Handler {
         // Call the next handler
         next.ServeHTTP(crw, r)
 
-        // If the status code is an error, render the error page
-        if crw.statusCode >= 400 {
+        // If the status code is an error, render the error page — unless the
+        // downstream handler produced a JSON body (e.g. an API endpoint), in which
+        // case we pass the structured error through untouched so clients can read it.
+        isJSON := strings.Contains(crw.header.Get("Content-Type"), "application/json")
+        if crw.statusCode >= 400 && !(isJSON && crw.body.Len() > 0) {
             // Discard any body written by downstream handlers and render our error page
             h.renderErrorPage(w, crw.statusCode, r)
             return
         }
 
-        // Otherwise, flush the captured successful response to the real writer
+        // Otherwise, flush the captured response to the real writer
         // Copy headers first
         for k, vv := range crw.header {
             for _, v := range vv {

@@ -266,3 +266,68 @@ func (h *Handler) Session(w http.ResponseWriter, r *http.Request) {
         "expires_at": claims.ExpiresAt.Time,
     })
 }
+
+// ChangePasswordRequest represents a password change request
+type ChangePasswordRequest struct {
+    OldPassword string `json:"old_password"`
+    NewPassword string `json:"new_password"`
+}
+
+// ChangePassword lets the authenticated user change their own password
+func (h *Handler) ChangePassword(w http.ResponseWriter, r *http.Request) {
+    if r.Method != http.MethodPost {
+        writeJSONError(w, http.StatusMethodNotAllowed, "Method not allowed")
+        return
+    }
+
+    // Require an authenticated session (route is wrapped with OptionalJWTFromCookie)
+    claims := GetClaimsFromContext(r.Context())
+    if claims == nil {
+        writeJSONError(w, http.StatusUnauthorized, "Authentication required")
+        return
+    }
+
+    var req ChangePasswordRequest
+    if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+        writeJSONError(w, http.StatusBadRequest, "Invalid request body")
+        return
+    }
+    if req.OldPassword == "" || req.NewPassword == "" {
+        writeJSONError(w, http.StatusBadRequest, "Current and new password are required")
+        return
+    }
+
+    user, err := h.DB.GetUser(claims.UserID)
+    if err != nil || user == nil {
+        h.Logger.Error("ChangePassword: failed to load user", zap.Error(err))
+        writeJSONError(w, http.StatusUnauthorized, "User not found")
+        return
+    }
+
+    if err := VerifyPassword(user.PasswordHash, req.OldPassword); err != nil {
+        writeJSONError(w, http.StatusUnauthorized, "Current password is incorrect")
+        return
+    }
+
+    if err := ValidatePassword(req.NewPassword); err != nil {
+        writeJSONError(w, http.StatusBadRequest, err.Error())
+        return
+    }
+
+    hashed, err := HashPassword(req.NewPassword)
+    if err != nil {
+        h.Logger.Error("ChangePassword: failed to hash password", zap.Error(err))
+        writeJSONError(w, http.StatusInternalServerError, "Failed to update password")
+        return
+    }
+
+    if err := h.DB.UpdateUserPassword(user.UserID, hashed); err != nil {
+        h.Logger.Error("ChangePassword: failed to persist password", zap.Error(err))
+        writeJSONError(w, http.StatusInternalServerError, "Failed to update password")
+        return
+    }
+
+    w.Header().Set("Content-Type", "application/json")
+    w.WriteHeader(http.StatusOK)
+    _ = json.NewEncoder(w).Encode(map[string]string{"status": "password_changed"})
+}

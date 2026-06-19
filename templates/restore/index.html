@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Restore</title>
+  <link rel="stylesheet" href="/static/css/styles.css">
+  <style>
+    .card { background: var(--card-bg, #fff); border-radius: 10px; box-shadow: var(--shadow-elev-1, 0 2px 8px rgba(0,0,0,0.08)); padding: 24px; margin-top: 16px; max-width: 520px; margin-left: auto; margin-right: auto; }
+    .form-row { margin-bottom: 12px; }
+    .form-row input { width: 100%; padding: 10px; border: 1px solid #d0d5dd; border-radius: 6px; }
+    .btn { display: inline-block; padding: 10px 16px; border-radius: 6px; text-decoration: none; font-weight: 600; border: 0; cursor: pointer; }
+    .btn-danger { background: #b42318; color: #fff; }
+    .btn-danger:hover { background: #912018; }
+    .actions { display: flex; gap: 8px; align-items: center; }
+    .error { color: #b42318; margin-top: 8px; }
+    .success { color: #027a48; margin-top: 8px; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <a href="/"><img src="/static/geant-logo-stacked.svg?v=2" alt="GÉANT Logo" class="header-logo"></a>
+      <h1>Restore</h1>
+    </header>
+
+    <main>
+      <section class="card">
+        <h2>Restore from Backup</h2>
+        <p style="margin-bottom: 8px; color: #667085;">Upload a previously downloaded backup file. <strong>This will replace all existing data.</strong></p>
+        <div class="form-row">
+          <input type="file" id="restoreFile" accept=".json" />
+        </div>
+        <div class="actions">
+          <button class="btn btn-danger" id="restoreBtn">Restore from Backup</button>
+          <span id="restoreMsg" aria-live="polite"></span>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div>
+        The GÉANT project is funded by the Horizon Europe research and innovation programme.
+        <img src="/static/co-Funded_logo_white.png" alt="Co-funded by the European Union" class="cofunded-logo">
+      </div>
+      <span class="version-label">v{{.Version}} ({{.Commit}})</span>
+    </footer>
+  </div>
+
+  <script>
+    document.getElementById('restoreBtn').addEventListener('click', async () => {
+      const fileInput = document.getElementById('restoreFile');
+      const msg = document.getElementById('restoreMsg');
+      msg.textContent = '';
+      msg.className = '';
+
+      if (!fileInput.files || fileInput.files.length === 0) {
+        msg.textContent = 'Please select a backup file first.';
+        msg.className = 'error';
+        return;
+      }
+
+      if (!confirm('WARNING: This will replace ALL existing data (roles, users, API keys, badges) with the contents of the backup file. This action cannot be undone.\n\nAre you sure you want to proceed?')) {
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append('backup_file', fileInput.files[0]);
+
+      try {
+        const res = await fetch('/api/restore', {
+          method: 'POST',
+          body: formData,
+          credentials: 'same-origin'
+        });
+
+        const ct = res.headers.get('Content-Type') || '';
+        if (res.ok && ct.includes('application/json')) {
+          const data = await res.json();
+          const c = data.counts || {};
+          msg.textContent = `Restore successful! Roles: ${c.roles}, Users: ${c.users}, API Keys: ${c.api_keys}, Badges: ${c.badges}`;
+          msg.className = 'success';
+        } else {
+          let friendly = 'Restore failed';
+          if (ct.includes('application/json')) {
+            try {
+              const data = await res.json();
+              friendly = data.error || data.message || friendly;
+            } catch (_) {}
+          } else if (res.status === 403) {
+            friendly = 'Permission denied — admin access required';
+          } else if (res.status === 400) {
+            friendly = 'Invalid backup file';
+          } else {
+            await res.text();
+          }
+          msg.textContent = friendly;
+          msg.className = 'error';
+        }
+      } catch (e) {
+        msg.textContent = 'Network error';
+        msg.className = 'error';
+      }
+    });
+  </script>
+  <script src="/static/js/admin-nav.js" defer></script>
+</body>
+</html>
