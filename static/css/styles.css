@@ -305,6 +305,14 @@ footer a:hover {
     text-decoration: underline;
 }
 
+.cofunded-logo {
+    max-width: 240px;
+    width: 240px;
+    height: auto;
+    display: block;
+    margin: 8px auto 0;
+}
+
 /* Badges list styles */
 .badges-list {
     margin-bottom: 30px;
