@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-CertifyHub is a Go web service that serves GÉANT software certificates as SVG/PNG/JPG badge images, identified by a unique short certificate ID. It provides both small inline badges and large certificate visuals, plus HTML detail pages and an admin interface.
+SoftwareCertHub is a Go web service that serves GÉANT software certificates as SVG/PNG/JPG badge images, identified by a unique short certificate ID. It provides both small inline badges and large certificate visuals, plus HTML detail pages and an admin interface.
 
 ## Build & Development Commands
 

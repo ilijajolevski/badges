@@ -1,4 +1,4 @@
-# Contributing to CertifyHub Service
+# Contributing to SoftwareCertHub
 
 Thank you for your interest in contributing. This document outlines the process
 for reporting issues and submitting changes.

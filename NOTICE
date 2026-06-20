@@ -1,4 +1,4 @@
-CertifyHub Service
+SoftwareCertHub
 
 Copyright (c) 2024-2026 GÉANT Association
 
@@ -20,6 +20,17 @@ THIRD-PARTY COMPONENTS
 
 This product includes software developed by third parties. Each component is
 used under the terms of its respective licence, as listed below.
+
+Third-party licence summary (SPDX identifiers):
+
+  - MIT
+  - BSD-3-Clause
+  - LGPL-2.1-or-later (external runtime tool only — see TOOLS)
+
+The distributed Go binary statically includes only MIT- and BSD-3-Clause-licensed
+code. librsvg (LGPL-2.1-or-later) is an external runtime tool invoked as a
+separate subprocess (`rsvg-convert`) and is not linked into the binary. No
+GPL-3.0-licensed code is included in or distributed with this product.
 
 -------------------------------------------------------------------------------
 
@@ -68,3 +79,30 @@ librsvg / rsvg-convert
   Source:   https://wiki.gnome.org/Projects/LibRsvg
   Licence:  GNU Lesser General Public License, version 2.1 or later
   Purpose:  SVG to PNG/JPG rasterisation
+
+-------------------------------------------------------------------------------
+
+TRADEMARKS
+
+"GÉANT" and the GÉANT logo are trademarks of the GÉANT Association. All other
+product names, logos, and brands are the property of their respective owners and
+are used for identification purposes only. Use of these names does not imply any
+affiliation with or endorsement by their respective owners.
+
+-------------------------------------------------------------------------------
+
+PATENTS
+
+This product is licensed under the Apache License, Version 2.0. No patent rights
+are granted beyond those expressly provided under Section 3 ("Grant of Patent
+License") of that licence. No other patent rights are granted, expressed, or
+implied.
+
+-------------------------------------------------------------------------------
+
+ACKNOWLEDGEMENTS
+
+This software was developed under the GÉANT project and is co-funded by the
+European Union's Horizon Europe research and innovation programme. We gratefully
+acknowledge the third-party open-source projects listed above, without which this
+software would not be possible.

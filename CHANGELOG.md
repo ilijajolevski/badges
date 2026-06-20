@@ -1,9 +1,38 @@
-# CertifyHub Service — Changelog
+# SoftwareCertHub — Changelog
 
 All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Added
+
+- Authenticated admin menu with dedicated admin screens
+- `ADMIN_PASSWORD` environment variable to set the default admin password on
+  first startup
+- Funding footer ("Co-funded by the European Union") on the certificates list
+  page
+
+### Changed
+
+- Redesigned page headers with GÉANT branding
+- Applied new GÉANT branding to badges, certificates, and the page header
+- Co-funded EU logo now rendered at a consistent small size across all pages
+
+### Deprecated
+
+- None.
+
+### Removed
+
+- None.
+
+### Security
+
+- `ADMIN_PASSWORD` is now configurable so deployments can avoid the well-known
+  default admin password
 
 ## [0.1.2] - 2026-04-08
 
