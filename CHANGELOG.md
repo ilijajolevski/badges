@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
-## [Unreleased]
+## [0.2.0] - 2026-06-20
 
 ### Added
 
@@ -20,6 +20,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Redesigned page headers with GÉANT branding
 - Applied new GÉANT branding to badges, certificates, and the page header
 - Co-funded EU logo now rendered at a consistent small size across all pages
+- Standardised the project name to **SoftwareCertHub** across all documentation
+- Brought documentation into GÉANT Software Artefacts Checklist compliance
+  (added Scope, Compatibility, Architecture, Usage, Documentation,
+  Troubleshooting, Privacy, Roadmap, and Acknowledgements sections)
 
 ### Deprecated
 
